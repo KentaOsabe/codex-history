@@ -1,0 +1,25 @@
+services:
+  backend:
+    build:
+      context: .
+    image: codex-history-backend:dev
+    container_name: codex-history-backend
+    volumes:
+      - ./backend:/app
+      - bundle-cache:/bundle
+      - ${CODEX_SESSIONS_ROOT:-/Users/osabekenta/.codex/sessions}:/data/codex:ro
+    environment:
+      RAILS_ENV: development
+      CODEX_SESSIONS_ROOT: /data/codex
+      BUNDLE_PATH: /bundle
+      BUNDLE_BIN: /bundle/bin
+      GEM_HOME: /bundle
+    ports:
+      - "3000:3000"
+    command: bash -lc "bundle exec rails server -b 0.0.0.0"
+    tty: true
+    stdin_open: true
+
+volumes:
+  bundle-cache:
+    driver: local
