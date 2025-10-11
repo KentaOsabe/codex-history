@@ -1,0 +1,6 @@
+{"timestamp": "2025-01-01T00:00:00.000Z", "type": "session_meta", "payload": {"id": "dummy-session-0001", "timestamp": "2025-01-01T00:00:00.000Z", "cwd": "/workspace", "originator": "codex_cli", "cli_version": "0.45.0-alpha", "instructions": "<dummy instructions for codex history viewer>"}}
+{"timestamp": "2025-01-01T00:00:05.000Z", "type": "response_item", "payload": {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "<dummy-text-1>"}]}}
+{"timestamp": "2025-01-01T00:00:07.000Z", "type": "response_item", "payload": {"type": "message", "role": "assistant", "content": [{"type": "output_text", "text": "<dummy-text-2>"}]}}
+{"timestamp": "2025-01-01T00:00:08.000Z", "type": "response_item", "payload": {"type": "function_call", "name": "shell", "arguments": "{\"command\": [\"<dummy-string-1>\", \"<dummy-string-2>\", \"<dummy-string-3>\"], \"workdir\": \"<dummy-string-4>\"}", "call_id": "dummy-call-1"}}
+{"timestamp": "2025-01-01T00:00:09.000Z", "type": "response_item", "payload": {"type": "function_call_output", "call_id": "dummy-call-1", "output": "{\"stdout\": \"<dummy-string-5>\", \"exit_code\": 0}"}}
+{"timestamp": "2025-01-01T00:00:10.000Z", "type": "event_msg", "payload": {"type": "token_count", "info": {"prompt_tokens": 120, "completion_tokens": 45}}}

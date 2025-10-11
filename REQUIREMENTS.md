@@ -27,14 +27,13 @@
 
 ## データソースと前提
 - ファイル構成: `/Users/osabekenta/.codex/sessions/YYYY/MM/DD/<session-id>.jsonl`。1行が1件のイベントを表すJSONオブジェクト。
-- JSON共通フィールド:  
-  - `timestamp`（ISO-8601, UTC）  
-  - `type` — 代表例は `session_meta` / `response_item` / `turn_context` / `event_msg`  
-  - `payload` — `type`ごとに構造が異なる
-- `response_item` のうち `payload.type === "message"` は会話本文を構成し、`payload.role` が `user` / `assistant` / `tool` 等の発言者、`payload.content` は複数セグメント（`type: "input_text" | "output_text" | ...`）で構成される。
-- `response_item` の `payload.type === "reasoning"` は暗号化済みコンテンツを含むためUIには表示せず、安全に無視または保持するポリシーを決める。
-- `event_msg`（例: `user_message`, `token_count`）や `function_call` 系のログはメタ情報として扱い、必要に応じて詳細タブやツール実行履歴として表示する。
-- バックエンドは上記の生データを正規化し、フロントエンドに対して `NormalizedMessage { timestamp, role, segments[], source_type }` のような統一フォーマットで提供する。
+- JSON共通フィールド: `timestamp`（ISO-8601, UTC）, `type`, `payload`。2025-09 以前の一部ログは `type` が存在しない旧フォーマット (`legacy_session_entry`) のため、後方互換ハンドリングが必要。
+- 主要イベント種別: `session_meta` / `turn_context` / `event_msg` / `response_item`。`response_item.payload.type` は `message` / `reasoning` / `function_call` / `function_call_output` / `custom_tool_call` / `custom_tool_call_output` を確認済み。
+- `response_item.payload.type === "message"` は会話本文。`payload.role`（`user` / `assistant`）と `payload.content[]` (`input_text`, `output_text`, `input_image` 等) を `MessageSegment` として正規化する。
+- `payload.type === "reasoning"` は暗号化済み文字列が `encrypted_content` として格納される。UI では平文を表示せず、ハッシュ値などのメタ情報のみ提示する。
+- `function_call` 系 (`function_call`, `function_call_output`, `custom_tool_call`, `custom_tool_call_output`) は `call_id` でペアリングし、ツール呼び出し履歴として提示する。`arguments` / `output` は JSON としてパースした値と原文を両方保持する。
+- `event_msg` の `payload.kind` は `token_count`, `agent_reasoning`, `plain`, `agent_message`, `turn_aborted`, `environment_context` など。メタイベントとして UI の詳細タブで確認できるようにする。
+- バックエンドは `docs/normalized_message.md` で定義した `NormalizedMessage` スキーマに正規化した上でフロントエンドへ提供する。
 - ディレクトリ構成やファイル名は環境変数で設定可能とし、パスの直書きを避ける。
 - ファイルシステムアクセスはブラウザ単体では扱えないため、バックエンド（サーバーサイド）がファイルI/Oと正規化処理を担う。
 - ファイル読み込みは大規模履歴（数万メッセージ）や一部破損ファイルに対しても安全に処理し、失敗行はログに残しつつスキップする。
