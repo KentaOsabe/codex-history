@@ -26,7 +26,7 @@ RSpec.describe "Api::Sessions", type: :request do
       expect(body.dig("meta", "sort")).to eq("-created_at")
 
       ids = body.fetch("data").map { |item| item.fetch("id") }
-      expect(ids).to eq(["2025-01-02-session-beta", "alpha-session"])
+      expect(ids).to eq([ "2025-01-02-session-beta", "alpha-session" ])
 
       first_attributes = body.fetch("data").first.fetch("attributes")
       expect(first_attributes).to include(
@@ -41,8 +41,8 @@ RSpec.describe "Api::Sessions", type: :request do
 
       body = JSON.parse(response.body)
 
-      expect(body.fetch("data").map { |item| item.fetch("id") }).to eq(["alpha-session"])
-      expect(body.dig("meta", "filters", "speaker")).to eq(["tool"])
+      expect(body.fetch("data").map { |item| item.fetch("id") }).to eq([ "alpha-session" ])
+      expect(body.dig("meta", "filters", "speaker")).to eq([ "tool" ])
     end
 
     # 目的: 期間フィルタとソートキー変更がメタ情報に反映されることを保証する
@@ -51,7 +51,7 @@ RSpec.describe "Api::Sessions", type: :request do
 
       body = JSON.parse(response.body)
 
-      expect(body.fetch("data").map { |item| item.fetch("id") }).to eq(["2025-01-02-session-beta"])
+      expect(body.fetch("data").map { |item| item.fetch("id") }).to eq([ "2025-01-02-session-beta" ])
       expect(body.dig("meta", "filters", "start_date")).to eq("2025-01-02")
       expect(body.dig("meta", "filters", "end_date")).to eq("2025-01-02")
       expect(body.dig("meta", "sort")).to eq("duration_seconds")

@@ -3,7 +3,7 @@
 module Api
   class BaseController < ApplicationController
     rescue_from ActionController::ParameterMissing do |error|
-      render_invalid_parameters(error.param => ["is required"])
+      render_invalid_parameters(error.param => [ "is required" ])
     end
 
     rescue_from ::Sessions::Errors::MissingRoot do |error|

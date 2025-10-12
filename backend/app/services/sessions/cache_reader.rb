@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/deep_dup"
+
 module Sessions
   class CacheReader
     CACHE_KEY = "sessions/index".freeze
@@ -36,7 +38,9 @@ module Sessions
     end
 
     def deep_dup(object)
-      Marshal.load(Marshal.dump(object))
+      return object unless object.respond_to?(:deep_dup)
+
+      object.deep_dup
     end
   end
 end
