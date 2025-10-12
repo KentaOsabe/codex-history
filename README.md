@@ -18,8 +18,19 @@ docker compose build backend
 # 3) 依存 gem をインストール
 docker compose run --rm backend bundle install
 
-# 4) DB 初期化（まだモデルが無くても prepare しておく）
-docker compose run --rm backend bundle exec rails db:prepare
+
+```
+
+## テスト実行
+```bash
+# サービス層のRSpecを実行
+docker compose run --rm backend bundle exec rspec spec/services/sessions
+
+# プロジェクト全体のRSpecを実行
+docker compose run --rm backend bundle exec rspec
+
+# RuboCop（Lint/Formatter）の実行
+docker compose run --rm backend bundle exec rubocop
 ```
 
 ## 開発サーバー起動
@@ -52,5 +63,6 @@ docker compose run --rm backend bundle exec rubocop
 - プロジェクトルート (`.`) → `/app`
 - `bundle-cache` ボリューム → `/bundle`（gem キャッシュ）
 - `CODEX_SESSIONS_ROOT`（既定: `~/.codex/sessions`）→ `/data/codex`（読み取り専用）
+  - サービス層では `Sessions::Repository#resolve_root` がバリデーションを行い、存在しない場合は `Sessions::Errors::MissingRoot` を発生させます。RSpec でテスト用ディレクトリを切り替える場合は `spec/support/sessions_root_helper.rb` を利用してください。
 
 必要に応じて `.env` や `docker-compose.yml` でルートパスを変更してください。
