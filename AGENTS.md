@@ -26,6 +26,14 @@
 - **実装詳細に非依存**: UIの詳細な実装方法ではなく、ユーザーの期待動作を検証
 - **明確な目的と概要をコメントとして記載**: 各テストケースが何の目的で、何を保証するのかを明確に記載する
 
+### 開発完了時の確認事項
+
+リリース前に以下のチェックを必ず実施し、すべて成功した状態で完了とすること。
+
+- `docker compose run --rm backend bundle exec rspec` などで単体テストが全て **PASS** すること
+- `docker compose run --rm backend bundle exec rubocop` で RuboCop の Lint エラーがないこと
+- `docker compose run --rm backend bin/brakeman --no-pager` で Brakeman のセキュリティ警告が出ないこと
+
 ## Git Workflow
 
 - 基本的に `development` ブランチ上で直接作業し、個別ブランチは作成しない。
