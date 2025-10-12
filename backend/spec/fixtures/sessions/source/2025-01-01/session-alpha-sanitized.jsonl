@@ -1,0 +1,5 @@
+{"timestamp":"2025-01-01T09:00:00.000Z","type":"session_meta","payload":{"id":"alpha-session","timestamp":"2025-01-01T09:00:00.000Z","cwd":"/workspace","originator":"codex_cli","cli_version":"0.50.0","instructions":"sanitized"}}
+{"timestamp":"2025-01-01T09:00:05.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"<redacted>"}]}}
+{"timestamp":"2025-01-01T09:00:06.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"<redacted>"}]}}
+{"timestamp":"2025-01-01T09:00:07.000Z","type":"response_item","payload":{"type":"function_call","name":"shell","arguments":"{\"command\":[\"bash\",\"-lc\",\"echo sanitized\"],\"workdir\":\".\"}","call_id":"call-alpha"}}
+{"timestamp":"2025-01-01T09:00:08.000Z","type":"response_item","payload":{"type":"function_call_output","call_id":"call-alpha","output":"{\"stdout\":\"sanitized\\n\",\"exit_code\":0}"}}
