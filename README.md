@@ -41,6 +41,10 @@ docker compose up backend
 
 終了するときは `Ctrl+C` で停止し、不要なコンテナは `docker compose down` で削除してください。
 
+## API 仕様
+- セッション一覧・詳細 API の仕様とサンプルレスポンスは `docs/api_sessions.md` を参照してください。
+- すべてのエンドポイントは `data` / `meta` / `errors` の3要素でレスポンスを構成します。
+
 ## バージョン
 - Ruby: 3.4.3（コンテナ内）
 - Rails: 8.0.3

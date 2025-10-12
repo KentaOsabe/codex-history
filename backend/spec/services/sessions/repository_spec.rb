@@ -36,6 +36,9 @@ RSpec.describe Sessions::Repository do
         expect(alpha[:modified_at]).to be_a(Time)
         expect(alpha[:checksum_sha256]).to match(/\A[a-f0-9]{64}\z/)
         expect(alpha[:source_format]).to eq("jsonl_v2")
+        expect(alpha[:speaker_roles]).to match_array(%w[assistant system tool user])
+        expect(alpha[:sanitized_relative_path]).to eq("2025-01-01/session-alpha-sanitized.jsonl")
+        expect(alpha[:raw_session_meta]).to include("type" => "session_meta")
 
         expect(beta[:relative_path]).to eq("2025-01-02/session-beta.jsonl")
         expect(beta[:session_id]).to eq("2025-01-02-session-beta")
@@ -45,6 +48,8 @@ RSpec.describe Sessions::Repository do
         expect(beta[:reasoning_count]).to eq(0)
         expect(beta[:meta_event_count]).to eq(1)
         expect(beta[:has_sanitized_variant]).to eq(false)
+        expect(beta[:sanitized_relative_path]).to be_nil
+        expect(beta[:speaker_roles]).to match_array(%w[assistant user])
         expect(beta[:created_at]).to eq(Time.utc(2025, 1, 2, 15, 10, 0))
         expect(beta[:completed_at]).to eq(Time.utc(2025, 1, 2, 15, 10, 5))
         expect(beta[:duration_seconds]).to eq(5.0)

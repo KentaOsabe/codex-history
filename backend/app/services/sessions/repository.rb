@@ -77,6 +77,8 @@ module Sessions
                    0.0
       end
 
+      sanitized_rel_path = sanitized_relative_path(path)
+
       {
         session_id: summary.session_id,
         relative_path: rel_path,
@@ -93,8 +95,11 @@ module Sessions
         meta_event_count: summary.meta_event_count,
         checksum_sha256: Digest::SHA256.file(path.to_s).hexdigest,
         source_format: summary.source_format,
-        has_sanitized_variant: sanitized_variant?(path),
-        signature: build_signature(path)
+        has_sanitized_variant: sanitized_rel_path.present?,
+        sanitized_relative_path: sanitized_rel_path,
+        signature: build_signature(path),
+        raw_session_meta: summary.raw_session_meta,
+        speaker_roles: summary.speaker_roles
       }
     end
 
@@ -106,9 +111,11 @@ module Sessions
       format(DEFAULT_SIGNATURE_FORMAT, mtime: path.mtime.to_i, size: path.size)
     end
 
-    def sanitized_variant?(path)
+    def sanitized_relative_path(path)
       sanitized = path.sub_ext("-sanitized.jsonl")
-      File.exist?(sanitized.to_s)
+      return unless File.exist?(sanitized.to_s)
+
+      Pathname.new(sanitized).relative_path_from(resolve_root).to_s
     end
 
     def file_birthtime(path)

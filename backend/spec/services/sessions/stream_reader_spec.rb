@@ -21,6 +21,7 @@ RSpec.describe Sessions::StreamReader do
         expect(summary.meta_event_count).to eq(1)
         expect(summary.source_format).to eq("jsonl_v2")
         expect(summary.raw_session_meta["payload"]["cwd"]).to eq("/workspace")
+        expect(summary.speaker_roles).to match_array(%w[assistant system tool user])
       end
     end
 
@@ -36,6 +37,7 @@ RSpec.describe Sessions::StreamReader do
         expect(summary.last_timestamp).to eq(Time.utc(2025, 1, 2, 15, 10, 5))
         expect(summary.message_count).to eq(2)
         expect(summary.meta_event_count).to eq(1)
+        expect(summary.speaker_roles).to match_array(%w[assistant user])
       end
     end
 
