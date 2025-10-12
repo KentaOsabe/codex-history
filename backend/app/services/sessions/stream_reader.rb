@@ -3,6 +3,7 @@
 require "json"
 require "time"
 require "pathname"
+require "set"
 
 module Sessions
   class StreamReader
@@ -17,6 +18,7 @@ module Sessions
       :meta_event_count,
       :source_format,
       :raw_session_meta,
+      :speaker_roles,
       keyword_init: true
     )
 
@@ -81,6 +83,7 @@ module Sessions
         @last_timestamp = nil
         @session_id = nil
         @raw_meta = nil
+        @speaker_roles = Set.new
       end
 
       def build
@@ -92,6 +95,7 @@ module Sessions
           if event["type"] == "session_meta"
             @session_id ||= event.dig("payload", "id")
             @raw_meta ||= event
+            speaker_roles << "system"
           end
 
           case event["type"]
@@ -112,13 +116,14 @@ module Sessions
           reasoning_count: counts[:reasoning_count],
           meta_event_count: counts[:meta_event_count],
           source_format: "jsonl_v2",
-          raw_session_meta: @raw_meta
+          raw_session_meta: @raw_meta,
+          speaker_roles: speaker_roles.to_a.sort
         )
       end
 
       private
 
-      attr_reader :reader, :pathname, :counts
+      attr_reader :reader, :pathname, :counts, :speaker_roles
 
       def increment_response_counts(payload)
         return unless payload.is_a?(Hash)
@@ -126,12 +131,16 @@ module Sessions
         case payload["type"]
         when "message"
           counts[:message_count] += 1
+          speaker_roles << payload["role"].to_s if payload["role"].present?
         when "function_call", "custom_tool_call"
           counts[:tool_call_count] += 1
+          speaker_roles << "tool"
         when "function_call_output", "custom_tool_call_output"
           counts[:tool_result_count] += 1
+          speaker_roles << "tool"
         when "reasoning"
           counts[:reasoning_count] += 1
+          speaker_roles << "assistant"
         end
       end
     end
