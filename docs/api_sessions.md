@@ -196,6 +196,141 @@ curl "http://localhost:3000/api/sessions/dummy-session-0001"
 curl "http://localhost:3000/api/sessions/dummy-session-0001?variant=sanitized"
 ```
 
+## `POST /api/sessions/refresh`
+
+セッションインデックスをバックグラウンドジョブで再構築する。リクエストボディは不要。
+
+- **ロック戦略**: `Sessions::RefreshLock` が `Rails.cache` を用いた排他制御を行い、1 件のジョブのみを同時実行可能とする。ロック TTL は既定で 10 分。
+- **ジョブクラス**: `SessionsRefreshJob` (`queue: default`) が実行され、`Sessions::CacheReader#refresh!` を呼び出す。
+- **ログ出力**: ジョブ開始／終了／失敗時に `Rails.logger` へ構造化ログ (`[SessionsRefreshJob] start|finish|error`) を記録し、`job_id`, `duration_ms`, `updated_at` などを含む。
+
+### 成功レスポンス (202 Accepted)
+
+```json
+{
+  "data": {
+    "id": "e031c5c1-4c5e-4a7e-9b9c-9f9f1ef8265d",
+    "type": "job",
+    "attributes": {
+      "status": "enqueued"
+    }
+  },
+  "meta": {
+    "job": {
+      "queue": "default",
+      "enqueued_at": "2025-10-13T12:00:00Z"
+    }
+  },
+  "errors": []
+}
+```
+
+### 競合時レスポンス (409 Conflict)
+
+すでに進行中のジョブが存在する場合、ロックを獲得せずにエラーを返す。`meta.job` には現在トラッキング中のジョブ情報が含まれる。
+
+```json
+{
+  "data": null,
+  "meta": {
+    "job": {
+      "id": "e031c5c1-4c5e-4a7e-9b9c-9f9f1ef8265d",
+      "status": "enqueued",
+      "queue": "default",
+      "enqueued_at": "2025-10-13T11:58:12Z",
+      "updated_at": "2025-10-13T11:59:01Z"
+    }
+  },
+  "errors": [
+    {
+      "code": "refresh_in_progress",
+      "status": 409,
+      "title": "Sessions refresh is already running",
+      "detail": "A sessions refresh job is already enqueued or running",
+      "meta": {
+        "job": {
+          "id": "e031c5c1-4c5e-4a7e-9b9c-9f9f1ef8265d"
+        }
+      }
+    }
+  ]
+}
+```
+
+### curl 例
+
+```bash
+curl -X POST "http://localhost:3000/api/sessions/refresh"
+```
+
+## `GET /api/sessions/refresh/:job_id`
+
+`POST /api/sessions/refresh` で取得した `job_id` を指定し、現在の進行状態を確認する。`Sessions::RefreshLock.state` の内容を返すため、ジョブ完了後にロックが解放された場合は 404 を返す。
+
+- **status 値の目安**
+  - `pending`: ロック獲得済みだがジョブ投入前
+  - `enqueued`: ジョブをキュー投入済み（既定のシナリオ）
+  - `completed` / `failed`: 将来の拡張で利用予定。現状はジョブ完了時にロックが解除され、404 で終端を検知する。
+
+### 成功レスポンス (200 OK)
+
+```json
+{
+  "data": {
+    "id": "e031c5c1-4c5e-4a7e-9b9c-9f9f1ef8265d",
+    "type": "job",
+    "attributes": {
+      "status": "enqueued",
+      "queue": "default",
+      "enqueued_at": "2025-10-13T12:00:00Z",
+      "updated_at": "2025-10-13T12:00:00Z"
+    }
+  },
+  "meta": {
+    "job": {
+      "id": "e031c5c1-4c5e-4a7e-9b9c-9f9f1ef8265d",
+      "status": "enqueued",
+      "queue": "default",
+      "enqueued_at": "2025-10-13T12:00:00Z",
+      "updated_at": "2025-10-13T12:00:00Z"
+    }
+  },
+  "errors": []
+}
+```
+
+### 404 レスポンス (ジョブ情報未取得)
+
+```json
+{
+  "data": null,
+  "meta": {
+    "job": {
+      "id": "unknown-job"
+    }
+  },
+  "errors": [
+    {
+      "code": "refresh_job_not_found",
+      "status": 404,
+      "title": "Refresh job not found",
+      "detail": "Refresh job is not tracked or has expired",
+      "meta": {
+        "job": {
+          "id": "unknown-job"
+        }
+      }
+    }
+  ]
+}
+```
+
+### curl 例
+
+```bash
+curl "http://localhost:3000/api/sessions/refresh/e031c5c1-4c5e-4a7e-9b9c-9f9f1ef8265d"
+```
+
 ## `CODEX_SESSIONS_ROOT` とキャッシュ前提
 
 - Rails プロセスは `Sessions::Indexer#refresh` を定期的に呼び出し、結果をメモリ or `Rails.cache` に保持する。API レイヤーはキャッシュ結果とオンデマンド読み出しを組み合わせてレスポンスを構築する。
