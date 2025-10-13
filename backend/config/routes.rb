@@ -6,7 +6,12 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   namespace :api, defaults: { format: :json } do
-    resources :sessions, only: %i[index show]
+    resources :sessions, only: %i[index show] do
+      collection do
+        post :refresh
+        get "refresh/:job_id", action: :refresh_status
+      end
+    end
     get "search", to: "searches#index"
   end
 end

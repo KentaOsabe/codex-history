@@ -68,6 +68,18 @@ RSpec では `spec/support/sessions_root_helper.rb` により、`spec/fixtures/s
 - `POST /api/sessions/refresh`（将来実装予定）で手動再インデックスをトリガーし、ジョブ完了後にキャッシュを再ロード。
 - UI は `sessions` をページネーション付きで表示し、`updated`／`failed_entries` を通知に利用する。
 
+## リフレッシュジョブとロック戦略
+
+- `SessionsRefreshJob` は Active Job (`queue: default`) で実装され、`Sessions::CacheReader#refresh!` を呼び出す。
+- `Sessions::RefreshLock` が `Rails.cache` を利用した軽量ロックを提供し、同時に複数の再インデックスが走らないよう制御する。
+  - ロックキー: `sessions/refresh_lock`
+  - TTL: 10 分（必要に応じて環境変数で上書き可, 今後拡張予定）
+  - `mark_enqueued(job_id:, queue:, enqueued_at:)` でジョブ情報を記録し、監視 API (`GET /api/sessions/refresh/:job_id`) が参照する。
+  - ジョブ完了時は `Sessions::RefreshLock.release_by_job(job_id)` が呼ばれ、ロックが解放される。以降のポーリングは 404 を受け取り、完了を検知する想定。
+- ジョブの進行状況は下記 API で取得できる:
+  - `POST /api/sessions/refresh` : ロック取得とジョブ投入、`job_id` の払い出し
+  - `GET /api/sessions/refresh/:job_id` : ロックに記録されたステータス／キュー情報を返す
+
 ## 保守時の指針
 
 - `schema_version` を変更する場合は、旧バージョンのキャッシュを破棄するかマイグレーション処理を追加する。

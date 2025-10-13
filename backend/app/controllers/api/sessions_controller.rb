@@ -22,6 +22,37 @@ module Api
       render_success(data: data, meta: meta)
     end
 
+    def refresh
+      result = ::Sessions::RefreshLauncher.call
+      return render_refresh_in_progress(result.lock_state) if result.status == :conflict
+
+      job = result.job
+      enqueued_at = result.enqueued_at
+
+      render_success(
+        data: job_payload(job),
+        meta: job_meta(job, enqueued_at),
+        status: :accepted
+      )
+    end
+
+    def refresh_status
+      job_id = params[:job_id]
+      state = ::Sessions::RefreshLock.state
+
+      if state.present? && (state[:job_id] == job_id)
+        render_success(data: job_status_payload(state), meta: job_status_meta(state))
+      else
+        render_error(
+          status: :not_found,
+          code: "refresh_job_not_found",
+          title: "Refresh job not found",
+          detail: "Refresh job is not tracked or has expired",
+          meta: { job: { id: job_id } }
+        )
+      end
+    end
+
     def show
       detail = detail_builder.build(session_id: params[:id], variant: params[:variant])
 
@@ -41,6 +72,76 @@ module Api
 
     def cache_reader
       @cache_reader ||= ::Sessions::CacheReader.new
+    end
+
+    def render_refresh_in_progress(state)
+      normalized = normalize_job_state(state || ::Sessions::RefreshLock.state)
+      meta = job_status_meta(normalized)
+
+      render_error(
+        status: :conflict,
+        code: "refresh_in_progress",
+        title: "Sessions refresh is already running",
+        detail: "A sessions refresh job is already enqueued or running",
+        meta: meta
+      )
+    end
+
+    def job_payload(job)
+      {
+        "id" => job.job_id,
+        "type" => "job",
+        "attributes" => {
+          "status" => "enqueued"
+        }
+      }
+    end
+
+    def job_meta(job, enqueued_at)
+      {
+        "job" => {
+          "queue" => job.queue_name,
+          "enqueued_at" => enqueued_at.iso8601
+        }
+      }
+    end
+
+    def job_status_payload(state)
+      normalized = normalize_job_state(state)
+      {
+        "id" => normalized[:job_id],
+        "type" => "job",
+        "attributes" => {
+          "status" => normalized[:status],
+          "queue" => normalized[:queue],
+          "enqueued_at" => iso8601(normalized[:enqueued_at]),
+          "updated_at" => iso8601(normalized[:updated_at]),
+          "completed_at" => iso8601(normalized[:completed_at]),
+          "error_message" => normalized[:error_message]
+        }.compact
+      }
+    end
+
+    def job_status_meta(state)
+      normalized = normalize_job_state(state)
+      {
+        "job" => {
+          "id" => normalized[:job_id],
+          "status" => normalized[:status],
+          "queue" => normalized[:queue],
+          "enqueued_at" => iso8601(normalized[:enqueued_at]),
+          "updated_at" => iso8601(normalized[:updated_at]),
+          "completed_at" => iso8601(normalized[:completed_at])
+        }.compact
+      }
+    end
+
+    def normalize_job_state(state)
+      (state || {}).transform_keys { |key| key.to_sym rescue key }
+    end
+
+    def iso8601(value)
+      value.respond_to?(:iso8601) ? value.iso8601 : value
     end
 
     def detail_builder
