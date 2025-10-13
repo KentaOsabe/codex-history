@@ -21,7 +21,11 @@ module Sessions
       variant = normalize_variant(variant)
       path_info = resolve_path(entry, variant: variant)
 
-      messages = message_builder.build(path: path_info[:absolute_path], relative_path: path_info[:relative_path])
+      messages = message_builder.build(
+        path: path_info[:absolute_path],
+        relative_path: path_info[:relative_path],
+        sanitize: path_info[:variant] == :sanitized
+      )
       variant_metadata = metadata_for(entry, path_info: path_info)
 
       {

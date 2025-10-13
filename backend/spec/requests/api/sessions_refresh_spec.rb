@@ -46,10 +46,10 @@ RSpec.describe "POST /api/sessions/refresh", type: :request do
     body = JSON.parse(response.body)
 
     error = body.fetch("errors").first
-    expect(error).to include(
-      "code" => "refresh_in_progress",
-      "status" => 409
-    )
+      expect(error).to include(
+        "code" => "refresh_in_progress",
+        "status" => "409"
+      )
   end
 
   describe "GET /api/sessions/refresh/:job_id" do
@@ -91,7 +91,7 @@ RSpec.describe "POST /api/sessions/refresh", type: :request do
 
       expect(error).to include(
         "code" => "refresh_job_not_found",
-        "status" => 404
+        "status" => "404"
       )
     end
   end

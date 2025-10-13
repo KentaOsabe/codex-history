@@ -151,7 +151,7 @@ module Api
     def render_invalid_index_params(params_model)
       if params_model.errors[:base].any?
         render_error(
-          status: :unprocessable_entity,
+          status: :unprocessable_content,
           code: "invalid_period",
           title: "Invalid period",
           detail: params_model.errors[:base].join(", "),

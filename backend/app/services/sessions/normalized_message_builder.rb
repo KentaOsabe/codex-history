@@ -9,11 +9,16 @@ module Sessions
       @stream_reader = stream_reader
     end
 
-    def build(path:, relative_path:)
+    def build(path:, relative_path:, sanitize: false)
       messages = []
 
       stream_reader.each_event(path).with_index(1) do |event, line_index|
-        normalized = normalize_event(event, line_index: line_index, relative_path: relative_path)
+        normalized = normalize_event(
+          event,
+          line_index: line_index,
+          relative_path: relative_path,
+          sanitize: sanitize
+        )
         messages << normalized if normalized
       end
 
@@ -24,7 +29,7 @@ module Sessions
 
     attr_reader :stream_reader
 
-    def normalize_event(event, line_index:, relative_path:)
+    def normalize_event(event, line_index:, relative_path:, sanitize:)
       event_type = event["type"]
       payload = event["payload"] || {}
       timestamp = extract_timestamp(event["timestamp"])
@@ -33,7 +38,7 @@ module Sessions
         "timestamp" => timestamp&.iso8601,
         "source_type" => source_type_for(event_type, payload),
         "role" => role_for(event_type, payload),
-        "segments" => segments_for(event_type, payload),
+        "segments" => segments_for(event_type, payload, sanitize: sanitize),
         "tool_call" => tool_call_for(event_type, payload),
         "raw" => raw_payload(event_type, payload, relative_path, line_index)
       }
@@ -119,12 +124,12 @@ module Sessions
       end
     end
 
-    def segments_for(event_type, payload)
+    def segments_for(event_type, payload, sanitize:)
       return [] unless event_type == "response_item" && payload.is_a?(Hash)
 
       case payload["type"]
       when "message"
-        Array(payload["content"]).filter_map do |segment|
+        segments = Array(payload["content"]).filter_map do |segment|
           text = segment["text"]
           next if text.nil?
 
@@ -135,6 +140,8 @@ module Sessions
             "text" => text
           }
         end
+
+        sanitize ? sanitize_segments(segments) : segments
       else
         []
       end
@@ -182,6 +189,15 @@ module Sessions
       JSON.parse(value)
     rescue JSON::ParserError
       nil
+    end
+
+    def sanitize_segments(segments)
+      segments.map do |segment|
+        text = segment["text"]
+        next segment if text.nil? || text.empty?
+
+        segment.merge("text" => Sanitizers::HtmlMessageSanitizer.call(text))
+      end
     end
   end
 end
