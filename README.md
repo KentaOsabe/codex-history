@@ -31,6 +31,9 @@ docker compose run --rm backend bundle exec rspec
 
 # RuboCop（Lint/Formatter）の実行
 docker compose run --rm backend bundle exec rubocop
+
+# Brakemanのセキュリティチェックの実行
+docker compose run --rm backend bin/brakeman --no-pager
 ```
 
 ## 開発サーバー起動
@@ -46,6 +49,11 @@ docker compose up backend
 - 全文検索 API (`GET /api/search`) の仕様とレスポンス例は `docs/search_api.md` にまとめています。
 - すべてのエンドポイントは `data` / `meta` / `errors` の3要素でレスポンスを構成します。
 - インデックス再構築ジョブの運用・監視手順は `docs/refresh_operations.md` を参照してください。
+
+## サニタイズポリシーとエラー応答
+- `variant=sanitized` で取得するメッセージテキストは、Loofah を利用した SafeList ベースのサニタイズを通過し、`pre` / `code` / 強調タグなど最小限の装飾のみを許可します（`javascript:` やインラインイベント属性は除去されます）。
+- セッション検索ではサニタイズ済みファイルが存在する場合に自動的にサニタイズ版を参照します。
+- 4xx 系エラーは `info` レベル、5xx 系エラーは `error` レベルでサーバーログに記録しつつ、レスポンスは `errors[0].status` に文字列化した HTTP ステータスコードを含む共通フォーマットで返却します。
 
 ## バージョン
 - Ruby: 3.4.3（コンテナ内）

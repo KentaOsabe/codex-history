@@ -66,7 +66,7 @@ RSpec.describe "Api::Sessions", type: :request do
 
       expect(body.fetch("errors").first).to include(
         "code" => "invalid_parameters",
-        "status" => 400
+        "status" => "400"
       )
       expect(body.fetch("errors").first.dig("meta", "invalid_fields", "per_page")).to be_present
     end
@@ -85,12 +85,12 @@ RSpec.describe "Api::Sessions", type: :request do
     it "期間の整合性が取れない場合は422を返す" do
       get "/api/sessions", params: { start_date: "2025-02-01", end_date: "2025-01-01" }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       body = JSON.parse(response.body)
 
       expect(body.fetch("errors").first).to include(
         "code" => "invalid_period",
-        "status" => 422
+        "status" => "422"
       )
     end
   end
@@ -144,7 +144,7 @@ RSpec.describe "Api::Sessions", type: :request do
 
       expect(body.fetch("errors").first).to include(
         "code" => "session_not_found",
-        "status" => 404
+        "status" => "404"
       )
     end
 
@@ -152,12 +152,12 @@ RSpec.describe "Api::Sessions", type: :request do
     it "サニタイズ版が存在しない場合は422を返す" do
       get "/api/sessions/2025-01-02-session-beta", params: { variant: "sanitized" }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       body = JSON.parse(response.body)
 
       expect(body.fetch("errors").first).to include(
         "code" => "sanitized_variant_not_found",
-        "status" => 422
+        "status" => "422"
       )
     end
   end

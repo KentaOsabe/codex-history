@@ -80,12 +80,17 @@ module Search
 
       {
         relative_path: relative_path,
-        absolute_path: absolute_path
+        absolute_path: absolute_path,
+        variant: entry[:sanitized_relative_path].present? ? :sanitized : :original
       }
     end
 
     def messages_for(path_info)
-      message_builder.build(path: path_info[:absolute_path].to_s, relative_path: path_info[:relative_path])
+      message_builder.build(
+        path: path_info[:absolute_path].to_s,
+        relative_path: path_info[:relative_path],
+        sanitize: path_info[:variant] == :sanitized
+      )
     rescue Sessions::Errors::UnreadableFile, Sessions::Errors::InvalidPayload
       []
     end

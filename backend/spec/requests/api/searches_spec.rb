@@ -54,6 +54,7 @@ RSpec.describe "Api::Searches", type: :request do
 
       error = body.fetch("errors").first
       expect(error.fetch("code")).to eq("invalid_parameters")
+      expect(error.fetch("status")).to eq("400")
       expect(error.dig("meta", "invalid_fields", "keyword")).to be_present
     end
 
@@ -66,6 +67,7 @@ RSpec.describe "Api::Searches", type: :request do
 
       error = body.fetch("errors").first
       expect(error.fetch("code")).to eq("invalid_parameters")
+      expect(error.fetch("status")).to eq("400")
       expect(error.dig("meta", "invalid_fields", "limit")).to be_present
     end
 
@@ -78,6 +80,7 @@ RSpec.describe "Api::Searches", type: :request do
 
       error = body.fetch("errors").first
       expect(error.fetch("code")).to eq("invalid_parameters")
+      expect(error.fetch("status")).to eq("400")
       scope_errors = error.dig("meta", "invalid_fields", "scope")
       expect(scope_errors).to be_present
       expect(scope_errors.first).to include("is not included")
