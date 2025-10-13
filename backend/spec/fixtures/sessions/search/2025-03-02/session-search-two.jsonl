@@ -1,0 +1,3 @@
+{"timestamp":"2025-03-02T09:00:00.000Z","type":"session_meta","payload":{"id":"session-search-two","timestamp":"2025-03-02T09:00:00.000Z","cwd":"/workspace","originator":"codex_cli","cli_version":"0.51.0","instructions":"Search session without sanitized variant"}}
+{"timestamp":"2025-03-02T09:00:05.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Remember to run rubocop --parallel before pushing."}]}}
+{"timestamp":"2025-03-02T09:00:06.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Thanks, I'll run rubocop today."}]}}
