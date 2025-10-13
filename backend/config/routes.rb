@@ -7,5 +7,6 @@ Rails.application.routes.draw do
 
   namespace :api, defaults: { format: :json } do
     resources :sessions, only: %i[index show]
+    get "search", to: "searches#index"
   end
 end

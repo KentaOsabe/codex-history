@@ -42,7 +42,8 @@ docker compose up backend
 終了するときは `Ctrl+C` で停止し、不要なコンテナは `docker compose down` で削除してください。
 
 ## API 仕様
-- セッション一覧・詳細 API の仕様とサンプルレスポンスは `docs/api_sessions.md` を参照してください。
+- セッション一覧・詳細 API は `docs/api_sessions.md` を参照してください。
+- 全文検索 API (`GET /api/search`) の仕様とレスポンス例は `docs/search_api.md` にまとめています。
 - すべてのエンドポイントは `data` / `meta` / `errors` の3要素でレスポンスを構成します。
 
 ## バージョン
