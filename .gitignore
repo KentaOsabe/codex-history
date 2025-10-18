@@ -38,3 +38,6 @@
 
 # Ignore RSpec example status file.
 /backend/spec/examples.txt
+
+# Ignore SimpleCov coverage artifacts.
+/backend/coverage/

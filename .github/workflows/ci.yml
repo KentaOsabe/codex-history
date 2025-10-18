@@ -44,3 +44,22 @@ jobs:
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
+
+  test:
+    runs-on: ubuntu-latest
+    env:
+      CODEX_SESSIONS_ROOT: ${{ github.workspace }}/backend/spec/fixtures/sessions/source
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build backend image
+        run: docker compose build backend
+
+      - name: Run RSpec via Docker Compose
+        run: >-
+          docker compose run --rm
+          -e RAILS_ENV=test
+          -e CODEX_SESSIONS_ROOT=/app/spec/fixtures/sessions/source
+          -e SIMPLECOV=true
+          backend bundle exec rspec
