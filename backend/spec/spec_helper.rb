@@ -1,5 +1,13 @@
 # frozen_string_literal: true
 
+if ENV.fetch("SIMPLECOV", "true") != "false"
+  require "simplecov"
+  SimpleCov.start("rails") do
+    enable_coverage :branch
+    add_filter %w[ /spec/ /config/ ]
+  end
+end
+
 require "rspec/core"
 
 RSpec.configure do |config|

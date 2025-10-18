@@ -23,11 +23,14 @@ docker compose run --rm backend bundle install
 
 ## テスト実行
 ```bash
-# サービス層のRSpecを実行
-docker compose run --rm backend bundle exec rspec spec/services/sessions
-
-# プロジェクト全体のRSpecを実行
+# プロジェクト全体の RSpec を実行（SimpleCov 有効）
 docker compose run --rm backend bundle exec rspec
+
+# カバレッジを無効化する場合
+SIMPLECOV=false docker compose run --rm backend bundle exec rspec
+
+# ローカル Ruby 環境で実行（Docker を利用しないケース）
+bundle exec rspec
 
 # RuboCop（Lint/Formatter）の実行
 docker compose run --rm backend bundle exec rubocop
@@ -54,6 +57,13 @@ docker compose up backend
 - `variant=sanitized` で取得するメッセージテキストは、Loofah を利用した SafeList ベースのサニタイズを通過し、`pre` / `code` / 強調タグなど最小限の装飾のみを許可します（`javascript:` やインラインイベント属性は除去されます）。
 - セッション検索ではサニタイズ済みファイルが存在する場合に自動的にサニタイズ版を参照します。
 - 4xx 系エラーは `info` レベル、5xx 系エラーは `error` レベルでサーバーログに記録しつつ、レスポンスは `errors[0].status` に文字列化した HTTP ステータスコードを含む共通フォーマットで返却します。
+
+## CI ワークフロー
+- `.github/workflows/ci.yml` で GitHub Actions を設定し、以下のジョブを実行しています。
+  - `scan_ruby`: Brakeman による静的解析。
+  - `lint`: RuboCop を GitHub フォーマットで実行。
+  - `test`: `docker compose run --rm backend bundle exec rspec` を利用した RSpec テスト。
+- CI 実行時のカバレッジは `backend/coverage/` に出力され、リポジトリからは `.gitignore` で除外しています。
 
 ## バージョン
 - Ruby: 3.4.3（コンテナ内）

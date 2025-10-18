@@ -120,7 +120,7 @@
 - **バックエンド:** RSpecでサービスオブジェクト、リクエスト、ジョブのテストを実施。JSONLサンプルデータのフィクスチャを用意し、インデックス／検索ロジックのカバレッジ80%以上を目標とする。
 - **フロントエンド:** Vitest + React Testing Libraryでコンポーネント・ユニットテストを行い、セッション一覧・詳細・検索フィルタ等の主要コンポーネントを網羅。メッセージ表示のスナップショットテストも検討。
 - **E2E:** Playwrightでセッション閲覧、検索フロー、バックエンド不調時などのシナリオを自動化。
-- **CI:** `pnpm lint`、フロントエンド単体テスト、RSpec、Playwright（ヘッドレス）を実行。GitHub Actionsワークフローの雛形を提供（任意）。
+- **CI:** `.github/workflows/ci.yml` で GitHub Actions を実行し、Brakeman / RuboCop / `docker compose run --rm backend bundle exec rspec` をジョブとして並列実行する。SimpleCov のカバレッジレポートは `backend/coverage/` に出力し、成果物への同梱は不要。
 
 ## 開発者体験とツール
 - フロントエンド依存のパッケージ管理は最新のpnpm。
