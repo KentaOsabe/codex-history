@@ -50,6 +50,8 @@ npm run format
 - `npm run test`: Vitest をワンショット実行
 - `npm run test:watch`: Vitest をウォッチモードで起動
 - `npm run format`: Prettier によるフォーマットチェック（`format:write` で自動整形）
+- `npm run lint:fix`: ESLint / Stylelint を自動修正モードで実行
+- `npm run test -- httpClient.test.ts errors.test.ts sessions.test.ts sessions.msw.test.ts`: API クライアント層のユニット / 統合テストのみを実行（MSW モック込み）
 
 ## テスト実行
 ```bash
@@ -67,6 +69,29 @@ docker compose run --rm backend bundle exec rubocop
 
 # Brakemanのセキュリティチェックの実行
 docker compose run --rm backend bin/brakeman --no-pager
+
+# フロントエンド API クライアント（MSW を含む）
+cd frontend
+npm run test -- httpClient.test.ts errors.test.ts sessions.test.ts sessions.msw.test.ts
+```
+
+### フロントエンド API クライアント層
+- `frontend/src/api/httpClient.ts` がタイムアウト（GET 10 秒 / POST 15 秒）と指数的リトライ（既定で GET 1 回）を共通化します。
+- `frontend/src/api/sessions.ts` がセッション一覧・詳細・リフレッシュ API を型安全に呼び出すファサードです。
+- MSW ベースのテスト（`frontend/src/api/__tests__/sessions.msw.test.ts`）が 422/409 などの異常系を含むシナリオを再現します。追加のローカルサーバー起動は不要です。
+
+### Docker 上でのフロントエンド Lint / Test 実行
+ローカルの Node 版数に依存しないよう、Docker コンテナから lint / test を実行できます。
+
+```bash
+# ESLint / Stylelint（チェックのみ）
+docker compose run --rm frontend npm run lint
+
+# 自動修正付き lint
+docker compose run --rm frontend npm run lint:fix
+
+# API クライアント関連テスト
+docker compose run --rm frontend npm run test -- httpClient.test.ts errors.test.ts sessions.test.ts sessions.msw.test.ts
 ```
 
 ## 開発サーバー起動
