@@ -7,7 +7,10 @@ const ensureAbsoluteUrl = (path: string): string => {
     return path
   }
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
-  return `${env.apiBaseUrl}${normalizedPath}`
+  if (env.apiBaseUrl) {
+    return `${env.apiBaseUrl}${normalizedPath}`
+  }
+  return normalizedPath
 }
 
 export const fetcher = async <TResponse>(path: string, options: FetcherOptions = {}) => {
