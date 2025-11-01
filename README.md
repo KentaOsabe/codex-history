@@ -21,6 +21,34 @@ docker compose run --rm backend bundle install
 
 ```
 
+## フロントエンドセットアップ（Vite + React + TypeScript）
+フロントエンド資材は `frontend/` 配下に配置されています。Node.js 20 以上を利用してください。
+
+`.env`（またはシェル環境変数）に以下を指定するとバックエンド API やデフォルト絞り込み期間を変更できます。
+
+```
+VITE_API_BASE_URL=http://localhost:3000
+VITE_DEFAULT_DATE_RANGE=7
+```
+
+```bash
+cd frontend
+npm install
+
+# コード品質チェック
+npm run lint
+npm run test
+npm run format
+```
+
+### npm スクリプト一覧
+- `npm run dev`: Vite 開発サーバー（`http://localhost:5173`）
+- `npm run build`: TypeScript ビルド + Vite 本番ビルド
+- `npm run lint`: ESLint + Stylelint を連続実行
+- `npm run test`: Vitest をワンショット実行
+- `npm run test:watch`: Vitest をウォッチモードで起動
+- `npm run format`: Prettier によるフォーマットチェック（`format:write` で自動整形）
+
 ## テスト実行
 ```bash
 # プロジェクト全体の RSpec を実行（SimpleCov 有効）
@@ -41,11 +69,13 @@ docker compose run --rm backend bin/brakeman --no-pager
 
 ## 開発サーバー起動
 ```bash
-docker compose up backend
-# http://localhost:3000 で Rails API が起動します
+docker compose up backend frontend
+# http://localhost:3000 で Rails API、http://localhost:5173 でフロントエンドが起動します
 ```
 
 終了するときは `Ctrl+C` で停止し、不要なコンテナは `docker compose down` で削除してください。
+
+フロントエンドのみ起動したい場合は `docker compose up frontend` を利用できます。初回起動時はコンテナ内で `npm install` が自動実行され、`frontend-node-modules` ボリュームに依存パッケージがキャッシュされます。
 
 ## API 仕様
 - セッション一覧・詳細・インデックス再構築 API は `docs/api_sessions.md` を参照してください。

@@ -14,6 +14,7 @@
 
 # Ignore all environment files.
 /.env*
+!/.env.example
 
 # Ignore all logfiles and tempfiles.
 /backend/log/*
@@ -41,3 +42,9 @@
 
 # Ignore SimpleCov coverage artifacts.
 /backend/coverage/
+
+# Frontend build artifacts
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vite/
+/frontend/.eslintcache
