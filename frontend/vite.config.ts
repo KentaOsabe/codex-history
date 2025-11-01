@@ -1,6 +1,8 @@
+import path from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'node:path'
+
+import { resolveProxyTarget } from './src/config/proxyTarget'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -16,7 +18,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_BASE_URL ?? 'http://localhost:3000',
+        target: resolveProxyTarget(process.env.VITE_API_BASE_URL),
         changeOrigin: true,
       },
     },

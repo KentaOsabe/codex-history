@@ -26,7 +26,7 @@ docker compose run --rm backend bundle install
 
 `.env`（またはシェル環境変数）に以下を指定するとバックエンド API やデフォルト絞り込み期間を変更できます。
 
-※ 開発環境では Vite のプロキシを利用するため、`VITE_API_BASE_URL` は基本的に未指定のままにしてください。別オリジンの API を利用する際のみ値を設定します。
+※ `docker compose up backend frontend` の構成では `VITE_API_BASE_URL` を未設定にすると自動的に `http://backend:3000` へプロキシされます。Docker を使わずローカルで Rails(API) を起動する場合は `VITE_API_BASE_URL=http://localhost:3000` を指定してください。
 
 ```
 # VITE_API_BASE_URL=https://api.example.com
