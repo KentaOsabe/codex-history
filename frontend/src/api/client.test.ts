@@ -18,7 +18,7 @@ describe('fetcher', () => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     })
-    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(mockResponse)
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse)
 
     const fetcher = await loadFetcher()
 
@@ -41,7 +41,7 @@ describe('fetcher', () => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     })
-    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(mockResponse)
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse)
     vi.doMock('../config/env', () => ({ env: { apiBaseUrl: 'https://api.example.com', defaultDateRange: 7 } }))
     const fetcher = await loadFetcher()
 

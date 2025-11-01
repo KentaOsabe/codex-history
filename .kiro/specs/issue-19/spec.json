@@ -1,0 +1,22 @@
+{
+  "feature_name": "issue-19",
+  "created_at": "2025-11-01T04:24:32Z",
+  "updated_at": "2025-11-01T04:51:30Z",
+  "language": "ja",
+  "phase": "completed",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": true
+}
