@@ -2,11 +2,14 @@ import { useMemo, useState } from 'react'
 
 import CalendarStrip from './CalendarStrip'
 import { toISODate } from './dateUtils'
+import SearchInput from './SearchInput'
 import styles from './SessionsDateListView.module.css'
+import { useSearchDraft } from './useSearchDraft'
 
 const SessionsDateListView = () => {
   const todayIso = useMemo(() => toISODate(new Date()), [])
   const [ activeDate, setActiveDate ] = useState(todayIso)
+  const [ searchDraft, setSearchDraft ] = useSearchDraft('')
 
   return (
     <div className={styles.container}>
@@ -33,13 +36,10 @@ const SessionsDateListView = () => {
           <label className={styles.visuallyHidden} htmlFor="sessions-date-list-search-input">
             キーワードで検索
           </label>
-          <input
-            id="sessions-date-list-search-input"
+          <SearchInput
+            value={searchDraft}
+            onChange={setSearchDraft}
             className={styles.searchInput}
-            type="text"
-            placeholder="キーワードで検索"
-            aria-describedby="sessions-date-list-search-help"
-            readOnly
           />
           <p id="sessions-date-list-search-help" className={styles.helperText}>
             検索動作は後続タスクで実装予定です。

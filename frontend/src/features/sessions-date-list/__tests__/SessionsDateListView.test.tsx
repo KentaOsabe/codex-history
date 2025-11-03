@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import SessionsDateListView from '../SessionsDateListView'
@@ -28,5 +28,17 @@ describe('SessionsDateListView', () => {
 
     const activeCell = screen.getByRole('gridcell', { selected: true })
     expect(activeCell).toHaveAttribute('data-date', '2025-03-15')
+  })
+
+  it('検索入力が同じ訪問中に入力テキストを保持する', () => {
+    render(<SessionsDateListView />)
+
+    const input = screen.getByPlaceholderText('キーワードで検索')
+    fireEvent.change(input, { target: { value: 'logs' } })
+
+    fireEvent.blur(input)
+    fireEvent.focus(input)
+
+    expect(input).toHaveValue('logs')
   })
 })
