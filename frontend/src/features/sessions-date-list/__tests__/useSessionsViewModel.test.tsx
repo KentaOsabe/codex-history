@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { SessionsIndexResponse } from '@/api/types/sessions'
 
+import type { FetchErrorView } from '../errorView'
+
 vi.mock('../useSessionsByDate', () => ({
   useSessionsByDate: vi.fn(),
 }))
@@ -103,7 +105,13 @@ describe('useSessionsViewModel', () => {
   it('エラー時でも直前の成功データを保持する', () => {
     const refetchMock = vi.fn()
     const successResponse = sampleResponse('cached')
-    const errorResponse = { status: 'error' as const, data: undefined, error: new Error('network'), refetch: refetchMock }
+    const errorView: FetchErrorView = { kind: 'network', message: 'ネットワークエラー', detail: '接続エラー' }
+    const errorResponse = {
+      status: 'error' as const,
+      data: undefined,
+      error: errorView,
+      refetch: refetchMock,
+    }
 
     mockedUseSessionsByDate
       .mockReturnValueOnce({ status: 'success', data: successResponse, error: undefined, refetch: refetchMock })

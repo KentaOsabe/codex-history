@@ -37,37 +37,6 @@
   font-size: 0.9rem;
 }
 
-.statusBanner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: 0 0 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.retryButton {
-  background: #fff;
-  border: 1px solid #fca5a5;
-  border-radius: 9999px;
-  color: #b91c1c;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.35rem 1rem;
-  transition: background 120ms ease, border-color 120ms ease;
-}
-
-.retryButton:hover,
-.retryButton:focus-visible {
-  background: #fecaca;
-  border-color: #fb7185;
-  outline: none;
-}
-
 .metaInfo {
   margin: 0 0 1rem;
   color: #4b5563;

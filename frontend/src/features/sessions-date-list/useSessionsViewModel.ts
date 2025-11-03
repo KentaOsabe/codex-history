@@ -6,6 +6,7 @@ import { toISODate } from './dateUtils'
 import { useSearchDraft } from './useSearchDraft'
 import { useSessionsByDate } from './useSessionsByDate'
 
+import type { FetchErrorView } from './errorView'
 import type { SessionListItem } from './SessionCard'
 
 type ViewStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -63,7 +64,7 @@ export interface SessionsViewModel {
   setActiveDateIso: (next: string) => void
   status: ViewStatus
   items: SessionListItem[]
-  error?: unknown
+  error?: FetchErrorView
   searchDraft: string
   setSearchDraft: (value: string) => void
   lastUpdatedLabel?: string

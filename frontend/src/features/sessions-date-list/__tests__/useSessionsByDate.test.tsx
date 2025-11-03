@@ -2,6 +2,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi, type Mock } from 'vitest'
 
+import { ApiTimeoutError } from '@/api/errors'
 import type { SessionsIndexResponse } from '@/api/types/sessions'
 
 import { useSessionsByDate } from '../useSessionsByDate'
@@ -53,12 +54,15 @@ const buildResponse = (sessionId: string): SessionsIndexResponse => ({
 
 const TestComponent = ({ dateIso }: { dateIso: string }) => {
   const { status, data, error, refetch } = useSessionsByDate({ dateIso })
+  const fetchError = error as { kind?: string; message?: string } | undefined
 
   return (
     <div>
       <span data-testid="status">{status}</span>
       <span data-testid="count">{data?.data.length ?? 0}</span>
       <span data-testid="error">{error ? 'error' : ''}</span>
+      <span data-testid="error-kind">{fetchError?.kind ?? ''}</span>
+      <span data-testid="error-message">{fetchError?.message ?? ''}</span>
       <button
         data-testid="refetch"
         onClick={() => {
@@ -116,18 +120,24 @@ describe('useSessionsByDate', () => {
     expect(screen.getByTestId('count').textContent).toBe('1')
   })
 
-  it('API エラー時にエラー状態を設定し、再取得で復旧できる', async () => {
-    listMock.mockRejectedValueOnce(new Error('network-error'))
+  it('タイムアウトエラー時にエラー状態を設定し、force リトライで復旧できる', async () => {
+    listMock.mockRejectedValueOnce(
+      new ApiTimeoutError({ message: 'セッションの取得がタイムアウトしました', isRetryable: true }),
+    )
 
     render(<TestComponent dateIso="2025-03-16" />)
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('error'))
     expect(screen.getByTestId('error').textContent).toBe('error')
+    expect(screen.getByTestId('error-kind').textContent).toBe('timeout')
+    expect(screen.getByTestId('error-message').textContent).toContain('セッションの取得がタイムアウトしました')
 
     listMock.mockResolvedValueOnce(buildResponse('session-3'))
     fireEvent.click(screen.getByTestId('refetch'))
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('success'))
     expect(screen.getByTestId('error').textContent).toBe('')
+    expect(screen.getByTestId('error-kind').textContent).toBe('')
+    expect(screen.getByTestId('error-message').textContent).toBe('')
   })
 })

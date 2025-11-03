@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { sessionsApi } from '@/api/sessions'
 import type { SessionsIndexResponse } from '@/api/types/sessions'
 
+import { mapApiErrorToFetchError, type FetchErrorView } from './errorView'
+
 type FetchStatus = 'idle' | 'loading' | 'success' | 'error'
 
 interface UseSessionsByDateParams {
@@ -12,7 +14,7 @@ interface UseSessionsByDateParams {
 interface UseSessionsByDateResult {
   status: FetchStatus
   data?: SessionsIndexResponse
-  error?: unknown
+  error?: FetchErrorView
   refetch: (options?: { force?: boolean }) => Promise<SessionsIndexResponse | undefined>
 }
 
@@ -20,7 +22,11 @@ export const useSessionsByDate = ({ dateIso }: UseSessionsByDateParams): UseSess
   const cacheRef = useRef<Map<string, SessionsIndexResponse>>(new Map())
   const inFlightRef = useRef<Map<string, Promise<SessionsIndexResponse>>>(new Map())
 
-  const [state, setState] = useState<{ status: FetchStatus; data?: SessionsIndexResponse; error?: unknown }>(() => {
+  const [state, setState] = useState<{
+    status: FetchStatus
+    data?: SessionsIndexResponse
+    error?: FetchErrorView
+  }>(() => {
     const cached = cacheRef.current.get(dateIso)
     if (cached) {
       return { status: 'success', data: cached }
@@ -77,7 +83,8 @@ export const useSessionsByDate = ({ dateIso }: UseSessionsByDateParams): UseSess
       })
       .catch((error) => {
         if (!isActive) return
-        setState((prev) => ({ status: 'error', data: prev.data, error }))
+        const viewError = mapApiErrorToFetchError(error)
+        setState((prev) => ({ status: 'error', data: prev.data, error: viewError }))
       })
 
     return () => {
@@ -96,7 +103,8 @@ export const useSessionsByDate = ({ dateIso }: UseSessionsByDateParams): UseSess
         setState({ status: 'success', data: response, error: undefined })
         return response
       } catch (error) {
-        setState((prev) => ({ status: 'error', data: prev.data, error }))
+        const viewError = mapApiErrorToFetchError(error)
+        setState((prev) => ({ status: 'error', data: prev.data, error: viewError }))
         throw error
       }
     },

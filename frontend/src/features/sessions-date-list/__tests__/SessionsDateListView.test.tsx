@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import SessionsDateListView from '../SessionsDateListView'
 import { useSessionsViewModel } from '../useSessionsViewModel'
 
+import type { FetchErrorView } from '../errorView'
+
 vi.mock('../useSessionsViewModel', () => ({
   useSessionsViewModel: vi.fn(),
 }))
@@ -85,5 +87,21 @@ describe('SessionsDateListView', () => {
     render(<SessionsDateListView />)
 
     expect(screen.getByRole('heading', { name: 'デモセッション: サマリー付き' })).toBeInTheDocument()
+  })
+
+  it('エラー状態ではエラーバナーにメッセージと詳細を表示する', () => {
+    const errorView: FetchErrorView = {
+      kind: 'network',
+      message: 'ネットワークエラーが発生しました',
+      detail: '接続がタイムアウトしました',
+    }
+    mockedUseSessionsViewModel.mockReturnValue(buildViewModel({ status: 'error', error: errorView }))
+
+    render(<SessionsDateListView />)
+
+    const banner = screen.getByRole('alert')
+    expect(banner).toBeInTheDocument()
+    expect(screen.getByText(errorView.message)).toBeInTheDocument()
+    expect(screen.getByText(errorView.detail ?? '')).toBeInTheDocument()
   })
 })

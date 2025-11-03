@@ -5,6 +5,7 @@ import { toISODate } from './dateUtils'
 import SearchInput from './SearchInput'
 import SessionList, { type SessionListVariant } from './SessionList'
 import styles from './SessionsDateListView.module.css'
+import StatusBanner from './StatusBanner'
 import { useSessionsViewModel } from './useSessionsViewModel'
 
 const SessionsDateListView = () => {
@@ -13,6 +14,7 @@ const SessionsDateListView = () => {
     setActiveDateIso,
     status,
     items,
+    error,
     searchDraft,
     setSearchDraft,
     refetch,
@@ -77,14 +79,11 @@ const SessionsDateListView = () => {
         <h2 id="sessions-date-list-sessions" className={styles.heading}>
           セッション一覧
         </h2>
-        {status === 'error' ? (
-          <div className={styles.statusBanner} role="alert">
-            <span>セッションの読み込みに失敗しました。</span>
-            <button type="button" className={styles.retryButton} onClick={handleRetry}>
-              再読み込み
-            </button>
-          </div>
-        ) : null}
+        <StatusBanner
+          error={error}
+          onRetry={handleRetry}
+          isRetrying={status === 'loading'}
+        />
         {lastUpdatedLabel ? <p className={styles.metaInfo}>最終更新: {lastUpdatedLabel}</p> : null}
         <SessionList
           variant={listVariant}

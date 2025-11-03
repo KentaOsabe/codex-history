@@ -36,7 +36,7 @@
   - 最終成功レスポンスを保持し、ローディング・エラー時のフォールバックとして使用する
   - _Requirements: 2.1, 2.2, 4.1, 4.4_
 
-- [ ] 2.2 エラーモデルとリトライを組み込む
+- [x] 2.2 エラーモデルとリトライを組み込む
   - `FetchErrorView` 型を定義し、`ApiClientError`/`ApiServerError`/`ApiNetworkError` を分類してメッセージを整形する
   - `StatusBanner` と `RetryButton` コンポーネントを実装し、エラー内容とリトライ操作を表示する
   - `useSessionsByDate.test.ts` でタイムアウトとリトライの挙動を TDD で検証する
