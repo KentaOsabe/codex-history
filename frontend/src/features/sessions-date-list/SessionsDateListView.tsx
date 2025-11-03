@@ -1,15 +1,42 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import CalendarStrip from './CalendarStrip'
 import { toISODate } from './dateUtils'
 import SearchInput from './SearchInput'
+import SessionList, { type SessionListItem } from './SessionList'
 import styles from './SessionsDateListView.module.css'
 import { useSearchDraft } from './useSearchDraft'
+
+const STUB_SESSIONS: SessionListItem[] = [
+  {
+    id: 'demo-session-1',
+    title: 'デモセッション: サマリー付き',
+    fallbackLabel: '2025/03/14/demo-session-1.jsonl',
+    updatedAtLabel: '2025年3月14日 22:15',
+    messageCount: 58,
+    summary: 'サニタイズ済みの要約とツール呼び出しを含む会話です。ログ検索や再利用の起点にどうぞ。',
+    hasSanitized: true,
+  },
+  {
+    id: 'demo-session-2',
+    title: 'バックエンド調査メモ',
+    fallbackLabel: '2025/03/10/backend-notes.jsonl',
+    updatedAtLabel: '2025年3月10日 09:05',
+    messageCount: 31,
+    summary: 'Codex History の API 応答を検証したメモ。SQL ログと比較しながらまとめています。',
+    hasSanitized: false,
+  },
+]
 
 const SessionsDateListView = () => {
   const todayIso = useMemo(() => toISODate(new Date()), [])
   const [ activeDate, setActiveDate ] = useState(todayIso)
   const [ searchDraft, setSearchDraft ] = useSearchDraft('')
+  const [ sessions ] = useState(STUB_SESSIONS)
+  const handleSelectSession = useCallback((sessionId: string) => {
+    // TODO: ルーティング実装時にセッション詳細ページへ遷移する
+    console.info('selected session id:', sessionId)
+  }, [])
 
   return (
     <div className={styles.container}>
@@ -51,9 +78,7 @@ const SessionsDateListView = () => {
         <h2 id="sessions-date-list-sessions" className={styles.heading}>
           セッション一覧
         </h2>
-        <div className={styles.sessionsPlaceholder}>
-          <p className={styles.placeholderText}>セッションカードは今後のタスクで追加されます。</p>
-        </div>
+        <SessionList variant="ready" items={sessions} onSelect={handleSelectSession} />
       </section>
     </div>
   )

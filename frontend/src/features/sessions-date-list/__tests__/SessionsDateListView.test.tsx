@@ -41,4 +41,10 @@ describe('SessionsDateListView', () => {
 
     expect(input).toHaveValue('logs')
   })
+
+  it('スタブデータのセッションカードを表示する', () => {
+    render(<SessionsDateListView />)
+
+    expect(screen.getByRole('heading', { name: 'デモセッション: サマリー付き' })).toBeInTheDocument()
+  })
 })
