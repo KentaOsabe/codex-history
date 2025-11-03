@@ -64,6 +64,10 @@ export const useSessionsViewModel = (): SessionsViewModel => {
   const [lastSuccessfulResponse, setLastSuccessfulResponse] = useState<SessionsIndexResponse | undefined>(undefined)
 
   useEffect(() => {
+    setLastSuccessfulResponse(undefined)
+  }, [activeDateIso])
+
+  useEffect(() => {
     if (status === 'success' && data) {
       setLastSuccessfulResponse((previous) => (previous === data ? previous : data))
     }

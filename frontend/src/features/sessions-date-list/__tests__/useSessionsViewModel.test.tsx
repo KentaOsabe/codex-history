@@ -129,6 +129,34 @@ describe('useSessionsViewModel', () => {
     expect(result.current?.items).toHaveLength(1)
   })
 
+  it('日付を切り替えて失敗した場合は直前のキャッシュを破棄する', () => {
+    const refetchMock = vi.fn()
+    const successResponse = sampleResponse('cached')
+    const errorView: FetchErrorView = { kind: 'network', message: 'ネットワークエラー', detail: '接続エラー' }
+    const errorResponse = {
+      status: 'error' as const,
+      data: undefined,
+      error: errorView,
+      refetch: refetchMock,
+    }
+
+    mockedUseSessionsByDate
+      .mockReturnValueOnce({ status: 'success', data: successResponse, error: undefined, refetch: refetchMock })
+      .mockReturnValueOnce(errorResponse)
+      .mockReturnValue(errorResponse)
+
+    const { result } = createHookRenderer()
+
+    expect(result.current?.items).toHaveLength(1)
+
+    act(() => {
+      result.current?.setActiveDateIso('2025-03-16')
+    })
+
+    expect(result.current?.status).toBe('error')
+    expect(result.current?.items).toHaveLength(0)
+  })
+
   it('日付を変更するとフックが再評価される', () => {
     const refetchMock = vi.fn()
     const calls: string[] = []
