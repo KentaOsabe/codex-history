@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi, type Mock } from 'vitest'
 
 import type { SessionsIndexResponse } from '@/api/types/sessions'
+
 import { useSessionsByDate } from '../useSessionsByDate'
 
 vi.mock('@/api/sessions', () => {
@@ -14,6 +16,7 @@ vi.mock('@/api/sessions', () => {
 
 const { sessionsApi } = await import('@/api/sessions')
 const mockedSessionsApi = vi.mocked(sessionsApi)
+const listMock = mockedSessionsApi.list as Mock
 
 const buildResponse = (sessionId: string): SessionsIndexResponse => ({
   data: [
@@ -56,7 +59,12 @@ const TestComponent = ({ dateIso }: { dateIso: string }) => {
       <span data-testid="status">{status}</span>
       <span data-testid="count">{data?.data.length ?? 0}</span>
       <span data-testid="error">{error ? 'error' : ''}</span>
-      <button data-testid="refetch" onClick={() => refetch({ force: true })}>
+      <button
+        data-testid="refetch"
+        onClick={() => {
+          void refetch({ force: true })
+        }}
+      >
         refetch
       </button>
     </div>
@@ -69,54 +77,54 @@ describe('useSessionsByDate', () => {
   })
 
   it('指定日付のセッションを取得して成功状態を返す', async () => {
-    mockedSessionsApi.list.mockResolvedValueOnce(buildResponse('session-1'))
+    listMock.mockResolvedValueOnce(buildResponse('session-1'))
 
     render(<TestComponent dateIso="2025-03-15" />)
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('success'))
 
-    expect(mockedSessionsApi.list).toHaveBeenCalledWith({ startDate: '2025-03-15', endDate: '2025-03-15' })
+    expect(listMock).toHaveBeenCalledWith({ startDate: '2025-03-15', endDate: '2025-03-15' })
     expect(screen.getByTestId('count').textContent).toBe('1')
   })
 
   it('同じ日付の場合はキャッシュを再利用して再リクエストしない', async () => {
-    mockedSessionsApi.list.mockResolvedValueOnce(buildResponse('session-1'))
+    listMock.mockResolvedValueOnce(buildResponse('session-1'))
 
     const { rerender } = render(<TestComponent dateIso="2025-03-15" />)
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('success'))
-    mockedSessionsApi.list.mockClear()
+    const callsBefore = listMock.mock.calls.length
 
     rerender(<TestComponent dateIso="2025-03-15" />)
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('success'))
-    expect(mockedSessionsApi.list).not.toHaveBeenCalled()
+    expect(listMock.mock.calls.length).toBe(callsBefore)
   })
 
   it('force オプション付き refetch で再取得する', async () => {
-    mockedSessionsApi.list.mockResolvedValueOnce(buildResponse('session-1'))
+    listMock.mockResolvedValueOnce(buildResponse('session-1'))
 
     render(<TestComponent dateIso="2025-03-15" />)
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('success'))
 
-    mockedSessionsApi.list.mockResolvedValueOnce(buildResponse('session-2'))
+    listMock.mockResolvedValueOnce(buildResponse('session-2'))
     fireEvent.click(screen.getByTestId('refetch'))
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('success'))
-    expect(mockedSessionsApi.list).toHaveBeenCalledTimes(2)
+    expect(listMock).toHaveBeenCalledTimes(2)
     expect(screen.getByTestId('count').textContent).toBe('1')
   })
 
   it('API エラー時にエラー状態を設定し、再取得で復旧できる', async () => {
-    mockedSessionsApi.list.mockRejectedValueOnce(new Error('network-error'))
+    listMock.mockRejectedValueOnce(new Error('network-error'))
 
     render(<TestComponent dateIso="2025-03-16" />)
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('error'))
     expect(screen.getByTestId('error').textContent).toBe('error')
 
-    mockedSessionsApi.list.mockResolvedValueOnce(buildResponse('session-3'))
+    listMock.mockResolvedValueOnce(buildResponse('session-3'))
     fireEvent.click(screen.getByTestId('refetch'))
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('success'))

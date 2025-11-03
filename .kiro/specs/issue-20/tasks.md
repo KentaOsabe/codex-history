@@ -24,13 +24,13 @@
   - 初期段階ではスタブデータを利用し、TDD でレンダリング挙動を固める
   - _Requirements: 2.1, 2.2, 2.3, 4.1_
 
-- [ ] 2. データ取得フローとキャッシュフックを実装する
+- [x] 2. データ取得フローとキャッシュフックを実装する
   - `useSessionsByDate` を作成し、`Map<string, CacheEntry>` による日付別キャッシュを保持する
   - 初回アクセス時に `sessionsApi.list` を呼び出し、レスポンスをキャッシュへ保存する
   - `force=true` 指定時やエラー後リトライ時に再フェッチするロジックを組み込む
   - _Requirements: 1.1, 1.2, 4.4_
 
-- [ ] 2.1 データ整形と状態管理フックを実装する
+- [x] 2.1 データ整形と状態管理フックを実装する
   - `useSessionsViewModel` を作成し、`activeDateIso`, `searchDraft`, `status`, `items` を返す
   - API レスポンスを `SessionListItem` へ変換するフォーマッタを追加する
   - 最終成功レスポンスを保持し、ローディング・エラー時のフォールバックとして使用する

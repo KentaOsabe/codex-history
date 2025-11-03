@@ -1,42 +1,45 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback } from 'react'
 
 import CalendarStrip from './CalendarStrip'
 import { toISODate } from './dateUtils'
 import SearchInput from './SearchInput'
-import SessionList, { type SessionListItem } from './SessionList'
+import SessionList, { type SessionListVariant } from './SessionList'
 import styles from './SessionsDateListView.module.css'
-import { useSearchDraft } from './useSearchDraft'
-
-const STUB_SESSIONS: SessionListItem[] = [
-  {
-    id: 'demo-session-1',
-    title: 'デモセッション: サマリー付き',
-    fallbackLabel: '2025/03/14/demo-session-1.jsonl',
-    updatedAtLabel: '2025年3月14日 22:15',
-    messageCount: 58,
-    summary: 'サニタイズ済みの要約とツール呼び出しを含む会話です。ログ検索や再利用の起点にどうぞ。',
-    hasSanitized: true,
-  },
-  {
-    id: 'demo-session-2',
-    title: 'バックエンド調査メモ',
-    fallbackLabel: '2025/03/10/backend-notes.jsonl',
-    updatedAtLabel: '2025年3月10日 09:05',
-    messageCount: 31,
-    summary: 'Codex History の API 応答を検証したメモ。SQL ログと比較しながらまとめています。',
-    hasSanitized: false,
-  },
-]
+import { useSessionsViewModel } from './useSessionsViewModel'
 
 const SessionsDateListView = () => {
-  const todayIso = useMemo(() => toISODate(new Date()), [])
-  const [ activeDate, setActiveDate ] = useState(todayIso)
-  const [ searchDraft, setSearchDraft ] = useSearchDraft('')
-  const [ sessions ] = useState(STUB_SESSIONS)
-  const handleSelectSession = useCallback((sessionId: string) => {
-    // TODO: ルーティング実装時にセッション詳細ページへ遷移する
-    console.info('selected session id:', sessionId)
-  }, [])
+  const {
+    activeDateIso,
+    setActiveDateIso,
+    status,
+    items,
+    searchDraft,
+    setSearchDraft,
+    refetch,
+    lastUpdatedLabel,
+  } = useSessionsViewModel()
+
+  const handleDateSelect = useCallback(
+    (dateIso: string) => {
+      setActiveDateIso(dateIso)
+    },
+    [setActiveDateIso],
+  )
+
+  const handleNavigateMonth = useCallback(
+    (offset: number) => {
+      const selected = new Date(`${activeDateIso}T00:00:00Z`)
+      selected.setUTCMonth(selected.getUTCMonth() + offset, 1)
+      setActiveDateIso(toISODate(selected))
+    },
+    [activeDateIso, setActiveDateIso],
+  )
+
+  const listVariant: SessionListVariant = status === 'loading' ? 'loading' : items.length === 0 ? 'empty' : 'ready'
+
+  const handleRetry = () => {
+    void refetch({ force: true })
+  }
 
   return (
     <div className={styles.container}>
@@ -45,13 +48,9 @@ const SessionsDateListView = () => {
           日付を選択
         </h2>
         <CalendarStrip
-          activeDateIso={activeDate}
-          onSelect={(dateIso) => setActiveDate(dateIso)}
-          onNavigateMonth={(offset) => {
-            const selected = new Date(`${activeDate}T00:00:00Z`)
-            selected.setUTCMonth(selected.getUTCMonth() + offset, 1)
-            setActiveDate(toISODate(selected))
-          }}
+          activeDateIso={activeDateIso}
+          onSelect={handleDateSelect}
+          onNavigateMonth={handleNavigateMonth}
         />
       </section>
 
@@ -78,7 +77,20 @@ const SessionsDateListView = () => {
         <h2 id="sessions-date-list-sessions" className={styles.heading}>
           セッション一覧
         </h2>
-        <SessionList variant="ready" items={sessions} onSelect={handleSelectSession} />
+        {status === 'error' ? (
+          <div className={styles.statusBanner} role="alert">
+            <span>セッションの読み込みに失敗しました。</span>
+            <button type="button" className={styles.retryButton} onClick={handleRetry}>
+              再読み込み
+            </button>
+          </div>
+        ) : null}
+        {lastUpdatedLabel ? <p className={styles.metaInfo}>最終更新: {lastUpdatedLabel}</p> : null}
+        <SessionList
+          variant={listVariant}
+          items={items}
+          onSelect={(sessionId) => console.info('selected session id:', sessionId)}
+        />
       </section>
     </div>
   )

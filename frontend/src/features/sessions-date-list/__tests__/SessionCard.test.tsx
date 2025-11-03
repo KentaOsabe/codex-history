@@ -20,7 +20,7 @@ describe('SessionCard', () => {
     render(<SessionCard item={baseItem} onSelect={handleSelect} />)
 
     expect(screen.getByRole('heading', { name: 'Session Title' })).toBeInTheDocument()
-    expect(screen.getByText('メッセージ数: 42')).toBeInTheDocument()
+    expect(screen.getByText('42件')).toBeInTheDocument()
     expect(screen.getByText('2025年2月1日 10:00')).toBeInTheDocument()
   })
 

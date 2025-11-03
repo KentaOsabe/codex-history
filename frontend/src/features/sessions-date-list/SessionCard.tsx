@@ -36,7 +36,7 @@ const SessionCard = ({ item, onSelect }: SessionCardProps) => {
         </div>
         <div className={styles.metaItem}>
           <span className={styles.metaLabel}>メッセージ数</span>
-          <span className={styles.metaValue}>{`メッセージ数: ${item.messageCount}`}</span>
+          <span className={styles.metaValue}>{`${item.messageCount.toLocaleString('ja-JP')}件`}</span>
         </div>
       </div>
       {item.summary ? <p className={styles.summary}>{item.summary}</p> : null}

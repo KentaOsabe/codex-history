@@ -36,10 +36,14 @@ export const useSessionsByDate = ({ dateIso }: UseSessionsByDateParams): UseSess
       }
 
       const existingPromise = inFlightRef.current.get(targetDateIso)
-      const requestPromise = existingPromise ?? sessionsApi.list({ startDate: targetDateIso, endDate: targetDateIso })
+      let requestPromise: Promise<SessionsIndexResponse>
 
-      if (!existingPromise) {
-        inFlightRef.current.set(targetDateIso, requestPromise)
+      if (existingPromise) {
+        requestPromise = existingPromise
+      } else {
+        const newPromise = sessionsApi.list({ startDate: targetDateIso, endDate: targetDateIso })
+        inFlightRef.current.set(targetDateIso, newPromise)
+        requestPromise = newPromise
       }
 
       try {
