@@ -60,7 +60,7 @@
   - `logError` ヘルパーを設け、予期しない例外をコンソール記録する
   - _Requirements: 1.2, 2.2, 4.2, 4.3_
 
-- [ ] 4. TDD 完了チェックとドキュメント更新
+- [x] 4. TDD 完了チェックとドキュメント更新
   - 追加したテスト群 (ユニット/統合) がすべてグリーンになることを確認する
   - README もしくは機能ドキュメントに Sessions Date List View の追加を記載する
   - `spec.json` の `ready_for_implementation` を true に設定する

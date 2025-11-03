@@ -24,6 +24,8 @@ docker compose run --rm backend bundle install
 ## フロントエンドセットアップ（Vite + React + TypeScript）
 フロントエンド資材は `frontend/` 配下に配置されています。Node.js 20 以上を利用してください。
 
+2025年11月実装の Sessions Date List View（カレンダー＋セッション一覧＋検索入力プレースホルダー）は同ディレクトリの `src/features/sessions-date-list/` にまとまっており、MSW + Vitest を用いた統合テストで初期表示、ゼロ件時の空状態、500 系エラー後のリトライ、カード選択時のナビゲーションを検証しています。
+
 `.env`（またはシェル環境変数）に以下を指定するとバックエンド API やデフォルト絞り込み期間を変更できます。
 
 ※ `docker compose up backend frontend` の構成では `VITE_API_BASE_URL` を未設定にすると自動的に `http://backend:3000` へプロキシされます。Docker を使わずローカルで Rails(API) を起動する場合は `VITE_API_BASE_URL=http://localhost:3000` を指定してください。
