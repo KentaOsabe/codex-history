@@ -29,9 +29,13 @@
 }
 
 .navButton:hover,
-.navButton:focus {
+.navButton:focus-visible {
   background: #eff6ff;
   border-color: #1d4ed8;
+  outline: none;
+}
+
+.navButton:focus:not(:focus-visible) {
   outline: none;
 }
 
@@ -66,13 +70,21 @@
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
+.cell:hover {
+  border-color: #3b82f6;
+}
+
 .cell:focus {
+  outline: none;
+}
+
+.cell:focus-visible {
   outline: 3px solid #93c5fd;
   outline-offset: 1px;
 }
 
-.cell:hover {
-  border-color: #3b82f6;
+.cell:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .cellSelected {

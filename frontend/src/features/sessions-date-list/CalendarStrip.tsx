@@ -1,7 +1,14 @@
 import { KeyboardEvent, useEffect, useMemo, useState } from 'react'
 
 import styles from './CalendarStrip.module.css'
-import { buildCalendarMatrix, parseISODate, toISODate } from './dateUtils'
+import {
+  buildCalendarMatrix,
+  formatMonthTitle,
+  formatWeekdayLabel,
+  parseISODate,
+  shiftUTCMonth,
+  toISODate,
+} from './dateUtils'
 
 interface CalendarStripProps {
   activeDateIso: string
@@ -10,23 +17,6 @@ interface CalendarStripProps {
 }
 
 const ROW_LENGTH = 7
-
-const formatMonthLabel = (date: Date): string => {
-  return new Intl.DateTimeFormat('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    timeZone: 'UTC',
-  }).format(date)
-}
-
-const formatCellLabel = (date: Date): string => {
-  return new Intl.DateTimeFormat('ja-JP', {
-    month: 'numeric',
-    day: 'numeric',
-    weekday: 'short',
-    timeZone: 'UTC',
-  }).format(date)
-}
 
 const CalendarStrip = ({ activeDateIso, onSelect, onNavigateMonth }: CalendarStripProps) => {
   const activeDate = useMemo(() => parseISODate(activeDateIso), [ activeDateIso ])
@@ -98,15 +88,15 @@ const CalendarStrip = ({ activeDateIso, onSelect, onNavigateMonth }: CalendarStr
   }
 
   const handleMonthNavigation = (offset: number) => {
-    const updated = parseISODate(activeDateIso)
-    updated.setUTCMonth(updated.getUTCMonth() + offset, 1)
-
+    const updated = shiftUTCMonth(visibleDate, offset)
     setVisibleDate(updated)
     setFocusDateIso(toISODate(updated))
     onNavigateMonth(offset)
   }
 
-  const monthLabel = formatMonthLabel(visibleDate)
+  const monthLabel = formatMonthTitle(visibleDate)
+  const prevMonthLabel = formatMonthTitle(shiftUTCMonth(visibleDate, -1))
+  const nextMonthLabel = formatMonthTitle(shiftUTCMonth(visibleDate, 1))
 
   return (
     <div className={styles.container}>
@@ -114,6 +104,8 @@ const CalendarStrip = ({ activeDateIso, onSelect, onNavigateMonth }: CalendarStr
         <button
           type="button"
           className={styles.navButton}
+          aria-label={`前の月 (${prevMonthLabel})`}
+          title={`前の月 (${prevMonthLabel})`}
           onClick={() => handleMonthNavigation(-1)}
         >
           前の月
@@ -122,12 +114,14 @@ const CalendarStrip = ({ activeDateIso, onSelect, onNavigateMonth }: CalendarStr
         <button
           type="button"
           className={styles.navButton}
+          aria-label={`次の月 (${nextMonthLabel})`}
+          title={`次の月 (${nextMonthLabel})`}
           onClick={() => handleMonthNavigation(1)}
         >
           次の月
         </button>
       </div>
-      <div role="grid" aria-label="日付選択" className={styles.grid}>
+      <div role="grid" aria-label={`${monthLabel}の日付を選択`} className={styles.grid}>
         {matrix.map((week, weekIndex) => (
           <div role="row" className={styles.row} key={`week-${weekIndex}`}>
             {week.map((cell) => {
@@ -144,7 +138,8 @@ const CalendarStrip = ({ activeDateIso, onSelect, onNavigateMonth }: CalendarStr
                   role="gridcell"
                   data-date={cell.dateIso}
                   aria-selected={isSelected}
-                  aria-label={formatCellLabel(cell.date)}
+                  aria-label={formatWeekdayLabel(cell.date)}
+                  aria-current={isSelected ? 'date' : undefined}
                   className={classNames.join(' ')}
                   tabIndex={isFocused ? 0 : -1}
                   onFocus={() => setFocusDateIso(cell.dateIso)}

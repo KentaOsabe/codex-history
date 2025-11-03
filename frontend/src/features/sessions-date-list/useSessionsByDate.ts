@@ -4,6 +4,7 @@ import { sessionsApi } from '@/api/sessions'
 import type { SessionsIndexResponse } from '@/api/types/sessions'
 
 import { mapApiErrorToFetchError, type FetchErrorView } from './errorView'
+import { logError } from './logError'
 
 type FetchStatus = 'idle' | 'loading' | 'success' | 'error'
 
@@ -83,6 +84,7 @@ export const useSessionsByDate = ({ dateIso }: UseSessionsByDateParams): UseSess
       })
       .catch((error) => {
         if (!isActive) return
+        logError(error, 'sessions-date-list:fetch')
         const viewError = mapApiErrorToFetchError(error)
         setState((prev) => ({ status: 'error', data: prev.data, error: viewError }))
       })
@@ -103,6 +105,7 @@ export const useSessionsByDate = ({ dateIso }: UseSessionsByDateParams): UseSess
         setState({ status: 'success', data: response, error: undefined })
         return response
       } catch (error) {
+        logError(error, 'sessions-date-list:refetch')
         const viewError = mapApiErrorToFetchError(error)
         setState((prev) => ({ status: 'error', data: prev.data, error: viewError }))
         throw error

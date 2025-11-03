@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { SessionsIndexResponse } from '@/api/types/sessions'
 
-import { toISODate } from './dateUtils'
+import { formatDateTime, toISODate } from './dateUtils'
 import { useSearchDraft } from './useSearchDraft'
 import { useSessionsByDate } from './useSessionsByDate'
 
@@ -10,21 +10,6 @@ import type { FetchErrorView } from './errorView'
 import type { SessionListItem } from './SessionCard'
 
 type ViewStatus = 'idle' | 'loading' | 'success' | 'error'
-
-const formatDateTime = (iso?: string | null): string => {
-  if (!iso) return ''
-
-  const dt = new Date(iso)
-  return new Intl.DateTimeFormat('ja-JP', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'UTC',
-  }).format(dt)
-}
 
 const extractSummary = (payload: Record<string, unknown> | undefined | null): string | undefined => {
   if (!payload || typeof payload !== 'object') return undefined

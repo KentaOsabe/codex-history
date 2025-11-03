@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildCalendarMatrix, toISODate } from './dateUtils'
+import { buildCalendarMatrix, formatDateTime, formatMonthTitle, formatWeekdayLabel, toISODate } from './dateUtils'
 
 describe('dateUtils', () => {
   describe('toISODate', () => {
@@ -37,6 +37,24 @@ describe('dateUtils', () => {
       expect(matrix[0][6].dateIso).toBe('2025-04-05')
       expect(matrix[2][6].isCurrentMonth).toBe(true)
       expect(matrix[2][6].dateIso).toBe('2025-04-19')
+    })
+  })
+
+  describe('formatters', () => {
+    it('formatDateTime はローカライズされた日時文字列を返す', () => {
+      expect(formatDateTime('2025-03-14T10:30:00Z')).toBe('2025/3/14 10:30')
+    })
+
+    it('formatDateTime はロケール指定を尊重する', () => {
+      expect(formatDateTime('2025-03-14T10:30:00Z', { locale: 'en-GB' })).toBe('14/03/2025, 10:30')
+    })
+
+    it('formatMonthTitle は月ラベルを返す', () => {
+      expect(formatMonthTitle(new Date(Date.UTC(2025, 0, 15)))).toBe('2025年1月')
+    })
+
+    it('formatWeekdayLabel は曜日付きの短い表記を返す', () => {
+      expect(formatWeekdayLabel(new Date(Date.UTC(2025, 0, 15)))).toBe('1/15(水)')
     })
   })
 })

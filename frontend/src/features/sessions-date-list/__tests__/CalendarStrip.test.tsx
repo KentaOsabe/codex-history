@@ -20,10 +20,12 @@ describe('CalendarStrip', () => {
       />,
     )
 
-    expect(screen.getByRole('grid')).toBeInTheDocument()
+    const grid = screen.getByRole('grid')
+    expect(grid).toBeInTheDocument()
+    expect(grid).toHaveAttribute('aria-label', '2025年1月の日付を選択')
     expect(screen.getAllByRole('gridcell')).toHaveLength(21)
-    expect(screen.getByRole('button', { name: '前の月' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '次の月' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '前の月 (2024年12月)' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '次の月 (2025年2月)' })).toBeInTheDocument()
   })
 
   it('アクティブ日付に aria-selected を設定する', () => {
@@ -37,6 +39,7 @@ describe('CalendarStrip', () => {
 
     const activeCell = screen.getByRole('gridcell', { selected: true })
     expect(activeCell).toHaveAttribute('data-date', activeDate)
+    expect(activeCell).toHaveAttribute('aria-current', 'date')
   })
 
   it('矢印キーとEnterで日付選択を行う', async () => {
@@ -71,8 +74,8 @@ describe('CalendarStrip', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: '前の月' }))
-    fireEvent.click(screen.getByRole('button', { name: '次の月' }))
+    fireEvent.click(screen.getByRole('button', { name: '前の月 (2024年12月)' }))
+    fireEvent.click(screen.getByRole('button', { name: '次の月 (2025年2月)' }))
 
     expect(onNavigateMonth).toHaveBeenNthCalledWith(1, -1)
     expect(onNavigateMonth).toHaveBeenNthCalledWith(2, 1)

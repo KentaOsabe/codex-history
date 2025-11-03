@@ -99,7 +99,7 @@ describe('useSessionsViewModel', () => {
     expect(result.current?.status).toBe('success')
     expect(result.current?.items).toHaveLength(1)
     expect(result.current?.activeDateIso).toBe('2025-03-15')
-    expect(result.current?.lastUpdatedLabel).not.toBeFalsy()
+    expect(result.current?.lastUpdatedLabel).toBe('2025/3/14 10:00')
   })
 
   it('エラー時でも直前の成功データを保持する', () => {

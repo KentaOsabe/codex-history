@@ -7,6 +7,10 @@ import type { SessionsIndexResponse } from '@/api/types/sessions'
 
 import { useSessionsByDate } from '../useSessionsByDate'
 
+vi.mock('../logError', () => ({
+  logError: vi.fn(),
+}))
+
 vi.mock('@/api/sessions', () => {
   return {
     sessionsApi: {
@@ -16,6 +20,7 @@ vi.mock('@/api/sessions', () => {
 })
 
 const { sessionsApi } = await import('@/api/sessions')
+const { logError } = await import('../logError')
 const mockedSessionsApi = vi.mocked(sessionsApi)
 const listMock = mockedSessionsApi.list as Mock
 
@@ -131,6 +136,7 @@ describe('useSessionsByDate', () => {
     expect(screen.getByTestId('error').textContent).toBe('error')
     expect(screen.getByTestId('error-kind').textContent).toBe('timeout')
     expect(screen.getByTestId('error-message').textContent).toContain('セッションの取得がタイムアウトしました')
+    expect(logError).toHaveBeenCalledWith(expect.any(ApiTimeoutError), 'sessions-date-list:fetch')
 
     listMock.mockResolvedValueOnce(buildResponse('session-3'))
     fireEvent.click(screen.getByTestId('refetch'))
