@@ -33,5 +33,6 @@ describe('App', () => {
     expect(
       screen.getByText('日付を選択するとその日のセッションが表示されます'),
     ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'セッション一覧' })).toBeInTheDocument()
   })
 })

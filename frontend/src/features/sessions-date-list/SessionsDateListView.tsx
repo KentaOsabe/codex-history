@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 
 import CalendarStrip from './CalendarStrip'
 import { toISODate } from './dateUtils'
+import { navigateToSessionDetail } from './navigation'
 import SearchInput from './SearchInput'
 import SessionList, { type SessionListVariant } from './SessionList'
 import styles from './SessionsDateListView.module.css'
@@ -39,9 +40,13 @@ const SessionsDateListView = () => {
 
   const listVariant: SessionListVariant = status === 'loading' ? 'loading' : items.length === 0 ? 'empty' : 'ready'
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     void refetch({ force: true })
-  }
+  }, [refetch])
+
+  const handleSessionSelect = useCallback((sessionId: string) => {
+    navigateToSessionDetail(sessionId)
+  }, [])
 
   return (
     <div className={styles.container}>
@@ -88,7 +93,7 @@ const SessionsDateListView = () => {
         <SessionList
           variant={listVariant}
           items={items}
-          onSelect={(sessionId) => console.info('selected session id:', sessionId)}
+          onSelect={handleSessionSelect}
         />
       </section>
     </div>
