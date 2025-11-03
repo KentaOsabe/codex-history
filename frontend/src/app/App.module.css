@@ -23,32 +23,3 @@
   font-size: 1.1rem;
   color: #4a5568;
 }
-
-.placeholder {
-  border-radius: 16px;
-  padding: 2rem;
-  background: #fff;
-  box-shadow: 0 12px 32px rgb(15 23 42 / 8%);
-  border: 1px solid #e2e8f0;
-}
-
-.placeholderHeading {
-  margin: 0 0 1rem;
-  font-size: 1.4rem;
-  color: #2d3748;
-}
-
-.placeholderList {
-  margin: 0;
-  padding-left: 1.2rem;
-  color: #4a5568;
-  line-height: 1.6;
-}
-
-.placeholderList li {
-  margin-bottom: 0.75rem;
-}
-
-.placeholderList li:last-child {
-  margin-bottom: 0;
-}

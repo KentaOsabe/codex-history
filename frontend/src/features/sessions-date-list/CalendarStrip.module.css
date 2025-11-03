@@ -1,0 +1,100 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.monthLabel {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.navButton {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  color: #1f2937;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.75rem;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.navButton:hover,
+.navButton:focus-visible {
+  background: #eff6ff;
+  border-color: #1d4ed8;
+  outline: none;
+}
+
+.navButton:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.grid {
+  border: 1px solid #cbd5f5;
+  border-radius: 12px;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.5rem;
+}
+
+.row {
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.cell {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  color: #1f2937;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.95rem;
+  font-weight: 500;
+  height: 2.5rem;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.cell:hover {
+  border-color: #3b82f6;
+}
+
+.cell:focus {
+  outline: none;
+}
+
+.cell:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 1px;
+}
+
+.cell:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.cellSelected {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+.cellMuted {
+  color: #64748b;
+  border-color: #e5e7eb;
+  background: #f9fafb;
+}

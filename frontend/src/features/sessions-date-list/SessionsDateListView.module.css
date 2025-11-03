@@ -1,0 +1,55 @@
+.container {
+  display: grid;
+  gap: 1.75rem;
+}
+
+.section {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 6%);
+  padding: 1.75rem;
+}
+
+.heading {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.searchContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.searchInput {
+  border: 1px solid #cbd5f5;
+  border-radius: 10px;
+  font-size: 1rem;
+  padding: 0.65rem 0.85rem;
+}
+
+.helperText {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.metaInfo {
+  margin: 0 0 1rem;
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.visuallyHidden {
+  border: 0;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  white-space: nowrap;
+}
