@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 
+import CalendarStrip from './CalendarStrip'
 import { toISODate } from './dateUtils'
 import styles from './SessionsDateListView.module.css'
 
 const SessionsDateListView = () => {
   const todayIso = useMemo(() => toISODate(new Date()), [])
-  const [activeDate] = useState(todayIso)
+  const [ activeDate, setActiveDate ] = useState(todayIso)
 
   return (
     <div className={styles.container}>
@@ -13,12 +14,15 @@ const SessionsDateListView = () => {
         <h2 id="sessions-date-list-calendar" className={styles.heading}>
           日付を選択
         </h2>
-        <div className={styles.calendarPlaceholder}>
-          <span className={styles.calendarActiveDate} data-testid="active-date">
-            {activeDate}
-          </span>
-          <p className={styles.placeholderText}>カレンダー UI は今後のタスクで実装されます。</p>
-        </div>
+        <CalendarStrip
+          activeDateIso={activeDate}
+          onSelect={(dateIso) => setActiveDate(dateIso)}
+          onNavigateMonth={(offset) => {
+            const selected = new Date(`${activeDate}T00:00:00Z`)
+            selected.setUTCMonth(selected.getUTCMonth() + offset, 1)
+            setActiveDate(toISODate(selected))
+          }}
+        />
       </section>
 
       <section className={styles.section} aria-labelledby="sessions-date-list-search">

@@ -6,7 +6,7 @@
   - 日付初期値として `toISODate(today)` を適用し、テストダブルを用いたスナップショットを作成する
   - _Requirements: 1.1, 1.2, 2.1_
 
-- [ ] 1.1 カレンダーストリップ UI を構築する
+- [x] 1.1 カレンダーストリップ UI を構築する
   - `CalendarStrip` コンポーネントを追加し、7日分の日付セルと月移動ボタンを表示する
   - ARIA 属性 (`role="grid"`, `aria-selected`) とキーボード操作 (左右キー, Enter) を処理する
   - `dateUtils.test.ts` で `buildCalendarMatrix` の境界ケースを TDD で検証する

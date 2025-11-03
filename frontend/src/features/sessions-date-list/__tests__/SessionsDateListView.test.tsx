@@ -26,6 +26,7 @@ describe('SessionsDateListView', () => {
   it('初期アクティブ日付として当日ISO文字列をセットする', () => {
     render(<SessionsDateListView />)
 
-    expect(screen.getByTestId('active-date')).toHaveTextContent('2025-03-15')
+    const activeCell = screen.getByRole('gridcell', { selected: true })
+    expect(activeCell).toHaveAttribute('data-date', '2025-03-15')
   })
 })
