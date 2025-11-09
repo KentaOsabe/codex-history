@@ -5,6 +5,7 @@ import type { SessionVariant } from '@/api/types/sessions'
 
 import SessionDetailHeader from './SessionDetailHeader'
 import MessageTimeline from './MessageTimeline'
+import type { ScrollAnchorSnapshot } from './types'
 import { useSessionDetailViewModel } from './useSessionDetailViewModel'
 import styles from './SessionDetailPage.module.css'
 
@@ -23,6 +24,7 @@ const SessionDetailPage = () => {
     consumeScrollAnchor,
   } = useSessionDetailViewModel({ sessionId })
   const timelineRef = useRef<HTMLDivElement | null>(null)
+  const boundaryTriggerRef = useRef<{ direction: 'start' | 'end'; timestamp: number } | null>(null)
 
   const captureScrollAnchor = useCallback(() => {
     const container = timelineRef.current
@@ -52,9 +54,40 @@ const SessionDetailPage = () => {
     [captureScrollAnchor, preserveScrollAnchor, setVariant],
   )
 
+  const handleScrollAnchorChange = useCallback(
+    (anchor: ScrollAnchorSnapshot | null) => {
+      if (!anchor) return
+      preserveScrollAnchor(anchor)
+    },
+    [preserveScrollAnchor],
+  )
+
   const handleRetry = useCallback(() => {
     void refetch()
   }, [refetch])
+
+  const triggerBoundaryLoad = useCallback(
+    (direction: 'start' | 'end') => {
+      const now = typeof performance !== 'undefined' ? performance.now() : Date.now()
+      const lastTrigger = boundaryTriggerRef.current
+      if (lastTrigger && lastTrigger.direction === direction && now - lastTrigger.timestamp < 1200) {
+        return
+      }
+      boundaryTriggerRef.current = { direction, timestamp: now }
+      const anchor = captureScrollAnchor()
+      preserveScrollAnchor(anchor)
+      void refetch()
+    },
+    [captureScrollAnchor, preserveScrollAnchor, refetch],
+  )
+
+  const handleReachTop = useCallback(() => {
+    triggerBoundaryLoad('start')
+  }, [triggerBoundaryLoad])
+
+  const handleReachBottom = useCallback(() => {
+    triggerBoundaryLoad('end')
+  }, [triggerBoundaryLoad])
 
   useEffect(() => {
     const anchor = consumeScrollAnchor()
@@ -109,9 +142,14 @@ const SessionDetailPage = () => {
           </section>
           <section className={`${styles.timelinePlaceholder} ${styles.timelineSection}`}>
             <h2 className={styles.timelineHeading}>メッセージタイムライン</h2>
-            <div className={styles.timelineContainer} ref={timelineRef}>
-              <MessageTimeline messages={detail.messages} />
-            </div>
+            <MessageTimeline
+              ref={timelineRef}
+              className={styles.timelineContainer}
+              messages={detail.messages}
+              onReachStart={handleReachTop}
+              onReachEnd={handleReachBottom}
+              onScrollAnchorChange={handleScrollAnchorChange}
+            />
           </section>
         </>
       ) : null}

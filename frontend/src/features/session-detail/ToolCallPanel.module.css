@@ -30,3 +30,8 @@
   white-space: pre-wrap;
 }
 
+.placeholder {
+  display: inline-block;
+  color: #718096;
+  font-style: italic;
+}

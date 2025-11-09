@@ -1,5 +1,43 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+
+const virtualizerMock = vi.hoisted(() => {
+  const state = {
+    startIndex: 0,
+  }
+
+  return {
+    state,
+    useVirtualizer: vi.fn((options: any) => {
+      const count = typeof options.count === 'number' ? options.count : 0
+      const windowSize = Math.max(Math.min(count - state.startIndex, 8), 0)
+      const size = 120
+      const items = Array.from({ length: windowSize }, (_, index) => {
+        const actualIndex = state.startIndex + index
+        return {
+          key: options.getItemKey?.(actualIndex) ?? `virtual-${actualIndex}`,
+          index: actualIndex,
+          start: actualIndex * size,
+          end: (actualIndex + 1) * size,
+          size,
+          lane: 0,
+        }
+      })
+      return {
+        getVirtualItems: () => items,
+        getTotalSize: () => count * size,
+        measureElement: vi.fn(),
+      }
+    }),
+  }
+})
+
+vi.mock('@tanstack/react-virtual', () => virtualizerMock)
+
+beforeEach(() => {
+  virtualizerMock.state.startIndex = 0
+  virtualizerMock.useVirtualizer.mockClear()
+})
 
 import MessageTimeline from '../MessageTimeline'
 
@@ -39,6 +77,24 @@ const buildMessages = () => [
   },
 ]
 
+const buildManyMessages = (count: number) =>
+  Array.from({ length: count }, (_, index) => ({
+    id: `bulk-${index}`,
+    timestampLabel: `2025/03/14 09:${String(index).padStart(2, '0')}`,
+    role: index % 2 === 0 ? ('assistant' as const) : ('user' as const),
+    sourceType: 'message' as const,
+    channel: index % 2 === 0 ? ('output' as const) : ('input' as const),
+    segments: [
+      {
+        id: `bulk-seg-${index}`,
+        channel: index % 2 === 0 ? ('output' as const) : ('input' as const),
+        text: `本文 ${index}`,
+      },
+    ],
+    toolCall: undefined,
+    isEncryptedReasoning: false,
+  }))
+
 describe('MessageTimeline', () => {
   it('メッセージカードをロール・タイムスタンプ付きで描画する', () => {
     render(<MessageTimeline messages={buildMessages()} />)
@@ -55,7 +111,7 @@ describe('MessageTimeline', () => {
     expect(screen.getByText(/ハッシュ: abcd1234/i)).toBeInTheDocument()
   })
 
-  it('ツール呼び出し詳細を展開できる', () => {
+  it('ツール呼び出し詳細を展開できる', async () => {
     const messages = buildMessages().map((msg) =>
       msg.toolCall
         ? {
@@ -77,11 +133,61 @@ describe('MessageTimeline', () => {
     const toggle = screen.getByText('search_docs')
     fireEvent.click(toggle)
 
-    expect(screen.getByText(/rails/)).toBeInTheDocument()
+    await screen.findByText(/rails/)
   })
 
   it('メッセージが存在しない場合は空状態を表示する', () => {
     render(<MessageTimeline messages={[]} />)
     expect(screen.getByText('このセッションには表示できるメッセージがありません。')).toBeInTheDocument()
+  })
+
+  it('メッセージ数が閾値を超える場合は仮想スクロールで DOM ノード数を抑制する', async () => {
+    const manyMessages = buildManyMessages(200)
+    const { container } = render(<MessageTimeline messages={manyMessages} />)
+
+    const timeline = container.querySelector('[aria-live="polite"]') as HTMLElement
+    expect(timeline).toHaveAttribute('data-virtualized', 'true')
+
+    const renderedCards = await screen.findAllByRole('article')
+    expect(renderedCards.length).toBeLessThan(manyMessages.length)
+  })
+
+  it('スクロール上端に到達したら追加読み込みフックを呼び出す', () => {
+    const manyMessages = buildManyMessages(200)
+    const handleReachStart = vi.fn()
+
+    render(<MessageTimeline messages={manyMessages} onReachStart={handleReachStart} />)
+
+    expect(handleReachStart).toHaveBeenCalledTimes(1)
+  })
+
+  it('スクロール下端に到達したら追加読み込みフックを呼び出す', () => {
+    const manyMessages = buildManyMessages(200)
+    const handleReachEnd = vi.fn()
+    virtualizerMock.state.startIndex = manyMessages.length - 8
+
+    render(<MessageTimeline messages={manyMessages} onReachEnd={handleReachEnd} />)
+
+    expect(handleReachEnd).toHaveBeenCalledTimes(1)
+  })
+
+  it('スクロール操作時にアンカー情報を通知する', () => {
+    const handleAnchor = vi.fn()
+    const { container } = render(
+      <MessageTimeline
+        messages={buildMessages()}
+        virtualizationThreshold={999}
+        onScrollAnchorChange={handleAnchor}
+      />,
+    )
+
+    const timeline = container.querySelector('[aria-live="polite"]') as HTMLElement
+    Object.defineProperty(timeline, 'scrollHeight', { value: 400, configurable: true })
+    Object.defineProperty(timeline, 'clientHeight', { value: 200, configurable: true })
+    timeline.scrollTop = 100
+
+    fireEvent.scroll(timeline)
+
+    expect(handleAnchor).toHaveBeenCalledWith({ absoluteOffset: 100, offsetRatio: 0.5 })
   })
 })
