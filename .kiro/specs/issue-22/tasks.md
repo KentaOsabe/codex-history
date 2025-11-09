@@ -34,7 +34,7 @@
   - event payload の JSON 表示に `SanitizedJsonViewer` を流用し、除去時警告を共有する
   - _Requirements: R3, R4_
 
-- [ ] 4. SafeList サニタイザと共通ユーティリティを実装する
+- [x] 4. SafeList サニタイザと共通ユーティリティを実装する
   - `safeHtml.ts` を追加し、AllowList タグ/属性・href スキーム検証・危険属性除去を実装する
   - サニタイズ結果の `removed` フラグを返し、ビューア側で警告表示できるようにする
   - スクリプトタグ・onload 属性・javascript: スキームを含む入力に対するユニットテストを Red→Green→Refactor で作成する
