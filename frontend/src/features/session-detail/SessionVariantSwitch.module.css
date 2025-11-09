@@ -17,17 +17,16 @@
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.button:not(:disabled):hover {
-  background-color: #e2e8f0;
-}
-
 .button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.button:not(:disabled):hover {
+  background-color: #e2e8f0;
 }
 
 .active {
   background-color: #1a202c;
   color: #fff;
 }
-

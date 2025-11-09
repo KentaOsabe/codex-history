@@ -6,6 +6,7 @@ import type { SessionVariant } from '@/api/types/sessions'
 import { mapApiErrorToDetailError, type DetailFetchError } from './errorView'
 import { logError } from './logError'
 import { mapResponseToViewModel } from './mapResponseToViewModel'
+
 import type { ScrollAnchorSnapshot, SessionDetailStatus, SessionDetailViewModel } from './types'
 
 interface UseSessionDetailParams {

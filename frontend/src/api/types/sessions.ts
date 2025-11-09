@@ -95,6 +95,7 @@ export interface SessionMessage {
   tool_call?: SessionToolCall
   tool_result?: SessionToolResult
   raw?: Record<string, unknown>
+  metadata?: Record<string, unknown>
 }
 
 export interface SessionDetailAttributes extends SessionSummaryAttributes {

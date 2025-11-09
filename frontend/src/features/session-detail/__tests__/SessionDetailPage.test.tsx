@@ -4,10 +4,12 @@ import { describe, expect, it, vi } from 'vitest'
 
 import SessionDetailPage from '../SessionDetailPage'
 
-const useSessionDetailViewModelMock = vi.fn()
+import type { SessionDetailHookResult } from '../useSessionDetailViewModel'
+
+const useSessionDetailViewModelMock = vi.fn<SessionDetailHookResult, []>()
 
 vi.mock('../useSessionDetailViewModel', () => ({
-  useSessionDetailViewModel: () => useSessionDetailViewModelMock(),
+  useSessionDetailViewModel: (): SessionDetailHookResult => useSessionDetailViewModelMock(),
 }))
 
 const buildDetail = () => ({

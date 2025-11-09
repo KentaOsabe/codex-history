@@ -1,10 +1,11 @@
-import { forwardRef, type ForwardedRef, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { forwardRef, type ForwardedRef, useCallback, useEffect, useMemo, useRef } from 'react'
 
 import MessageCard from './MessageCard'
+import styles from './MessageTimeline.module.css'
+
 import type { ScrollAnchorSnapshot, SessionMessageViewModel } from './types'
 
-import styles from './MessageTimeline.module.css'
 
 interface MessageTimelineProps {
   messages: SessionMessageViewModel[]
@@ -82,7 +83,7 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
 
     const virtualItems = useMemo(() => {
       return shouldVirtualize ? virtualizer.getVirtualItems() : []
-    }, [shouldVirtualize, virtualizer, messages.length])
+    }, [shouldVirtualize, virtualizer])
 
     const updateEdgeState = useCallback(
       (edge: 'top' | 'bottom', active: boolean) => {
