@@ -40,7 +40,7 @@
   - スクリプトタグ・onload 属性・javascript: スキームを含む入力に対するユニットテストを Red→Green→Refactor で作成する
   - _Requirements: R4, R5_
 
-- [ ] 5. 状態保持とテスト強化を行う
+- [x] 5. 状態保持とテスト強化を行う
   - タブ状態・JSON 展開状態が sessionId/variant 変更後も要件通り復元されるよう `useRef` マップと `useEffect` を追加する
   - `SessionDetailPage.integration.test.tsx` に新タブのシナリオテストを追加し、call_id グルーピング・サニタイズ警告・variant 切替時の状態保持を検証する
   - TDD 手順と Requirements コメントを全テストケースへ追記し、`npm run test` に統合する

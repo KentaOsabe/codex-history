@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import styles from './SanitizedJsonViewer.module.css'
 import { safeHtml } from './safeHtml'
+import styles from './SanitizedJsonViewer.module.css'
 
 interface SanitizedJsonViewerProps {
   id: string
   label: string
   value?: unknown
   maxBytesBeforeLazy?: number
+  expanded?: boolean
+  onExpandedChange?: (next: boolean) => void
 }
 
 const DEFAULT_LAZY_THRESHOLD = 10 * 1024
@@ -17,8 +19,8 @@ const serializeValue = (value?: unknown): string | null => {
   if (typeof value === 'string') return value
   try {
     return JSON.stringify(value, null, 2)
-  } catch (error) {
-    return String(value)
+  } catch {
+    return '[unserializable]'
   }
 }
 
@@ -32,7 +34,14 @@ const buildPreview = (text: string): string => {
   return limited.join('\n')
 }
 
-const SanitizedJsonViewer = ({ id, label, value, maxBytesBeforeLazy = DEFAULT_LAZY_THRESHOLD }: SanitizedJsonViewerProps) => {
+const SanitizedJsonViewer = ({
+  id,
+  label,
+  value,
+  maxBytesBeforeLazy = DEFAULT_LAZY_THRESHOLD,
+  expanded,
+  onExpandedChange,
+}: SanitizedJsonViewerProps) => {
   const serialized = useMemo(() => serializeValue(value), [value])
   const byteLength = useMemo(() => {
     if (!serialized) return 0
@@ -44,22 +53,26 @@ const SanitizedJsonViewer = ({ id, label, value, maxBytesBeforeLazy = DEFAULT_LA
     return buildPreview(serialized)
   }, [serialized, shouldLazyRender])
 
-  const [expanded, setExpanded] = useState(false)
+  const isControlled = typeof expanded === 'boolean'
+  const [internalExpanded, setInternalExpanded] = useState(false)
   const [sanitizedContent, setSanitizedContent] = useState<string | null>(null)
   const [removedDangerousContent, setRemovedDangerousContent] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const resolvedExpanded = isControlled ? Boolean(expanded) : internalExpanded
   const contentId = `${id}-content`
   const canExpand = Boolean(serialized)
 
   useEffect(() => {
-    setExpanded(false)
+    if (!isControlled) {
+      setInternalExpanded(false)
+    }
     setSanitizedContent(null)
     setRemovedDangerousContent(false)
     setErrorMessage(null)
-  }, [serialized])
+  }, [serialized, isControlled])
 
   useEffect(() => {
-    if (!expanded || !serialized || sanitizedContent || errorMessage) {
+    if (!resolvedExpanded || !serialized || sanitizedContent || errorMessage) {
       return
     }
 
@@ -67,13 +80,24 @@ const SanitizedJsonViewer = ({ id, label, value, maxBytesBeforeLazy = DEFAULT_LA
       const result = safeHtml(serialized)
       setSanitizedContent(result.html)
       setRemovedDangerousContent(result.removed)
-    } catch (error) {
+    } catch (cause) {
       setErrorMessage('JSONの整形に失敗しました')
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('[SanitizedJsonViewer] failed to sanitize payload', error)
+      if (typeof console !== 'undefined' && typeof console.error === 'function') {
+        console.error('[SanitizedJsonViewer] failed to sanitize payload', cause)
       }
     }
-  }, [expanded, serialized, sanitizedContent, errorMessage])
+  }, [resolvedExpanded, serialized, sanitizedContent, errorMessage])
+
+  const toggleExpanded = () => {
+    if (!canExpand) {
+      return
+    }
+    if (isControlled) {
+      onExpandedChange?.(!resolvedExpanded)
+      return
+    }
+    setInternalExpanded((prev) => !prev)
+  }
 
   return (
     <section className={styles.viewer} aria-live="polite">
@@ -82,18 +106,18 @@ const SanitizedJsonViewer = ({ id, label, value, maxBytesBeforeLazy = DEFAULT_LA
         <button
           type="button"
           className={styles.toggleButton}
-          aria-expanded={expanded}
+          aria-expanded={resolvedExpanded}
           aria-controls={contentId}
-          onClick={() => setExpanded((prev) => !prev)}
+          onClick={toggleExpanded}
           disabled={!canExpand}
         >
-          {expanded ? `${label}を折りたたむ` : `${label}を展開`}
+          {resolvedExpanded ? `${label}を折りたたむ` : `${label}を展開`}
         </button>
       </header>
-      <div id={contentId} className={styles.viewerBody} data-state={expanded ? 'expanded' : 'collapsed'}>
+      <div id={contentId} className={styles.viewerBody} data-state={resolvedExpanded ? 'expanded' : 'collapsed'}>
         {!canExpand ? (
           <p className={styles.placeholder}>データなし</p>
-        ) : !expanded ? (
+        ) : !resolvedExpanded ? (
           shouldLazyRender ? (
             <p className={styles.placeholder}>展開して読み込む</p>
           ) : (

@@ -24,7 +24,7 @@ interface ToolInvocationAccumulator {
   resultValue?: unknown
   argumentsLabel?: string
   resultLabel?: string
-  statuses: Array<string | null | undefined>
+  statuses: (string | null | undefined)[]
   hasResult: boolean
 }
 
@@ -37,7 +37,7 @@ const toTimestamp = (value?: string | null): number | undefined => {
   return Number.isNaN(parsed) ? undefined : parsed
 }
 
-const deriveStatus = (candidateStatuses: Array<string | null | undefined>, hasResult: boolean): ToolInvocationStatus => {
+const deriveStatus = (candidateStatuses: (string | null | undefined)[], hasResult: boolean): ToolInvocationStatus => {
   for (const candidate of candidateStatuses) {
     const normalized = candidate?.toLowerCase()
     if (!normalized) continue
@@ -90,7 +90,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-const firstNonEmptyString = (...candidates: Array<unknown>): string | undefined => {
+const firstNonEmptyString = (...candidates: unknown[]): string | undefined => {
   for (const candidate of candidates) {
     if (typeof candidate === 'string') {
       const trimmed = candidate.trim()
@@ -147,7 +147,8 @@ const deriveTokenStats = (payload?: Record<string, unknown>) => {
   if (!payload) {
     return { summary: undefined, stats: undefined }
   }
-  const info = isRecord(payload.info) ? (payload.info as Record<string, unknown>) : undefined
+  const infoCandidate = (payload as { info?: unknown }).info
+  const info = isRecord(infoCandidate) ? infoCandidate : undefined
   const input = coerceNumber(info?.prompt_tokens ?? payload.prompt_tokens ?? payload.input_tokens)
   const output = coerceNumber(info?.completion_tokens ?? payload.completion_tokens ?? payload.output_tokens)
   const totalCandidate = coerceNumber(payload.total ?? info?.total)
@@ -333,7 +334,11 @@ export const useDetailInsights = (detail?: SessionDetailViewModel) => {
         }
       })
       .sort((a, b) => a.sortKey - b.sortKey)
-      .map(({ sortKey, ...group }) => group)
+      .map((entry) => {
+        const { sortKey, ...group } = entry
+        void sortKey
+        return group
+      })
 
     return groups
   }, [detail])
@@ -362,13 +367,17 @@ export const useDetailInsights = (detail?: SessionDetailViewModel) => {
 
     return META_GROUP_ORDER.map((key) => {
       const entries = grouped.get(key)
-      if (!entries || !entries.length) {
+      if (!entries?.length) {
         return null
       }
       const sortedEvents = entries
         .slice()
         .sort((a, b) => a.sortKey - b.sortKey)
-        .map(({ sortKey, ...event }) => event)
+        .map((entry) => {
+          const { sortKey, ...event } = entry
+          void sortKey
+          return event
+        })
       return {
         key,
         label: META_GROUP_LABELS[key],

@@ -2,13 +2,14 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import DetailInsightsPanel from '../DetailInsightsPanel'
+
 import type { SessionDetailViewModel } from '../types'
 
 const metaPanelSpy = vi.fn()
 
 vi.mock('../MetaEventsPanel', () => ({
   __esModule: true,
-  default: (props: { metaEvents: unknown[] }) => {
+  default: (props: { metaEvents: unknown[]; sessionId?: string }) => {
     metaPanelSpy(props)
     return <div data-testid="meta-panel-mock">MetaEventsPanelMock</div>
   },

@@ -47,6 +47,8 @@ const SessionDetailPage = () => {
   const [tabAnnouncement, setTabAnnouncement] = useState<string>(TAB_ANNOUNCEMENTS.conversation)
   const conversationPanelRef = useRef<HTMLElement | null>(null)
   const detailPanelRef = useRef<HTMLElement | null>(null)
+  const tabStateRef = useRef<Record<string, SessionDetailTab>>({})
+  const sessionKey = resolvedSessionId
 
   const captureScrollAnchor = useCallback(() => {
     const container = timelineRef.current
@@ -77,8 +79,14 @@ const SessionDetailPage = () => {
   )
 
   const handleTabChange = useCallback((nextTab: SessionDetailTab) => {
-    setActiveTab((prev) => (prev === nextTab ? prev : nextTab))
-  }, [])
+    setActiveTab((prev) => {
+      if (prev === nextTab) {
+        return prev
+      }
+      return nextTab
+    })
+    tabStateRef.current[sessionKey] = nextTab
+  }, [sessionKey])
 
   const handleScrollAnchorChange = useCallback(
     (anchor: ScrollAnchorSnapshot | null) => {
@@ -124,18 +132,27 @@ const SessionDetailPage = () => {
   }, [activeTab])
 
   useEffect(() => {
-    if (!detail && activeTab !== 'conversation') {
-      setActiveTab('conversation')
-    }
-  }, [detail, activeTab])
-
-  useEffect(() => {
     const anchor = consumeScrollAnchor()
     if (!anchor) return
     requestAnimationFrame(() => {
       restoreScrollAnchor(anchor)
     })
   }, [consumeScrollAnchor, restoreScrollAnchor, detail, variant])
+
+  useEffect(() => {
+    setActiveTab(() => {
+      const stored = tabStateRef.current[sessionKey]
+      if (stored) {
+        return stored
+      }
+      tabStateRef.current[sessionKey] = 'conversation'
+      return 'conversation'
+    })
+  }, [sessionKey])
+
+  useEffect(() => {
+    tabStateRef.current[sessionKey] = activeTab
+  }, [activeTab, sessionKey])
 
   const showTabLayout = status === 'loading' || Boolean(detail)
 

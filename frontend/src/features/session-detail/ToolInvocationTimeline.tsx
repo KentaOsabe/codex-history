@@ -1,9 +1,13 @@
+import { useEffect, useRef, useState } from 'react'
+
 import SanitizedJsonViewer from './SanitizedJsonViewer'
 import styles from './ToolInvocationTimeline.module.css'
+
 import type { ToolInvocationGroup } from './types'
 
 interface ToolInvocationTimelineProps {
   toolInvocations: ToolInvocationGroup[]
+  sessionId?: string
 }
 
 const STATUS_LABELS: Record<ToolInvocationGroup['status'], string> = {
@@ -22,7 +26,36 @@ const formatDuration = (durationMs?: number): string | null => {
   return `${(durationMs / 1000).toFixed(1)}秒`
 }
 
-const ToolInvocationTimeline = ({ toolInvocations }: ToolInvocationTimelineProps) => {
+type InvocationCollapseState = Record<string, { argumentsExpanded: boolean; resultExpanded: boolean }>
+
+const ToolInvocationTimeline = ({ toolInvocations, sessionId }: ToolInvocationTimelineProps) => {
+  const collapseStateRef = useRef<InvocationCollapseState>({})
+  const [, setVersion] = useState(0)
+
+  useEffect(() => {
+    collapseStateRef.current = {}
+    setVersion((prev) => prev + 1)
+  }, [sessionId])
+
+  const getInvocationState = (invocationId: string) => {
+    const entry = collapseStateRef.current[invocationId]
+    if (entry) {
+      return entry
+    }
+    const next = { argumentsExpanded: false, resultExpanded: false }
+    collapseStateRef.current[invocationId] = next
+    return next
+  }
+
+  const handleExpandedChange = (invocationId: string, key: 'argumentsExpanded' | 'resultExpanded', next: boolean) => {
+    const entry = getInvocationState(invocationId)
+    if (entry[key] === next) {
+      return
+    }
+    entry[key] = next
+    setVersion((prev) => prev + 1)
+  }
+
   if (!toolInvocations.length) {
     return <p className={styles.emptyMessage}>ツール呼び出しイベントはまだありません</p>
   }
@@ -34,7 +67,9 @@ const ToolInvocationTimeline = ({ toolInvocations }: ToolInvocationTimelineProps
           { label: '開始', value: invocation.startedAtLabel },
           { label: '終了', value: invocation.completedAtLabel },
           { label: '所要時間', value: formatDuration(invocation.durationMs) },
-        ].filter((item) => Boolean(item.value)) as Array<{ label: string; value: string }>
+        ].filter((item) => Boolean(item.value)) as { label: string; value: string }[]
+
+        const invocationState = getInvocationState(invocation.id)
 
         return (
           <li key={invocation.id} className={styles.card}>
@@ -66,6 +101,8 @@ const ToolInvocationTimeline = ({ toolInvocations }: ToolInvocationTimelineProps
                 id={`${invocation.id}-arguments`}
                 label={invocation.argumentsLabel ?? '引数'}
                 value={invocation.argumentsValue}
+                expanded={invocationState.argumentsExpanded}
+                onExpandedChange={(nextExpanded) => handleExpandedChange(invocation.id, 'argumentsExpanded', nextExpanded)}
               />
 
               {invocation.resultValue !== undefined ? (
@@ -73,6 +110,8 @@ const ToolInvocationTimeline = ({ toolInvocations }: ToolInvocationTimelineProps
                   id={`${invocation.id}-result`}
                   label={invocation.resultLabel ?? '出力'}
                   value={invocation.resultValue}
+                  expanded={invocationState.resultExpanded}
+                  onExpandedChange={(nextExpanded) => handleExpandedChange(invocation.id, 'resultExpanded', nextExpanded)}
                 />
               ) : (
                 <div className={styles.emptyPayload} aria-live="polite">

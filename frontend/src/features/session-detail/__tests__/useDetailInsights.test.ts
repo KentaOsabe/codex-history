@@ -1,8 +1,9 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import type { SessionDetailViewModel, SessionMessageViewModel } from '../types'
 import { useDetailInsights } from '../useDetailInsights'
+
+import type { SessionDetailViewModel, SessionMessageViewModel } from '../types'
 
 const buildDetail = (messages: SessionMessageViewModel[]): SessionDetailViewModel => ({
   sessionId: 'session-1',

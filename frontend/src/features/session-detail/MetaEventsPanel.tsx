@@ -1,16 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import EncryptedReasoningPlaceholder from './EncryptedReasoningPlaceholder'
-import SanitizedJsonViewer from './SanitizedJsonViewer'
 import styles from './MetaEventsPanel.module.css'
+import SanitizedJsonViewer from './SanitizedJsonViewer'
+
 import type { MetaEventGroup } from './types'
 
 interface MetaEventsPanelProps {
   metaEvents: MetaEventGroup[]
+  sessionId?: string
 }
 
-const MetaEventsPanel = ({ metaEvents }: MetaEventsPanelProps) => {
+const MetaEventsPanel = ({ metaEvents, sessionId }: MetaEventsPanelProps) => {
   const [expandedState, setExpandedState] = useState<Record<string, boolean>>({})
+  const payloadExpandedRef = useRef<Record<string, boolean>>({})
+  const [, setPayloadVersion] = useState(0)
 
   useEffect(() => {
     setExpandedState((previous) => {
@@ -25,6 +29,11 @@ const MetaEventsPanel = ({ metaEvents }: MetaEventsPanelProps) => {
     })
   }, [metaEvents])
 
+  useEffect(() => {
+    payloadExpandedRef.current = {}
+    setPayloadVersion((prev) => prev + 1)
+  }, [sessionId])
+
   if (metaEvents.length === 0) {
     return <p className={styles.placeholder}>メタイベントはまだありません</p>
   }
@@ -34,6 +43,18 @@ const MetaEventsPanel = ({ metaEvents }: MetaEventsPanelProps) => {
       ...previous,
       [key]: !previous[key],
     }))
+  }
+
+  const getPayloadExpanded = (eventId: string) => {
+    return payloadExpandedRef.current[eventId] ?? false
+  }
+
+  const handlePayloadExpandedChange = (eventId: string, next: boolean) => {
+    if (payloadExpandedRef.current[eventId] === next) {
+      return
+    }
+    payloadExpandedRef.current[eventId] = next
+    setPayloadVersion((prev) => prev + 1)
   }
 
   return (
@@ -110,6 +131,8 @@ const MetaEventsPanel = ({ metaEvents }: MetaEventsPanelProps) => {
                       id={`${event.id}-payload`}
                       label="イベントペイロード"
                       value={event.payloadJson}
+                      expanded={getPayloadExpanded(event.id)}
+                      onExpandedChange={(next) => handlePayloadExpandedChange(event.id, next)}
                     />
                   )}
                 </article>

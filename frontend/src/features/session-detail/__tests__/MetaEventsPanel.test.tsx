@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import MetaEventsPanel from '../MetaEventsPanel'
+
 import type { MetaEventGroup } from '../types'
 
 const SanitizedJsonViewerMock = vi.fn(({ label }: { label: string }) => (
@@ -10,7 +11,7 @@ const SanitizedJsonViewerMock = vi.fn(({ label }: { label: string }) => (
 
 vi.mock('../SanitizedJsonViewer', () => ({
   __esModule: true,
-  default: (props: { label: string }) => SanitizedJsonViewerMock(props),
+  default: (props: { label: string } & Record<string, unknown>) => SanitizedJsonViewerMock(props),
 }))
 
 vi.mock('../EncryptedReasoningPlaceholder', () => ({
@@ -22,7 +23,7 @@ vi.mock('../EncryptedReasoningPlaceholder', () => ({
 
 describe('MetaEventsPanel', () => {
   it('メタイベントがない場合はプレースホルダーを表示する (R3)', () => {
-    render(<MetaEventsPanel metaEvents={[]} />)
+    render(<MetaEventsPanel metaEvents={[]} sessionId="session-1" />)
 
     expect(screen.getByText('メタイベントはまだありません')).toBeInTheDocument()
   })
@@ -48,7 +49,7 @@ describe('MetaEventsPanel', () => {
       },
     ]
 
-    render(<MetaEventsPanel metaEvents={groups} />)
+    render(<MetaEventsPanel metaEvents={groups} sessionId="session-1" />)
 
     const toggle = screen.getByRole('button', { name: /トークンカウント/ })
     fireEvent.click(toggle)
@@ -77,7 +78,7 @@ describe('MetaEventsPanel', () => {
       },
     ]
 
-    render(<MetaEventsPanel metaEvents={groups} />)
+    render(<MetaEventsPanel metaEvents={groups} sessionId="session-1" />)
 
     const toggle = screen.getByRole('button', { name: /Agent Reasoning/ })
     fireEvent.click(toggle)

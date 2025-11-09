@@ -2,11 +2,12 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ToolInvocationTimeline from '../ToolInvocationTimeline'
+
 import type { ToolInvocationGroup } from '../types'
 
 vi.mock('../SanitizedJsonViewer', () => ({
   __esModule: true,
-  default: ({ label }: { label: string }) => <div>{label}ビューア</div>,
+  default: ({ label }: { label: string } & Record<string, unknown>) => <div>{label}ビューア</div>,
 }))
 
 const buildInvocation = (overrides: Partial<ToolInvocationGroup> = {}): ToolInvocationGroup => ({

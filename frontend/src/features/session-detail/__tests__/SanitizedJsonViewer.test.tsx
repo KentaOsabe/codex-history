@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import SanitizedJsonViewer from '../SanitizedJsonViewer'
 import { safeHtml } from '../safeHtml'
+import SanitizedJsonViewer from '../SanitizedJsonViewer'
 
 vi.mock('../safeHtml', () => ({
   safeHtml: vi.fn(() => ({ html: '<pre>mock</pre>', removed: false })),
