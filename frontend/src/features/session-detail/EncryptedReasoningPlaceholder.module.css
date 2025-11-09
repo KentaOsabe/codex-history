@@ -1,0 +1,30 @@
+.placeholder {
+  border-radius: 1rem;
+  border: 1px dashed #cbd5f5;
+  background-color: #f8fafc;
+  padding: 1rem 1.25rem;
+  color: #1a202c;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.metaList {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.metaList li {
+  margin-bottom: 0.25rem;
+}
+
+.explanation {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+}
+

@@ -1,0 +1,89 @@
+.card {
+  border-radius: 1.25rem;
+  border: 1px solid #e2e8f0;
+  background-color: #fff;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.role {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1a202c;
+}
+
+.metaGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.timestamp {
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid #d6bcfa;
+  color: #553c9a;
+  background-color: #faf5ff;
+}
+
+.channelBadge {
+  border-color: #b2f5ea;
+  color: #065666;
+  background-color: #e6fffa;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  color: #2d3748;
+  line-height: 1.5;
+}
+
+.segment {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.roleUser {
+  border-left: 4px solid #3182ce;
+}
+
+.roleAssistant {
+  border-left: 4px solid #805ad5;
+}
+
+.roleTool {
+  border-left: 4px solid #38a169;
+}
+
+.roleMeta {
+  border-left: 4px solid #718096;
+}
+
+.footer {
+  border-top: 1px solid #edf2f7;
+  padding-top: 0.75rem;
+}
+

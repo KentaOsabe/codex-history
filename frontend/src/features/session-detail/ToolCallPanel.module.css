@@ -1,0 +1,32 @@
+.panel {
+  border-radius: 0.85rem;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  padding: 0.75rem 1rem;
+}
+
+.summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2d3748;
+}
+
+.content {
+  margin-top: 0.75rem;
+  font-family: 'JetBrains Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #1a202c;
+  overflow-x: auto;
+}
+
+.content pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
