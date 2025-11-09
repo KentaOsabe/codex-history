@@ -8,7 +8,7 @@ export const useSessionNavigation = () => {
     (id: string): void => {
       if (!id) return
       const activeElement = typeof document !== 'undefined' ? document.activeElement : null
-      navigate(`/sessions/${encodeURIComponent(id)}`)
+      void navigate(`/sessions/${encodeURIComponent(id)}`)
       if (activeElement instanceof HTMLElement) {
         queueMicrotask(() => {
           if (activeElement.isConnected) {

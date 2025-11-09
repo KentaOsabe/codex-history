@@ -1,16 +1,22 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
+import { forwardRef, useEffect } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
-import { forwardRef, useEffect } from 'react'
 
-import type { SessionDetailResponse } from '@/api/types/sessions'
 import { server } from '@/api/testServer'
+import type { SessionDetailResponse, SessionVariant } from '@/api/types/sessions'
 
 import SessionDetailPage from '../SessionDetailPage'
 
+interface MockTimelineProps {
+  messages: SessionDetailResponse['data']['attributes']['messages']
+  virtualizationThreshold?: number
+  onScrollAnchorChange?: (snapshot: { offsetRatio: number; absoluteOffset: number }) => void
+}
+
 vi.mock('../MessageTimeline', () => {
-  const MockTimeline = forwardRef<HTMLDivElement, any>(({ messages, onScrollAnchorChange }, ref) => {
+  const MockTimeline = forwardRef<HTMLDivElement, MockTimelineProps>(({ messages, onScrollAnchorChange }, ref) => {
     useEffect(() => {
       onScrollAnchorChange?.({ offsetRatio: 0, absoluteOffset: 0 })
     }, [onScrollAnchorChange])
@@ -21,7 +27,7 @@ vi.mock('../MessageTimeline', () => {
         data-testid="message-timeline"
         data-virtualized={messages.length > 120 ? 'true' : 'false'}
       >
-        {messages.map((message: any) => (
+        {messages.map((message) => (
           <article key={message.id}>{message.segments[0]?.text ?? '本文なし。'}</article>
         ))}
       </div>
@@ -116,7 +122,129 @@ const renderDetailPage = () => {
   )
 }
 
+const buildDetailMessagesForVariant = (
+  variant: SessionVariant,
+): SessionDetailResponse['data']['attributes']['messages'] => {
+  const callId = 'tool-call-123'
+  const variantLabel = variant === 'sanitized' ? 'Sanitized' : 'Original'
+
+  return [
+    {
+      id: 'message-tool-call',
+      timestamp: '2025-03-14T09:00:00Z',
+      source_type: 'tool_call' as const,
+      role: 'assistant' as const,
+      segments: [
+        {
+          channel: 'output' as const,
+          type: 'text' as const,
+          format: 'plain',
+          text: `${variantLabel} tool call`,
+        },
+      ],
+      tool_call: {
+        call_id: callId,
+        name: variant === 'sanitized' ? 'safe-run (sanitized)' : 'safe-run',
+        arguments_json: {
+          sql: `SELECT * FROM logs -- ${variantLabel}`,
+          html: `<script>alert('${variantLabel}')</script><a href="javascript:alert('${variantLabel}')">link</a>`,
+        },
+        status: 'completed',
+      },
+      raw: {
+        payload_type: 'function_call',
+      },
+    },
+    {
+      id: 'message-tool-result',
+      timestamp: '2025-03-14T09:00:05Z',
+      source_type: 'tool_result' as const,
+      role: 'tool' as const,
+      segments: [
+        {
+          channel: 'meta' as const,
+          type: 'text' as const,
+          format: 'plain',
+          text: `${variantLabel} tool result`,
+        },
+      ],
+      tool_result: {
+        call_id: callId,
+        output_json: {
+          ok: true,
+          render: `<span onmouseover="alert('${variantLabel}')">${variantLabel}</span>`,
+        },
+      },
+    },
+    {
+      id: 'message-meta-token',
+      timestamp: '2025-03-14T09:01:00Z',
+      source_type: 'meta' as const,
+      role: 'meta' as const,
+      segments: [
+        {
+          channel: 'meta' as const,
+          type: 'text' as const,
+          format: 'plain',
+          text: `${variantLabel} token usage`,
+        },
+      ],
+      raw: {
+        payload_type: 'token_count',
+        payload: {
+          kind: 'token_count',
+          info: {
+            prompt_tokens: variant === 'sanitized' ? 90 : 120,
+            completion_tokens: 30,
+          },
+          extra: `<img src="x" onerror="alert('${variantLabel}')">`,
+        },
+      },
+    },
+  ]
+}
+
 describe('SessionDetailPage (integration)', () => {
+  it('会話/詳細タブのアクセシビリティ要件を満たし、詳細タブ切替時にプレースホルダーを表示する', async () => {
+    // タブ UI の ARIA 属性とフォーカス移動・ライブアナウンスが満たされることを保証する
+    server.use(
+      http.get('*/api/sessions/:sessionId', () => {
+        return HttpResponse.json(buildSessionDetailResponse())
+      }),
+    )
+
+    renderDetailPage()
+
+    const conversationTab = await screen.findByRole('tab', { name: '会話' })
+    const detailsTab = screen.getByRole('tab', { name: '詳細' })
+
+    expect(conversationTab).toHaveAttribute('aria-selected', 'true')
+    expect(detailsTab).toHaveAttribute('aria-selected', 'false')
+
+    const conversationPanel = screen.getByTestId('conversation-tab-panel')
+    const detailPanel = screen.getByTestId('details-tab-panel')
+
+    expect(conversationPanel).not.toHaveAttribute('hidden')
+    expect(detailPanel).toHaveAttribute('hidden')
+
+    fireEvent.keyDown(conversationTab, { key: 'ArrowRight' })
+
+    await waitFor(() => {
+      expect(detailsTab).toHaveAttribute('aria-selected', 'true')
+    })
+
+    expect(conversationPanel).toHaveAttribute('hidden')
+    expect(detailPanel).not.toHaveAttribute('hidden')
+    expect(await screen.findByText('ツール呼び出しイベントはまだありません')).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(detailPanel)
+    })
+
+    const announcement = screen.getByTestId('session-tab-announcement')
+    expect(announcement).toHaveTextContent('詳細タブを表示しています')
+  })
+
   it('詳細を取得しサニタイズ切替時もスクロール位置と仮想スクロール状態を維持する', async () => {
     // 大量メッセージで仮想スクロールが有効な環境でも、variant 切替後にアンカーが再現されることを保証する
     const requestLog: string[] = []
@@ -154,7 +282,7 @@ describe('SessionDetailPage (integration)', () => {
       expect(screen.getByTestId('message-timeline')).toBeInTheDocument()
     }, { timeout: 3000 })
 
-    const timeline = screen.getByTestId('message-timeline') as HTMLDivElement
+    const timeline = screen.getByTestId('message-timeline')
     expect(timeline).toHaveAttribute('data-virtualized', 'true')
 
     Object.defineProperty(timeline, 'clientHeight', { value: 400, configurable: true })
@@ -176,6 +304,77 @@ describe('SessionDetailPage (integration)', () => {
     }, { timeout: 3000 })
 
     expect(requestLog).toEqual([ 'original', 'sanitized' ])
+  })
+
+  it('call_id 集約タイムラインで JSON 展開状態とアクティブタブを variant 切替後も保持する (R1/R2/R4/R5)', async () => {
+    // 詳細タブで展開したツール呼び出しとメタイベントのビューア、およびサニタイズ警告が variant 切替直後も維持されることを保証する
+    const variantRequests: SessionVariant[] = []
+
+    server.use(
+      http.get('*/api/sessions/:sessionId', ({ request, params }) => {
+        const url = new URL(request.url)
+        const variant = (url.searchParams.get('variant') ?? 'original') as SessionVariant
+        variantRequests.push(variant)
+
+        return HttpResponse.json(
+          buildSessionDetailResponse({
+            attributes: {
+              session_id: params.sessionId as string,
+              title: variant === 'sanitized' ? 'Sanitized Detail' : 'Original Detail',
+              message_count: 3,
+              tool_call_count: 1,
+              tool_result_count: 1,
+              meta_event_count: 1,
+            },
+            messages: buildDetailMessagesForVariant(variant),
+          }),
+        )
+      }),
+    )
+
+    renderDetailPage()
+
+    await screen.findByRole('heading', { name: 'Original Detail' }, { timeout: 5000 })
+
+    const detailsTab = screen.getByRole('tab', { name: '詳細' })
+    fireEvent.click(detailsTab)
+
+    await screen.findByTestId('tool-invocation-timeline')
+
+    expect(screen.getAllByText('Call ID:')).toHaveLength(1)
+
+    const argsToggle = await screen.findByRole('button', { name: '引数を展開' })
+    fireEvent.click(argsToggle)
+
+    const metaToggle = screen.getByRole('button', { name: /トークンカウント/ })
+    if (metaToggle.getAttribute('aria-expanded') === 'false') {
+      fireEvent.click(metaToggle)
+    }
+
+    const payloadToggle = await screen.findByRole('button', { name: 'イベントペイロードを展開' })
+    fireEvent.click(payloadToggle)
+
+    const warningsBefore = await screen.findAllByText('安全のため一部の内容をマスクしました')
+    expect(warningsBefore.length).toBeGreaterThanOrEqual(2)
+
+    await screen.findByRole('button', { name: '引数を折りたたむ' })
+    await screen.findByRole('button', { name: 'イベントペイロードを折りたたむ' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'サニタイズ済み' }))
+
+    await screen.findByRole('heading', { name: 'Sanitized Detail' }, { timeout: 5000 })
+
+    const detailsTabAfter = screen.getByRole('tab', { name: '詳細' })
+    expect(detailsTabAfter).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByTestId('conversation-tab-panel')).toHaveAttribute('hidden')
+    expect(screen.getByTestId('details-tab-panel')).not.toHaveAttribute('hidden')
+
+    await screen.findByRole('button', { name: '引数を折りたたむ' })
+    await screen.findByRole('button', { name: 'イベントペイロードを折りたたむ' })
+
+    const warningsAfter = screen.getAllByText('安全のため一部の内容をマスクしました')
+    expect(warningsAfter.length).toBeGreaterThanOrEqual(2)
+    expect(variantRequests).toEqual([ 'original', 'sanitized' ])
   })
 
   it('API 404 を受け取った場合にエラーバナーとリトライ導線を表示する', async () => {

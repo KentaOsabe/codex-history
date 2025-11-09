@@ -4,9 +4,9 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import ToolCallPanel from '../ToolCallPanel'
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var requestIdleCallback: ((cb: IdleRequestCallback) => number) | undefined
-  // eslint-disable-next-line no-var
+   
   var cancelIdleCallback: ((id: number) => void) | undefined
 }
 

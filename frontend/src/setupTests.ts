@@ -21,7 +21,16 @@ if (!('ResizeObserver' in globalThis)) {
         left: 0,
         bottom: 768,
         right: 1024,
-        toJSON: () => {},
+        toJSON: () => ({
+          x: 0,
+          y: 0,
+          width: 1024,
+          height: 768,
+          top: 0,
+          left: 0,
+          bottom: 768,
+          right: 1024,
+        }),
       } satisfies DOMRectReadOnly
 
       Object.defineProperty(target, 'clientHeight', {
@@ -47,9 +56,15 @@ if (!('ResizeObserver' in globalThis)) {
       )
     }
 
-    unobserve() {}
+    unobserve(): void {
+      // resize observer polyfill exposes unobserve for parity
+      return undefined
+    }
 
-    disconnect() {}
+    disconnect(): void {
+      // resize observer polyfill exposes disconnect for parity
+      return undefined
+    }
   }
 
   ;(globalThis as typeof globalThis & { ResizeObserver: typeof ResizeObserverPolyfill }).ResizeObserver =
