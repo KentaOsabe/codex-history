@@ -190,4 +190,34 @@ describe('MessageTimeline', () => {
 
     expect(handleAnchor).toHaveBeenCalledWith({ absoluteOffset: 100, offsetRatio: 0.5 })
   })
+
+  it('暗号化 reasoning では生の暗号化本文を DOM に出力しない', () => {
+    // 暗号化メッセージに含まれるプレーンテキストが誤って表示されないことを保証する
+    const sensitivePayload = '<<ENCRYPTED_PAYLOAD>>'
+    const messages = [
+      {
+        id: 'enc-1',
+        timestampLabel: '2025/3/14 09:00',
+        role: 'assistant' as const,
+        sourceType: 'message' as const,
+        channel: 'output' as const,
+        segments: [
+          {
+            id: 'seg-sensitive',
+            channel: 'output' as const,
+            text: sensitivePayload,
+          },
+        ],
+        toolCall: undefined,
+        isEncryptedReasoning: true,
+        encryptedChecksum: 'deadbeef',
+        encryptedLength: 256,
+      },
+    ]
+
+    render(<MessageTimeline messages={messages} virtualizationThreshold={999} />)
+
+    expect(screen.getByText(/暗号化された reasoning/)).toBeInTheDocument()
+    expect(screen.queryByText(sensitivePayload)).not.toBeInTheDocument()
+  })
 })
