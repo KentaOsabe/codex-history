@@ -97,33 +97,13 @@
   border: 1px solid #e2e8f0;
   background-color: #fff;
   padding: 1.5rem;
-  box-shadow: 0 15px 35px rgb(15 23 42 / 8%);
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
 }
 
 .timelineSection {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-}
-
-.tabHost {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.tabPanels {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.tabPanel {
-  outline: none;
-}
-
-.tabPanel:focus-visible {
-  box-shadow: 0 0 0 3px rgb(66 153 225 / 45%);
 }
 
 .timelineHeading {
@@ -157,7 +137,6 @@
   0% {
     background-position: -200px 0;
   }
-
   100% {
     background-position: 200px 0;
   }
@@ -181,16 +160,4 @@
 
 .backLink:hover {
   background-color: #111827;
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  border: 0;
-  white-space: nowrap;
 }

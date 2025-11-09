@@ -11,7 +11,6 @@ import {
   deriveRelativePath,
   formatDateTimeLabel,
 } from './formatters'
-
 import type { RenderedSegment, SessionDetailViewModel, SessionMessageViewModel, ToolCallViewModel } from './types'
 
 const mapSegments = (message: SessionMessage): RenderedSegment[] => {
@@ -28,7 +27,7 @@ const mapSegments = (message: SessionMessage): RenderedSegment[] => {
 }
 
 const mapToolCall = (message: SessionMessage): ToolCallViewModel | undefined => {
-  const hasPayload = message.tool_call ?? message.tool_result
+  const hasPayload = message.tool_call || message.tool_result
   if (!hasPayload) {
     return undefined
   }
@@ -79,7 +78,6 @@ const mapMessage = (message: SessionMessage): SessionMessageViewModel => {
 
   return {
     id: message.id,
-    timestampIso: message.timestamp ?? undefined,
     timestampLabel: formatDateTimeLabel(message.timestamp),
     role: message.role,
     sourceType: message.source_type,
@@ -89,8 +87,6 @@ const mapMessage = (message: SessionMessage): SessionMessageViewModel => {
     isEncryptedReasoning: Boolean(encryptedContent),
     encryptedChecksum: encryptedContent ? computeChecksum(encryptedContent) : undefined,
     encryptedLength: encryptedContent?.length,
-    raw: message.raw ?? undefined,
-    metadata: (message as { metadata?: Record<string, unknown> }).metadata,
   }
 }
 

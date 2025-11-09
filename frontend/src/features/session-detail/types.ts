@@ -23,7 +23,6 @@ export interface ToolCallViewModel {
 
 export interface SessionMessageViewModel {
   id: string
-  timestampIso?: string | null
   timestampLabel?: string
   role: 'user' | 'assistant' | 'tool' | 'system' | 'meta'
   sourceType: 'message' | 'tool_call' | 'tool_result' | 'meta' | 'session'
@@ -33,8 +32,6 @@ export interface SessionMessageViewModel {
   isEncryptedReasoning: boolean
   encryptedChecksum?: string
   encryptedLength?: number
-  raw?: Record<string, unknown>
-  metadata?: Record<string, unknown>
 }
 
 export interface ScrollAnchorSnapshot {
@@ -60,49 +57,4 @@ export interface SessionDetailViewModel {
     lastUpdatedLabel?: string
   }
   messages: SessionMessageViewModel[]
-}
-
-export type ToolInvocationStatus = 'pending' | 'success' | 'error'
-
-export interface ToolInvocationGroup {
-  id: string
-  callId: string
-  name?: string
-  status: ToolInvocationStatus
-  startedAtLabel?: string
-  completedAtLabel?: string
-  durationMs?: number
-  argumentsValue?: unknown
-  argumentsLabel?: string
-  resultValue?: unknown
-  resultLabel?: string
-}
-
-export type MetaEventGroupKey = 'token_count' | 'agent_reasoning' | 'environment_context' | 'plain' | 'other'
-
-export interface MetaEventEntry {
-  id: string
-  timestampLabel?: string
-  summary: string
-  payloadJson?: unknown
-  tokenStats?: {
-    inputTokens?: number
-    outputTokens?: number
-    totalTokens?: number
-  }
-  encryptedInfo?: {
-    checksum?: string
-    length?: number
-  } | null
-}
-
-export interface MetaEventGroup {
-  key: MetaEventGroupKey
-  label: string
-  events: MetaEventEntry[]
-}
-
-export interface SessionDetailInsights {
-  toolInvocations: ToolInvocationGroup[]
-  metaEvents: MetaEventGroup[]
 }

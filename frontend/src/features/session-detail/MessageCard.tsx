@@ -1,9 +1,8 @@
+import type { SessionMessageViewModel } from './types'
 
 import EncryptedReasoningPlaceholder from './EncryptedReasoningPlaceholder'
-import styles from './MessageCard.module.css'
 import ToolCallPanel from './ToolCallPanel'
-
-import type { SessionMessageViewModel } from './types'
+import styles from './MessageCard.module.css'
 
 interface MessageCardProps {
   message: SessionMessageViewModel

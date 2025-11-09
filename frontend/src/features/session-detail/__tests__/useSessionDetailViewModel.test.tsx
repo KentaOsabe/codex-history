@@ -1,24 +1,26 @@
 import { act, render } from '@testing-library/react'
 import { waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, type Mock } from 'vitest'
 
 import { ApiServerError } from '@/api/errors'
 import type { SessionDetailResponse } from '@/api/types/sessions'
 
 import { useSessionDetailViewModel } from '../useSessionDetailViewModel'
 
-const getSessionDetailMock = vi.hoisted(() => vi.fn())
-const logErrorMock = vi.hoisted(() => vi.fn())
-
 vi.mock('@/api/sessions', () => ({
   sessionsApi: {
-    getSessionDetail: getSessionDetailMock,
+    getSessionDetail: vi.fn(),
   },
 }))
 
 vi.mock('../logError', () => ({
-  logError: logErrorMock,
+  logError: vi.fn(),
 }))
+
+const { sessionsApi } = await import('@/api/sessions')
+const { logError } = await import('../logError')
+
+const getSessionDetailMock = sessionsApi.getSessionDetail as Mock
 
 const buildSessionDetailResponse = (overrides: Partial<SessionDetailResponse['data']['attributes']> = {}): SessionDetailResponse => {
   return {
@@ -158,7 +160,7 @@ describe('useSessionDetailViewModel', () => {
       expect(resultRef.current?.status).toBe('error')
     })
 
-    expect(logErrorMock).toHaveBeenCalledWith(apiError, 'session-detail:fetch')
+    expect(logError).toHaveBeenCalledWith(apiError, 'session-detail:fetch')
     expect(resultRef.current?.error?.kind).toBeDefined()
   })
 

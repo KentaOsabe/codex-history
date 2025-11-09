@@ -1,11 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-interface VirtualizerOptions {
-  count?: number
-  getItemKey?: (index: number) => string
-}
-
 const virtualizerMock = vi.hoisted(() => {
   const state = {
     startIndex: 0,
@@ -13,7 +8,7 @@ const virtualizerMock = vi.hoisted(() => {
 
   return {
     state,
-    useVirtualizer: vi.fn((options: VirtualizerOptions) => {
+    useVirtualizer: vi.fn((options: any) => {
       const count = typeof options.count === 'number' ? options.count : 0
       const windowSize = Math.max(Math.min(count - state.startIndex, 8), 0)
       const size = 120
@@ -150,7 +145,7 @@ describe('MessageTimeline', () => {
     const manyMessages = buildManyMessages(200)
     const { container } = render(<MessageTimeline messages={manyMessages} />)
 
-    const timeline = container.querySelector('[aria-live="polite"]')!
+    const timeline = container.querySelector('[aria-live="polite"]') as HTMLElement
     expect(timeline).toHaveAttribute('data-virtualized', 'true')
 
     const renderedCards = await screen.findAllByRole('article')
@@ -186,7 +181,7 @@ describe('MessageTimeline', () => {
       />,
     )
 
-    const timeline = container.querySelector('[aria-live="polite"]')!
+    const timeline = container.querySelector('[aria-live="polite"]') as HTMLElement
     Object.defineProperty(timeline, 'scrollHeight', { value: 400, configurable: true })
     Object.defineProperty(timeline, 'clientHeight', { value: 200, configurable: true })
     timeline.scrollTop = 100
