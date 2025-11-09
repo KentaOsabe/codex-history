@@ -23,13 +23,13 @@
   - サニタイズで除去要素が発生したケースを Vitest で Red→Green→Refactor する
   - _Requirements: R2, R4, R5_
 
-- [ ] 3. メタイベント集約と表示コンポーネントを実装する
+- [x] 3. メタイベント集約と表示コンポーネントを実装する
   - `useDetailInsights` に event_msg グルーピング処理を追加し、kind ごとの `metaEventGroups` を返す
   - `MetaEventsPanel` コンポーネントを実装し、token_count・agent_reasoning・environment_context・その他をアコーディオンで表示する
   - 未知 kind フォールバックや暗号化 reasoning プレースホルダーをテストする
   - _Requirements: R3, R5_
 
-- [ ] 3.1 Meta イベント用 JSON ビューアと統計まとめを追加する
+- [x] 3.1 Meta イベント用 JSON ビューアと統計まとめを追加する
   - token_count の入出力・合計を表形式で表示し、agent_reasoning 暗号化時はプレースホルダーを再利用する
   - event payload の JSON 表示に `SanitizedJsonViewer` を流用し、除去時警告を共有する
   - _Requirements: R3, R4_

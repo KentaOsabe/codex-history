@@ -1,5 +1,6 @@
 import styles from './DetailInsightsPanel.module.css'
 
+import MetaEventsPanel from './MetaEventsPanel'
 import ToolInvocationTimeline from './ToolInvocationTimeline'
 import type { SessionDetailStatus, SessionDetailViewModel } from './types'
 import { useDetailInsights } from './useDetailInsights'
@@ -26,7 +27,8 @@ const DetailInsightsPanel = ({ detail, status }: DetailInsightsPanelProps) => {
     )
   }
 
-  const { toolInvocations } = useDetailInsights(detail)
+  const { toolInvocations, metaEvents } = useDetailInsights(detail)
+  const metaEventCount = metaEvents.reduce((total, group) => total + group.events.length, 0)
 
   return (
     <div className={styles.panel} role="status" aria-live="polite" aria-busy={status === 'loading'}>
@@ -38,9 +40,12 @@ const DetailInsightsPanel = ({ detail, status }: DetailInsightsPanelProps) => {
         <ToolInvocationTimeline toolInvocations={toolInvocations} />
       </section>
 
-      <section className={styles.sectionMuted} aria-label="メタイベント">
-        <h3 className={styles.sectionTitle}>メタイベント</h3>
-        <p className={styles.placeholderBody}>メタイベントパネルは後続タスクで追加予定です。</p>
+      <section className={styles.section} aria-label="メタイベント">
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>メタイベント</h3>
+          <span className={styles.sectionBadge}>{metaEventCount}件</span>
+        </div>
+        <MetaEventsPanel metaEvents={metaEvents} />
       </section>
     </div>
   )

@@ -33,6 +33,8 @@ export interface SessionMessageViewModel {
   isEncryptedReasoning: boolean
   encryptedChecksum?: string
   encryptedLength?: number
+  raw?: Record<string, unknown>
+  metadata?: Record<string, unknown>
 }
 
 export interface ScrollAnchorSnapshot {
@@ -74,4 +76,33 @@ export interface ToolInvocationGroup {
   argumentsLabel?: string
   resultValue?: unknown
   resultLabel?: string
+}
+
+export type MetaEventGroupKey = 'token_count' | 'agent_reasoning' | 'environment_context' | 'plain' | 'other'
+
+export interface MetaEventEntry {
+  id: string
+  timestampLabel?: string
+  summary: string
+  payloadJson?: unknown
+  tokenStats?: {
+    inputTokens?: number
+    outputTokens?: number
+    totalTokens?: number
+  }
+  encryptedInfo?: {
+    checksum?: string
+    length?: number
+  } | null
+}
+
+export interface MetaEventGroup {
+  key: MetaEventGroupKey
+  label: string
+  events: MetaEventEntry[]
+}
+
+export interface SessionDetailInsights {
+  toolInvocations: ToolInvocationGroup[]
+  metaEvents: MetaEventGroup[]
 }

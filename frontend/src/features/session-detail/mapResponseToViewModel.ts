@@ -89,6 +89,8 @@ const mapMessage = (message: SessionMessage): SessionMessageViewModel => {
     isEncryptedReasoning: Boolean(encryptedContent),
     encryptedChecksum: encryptedContent ? computeChecksum(encryptedContent) : undefined,
     encryptedLength: encryptedContent?.length,
+    raw: message.raw ?? undefined,
+    metadata: (message as { metadata?: Record<string, unknown> }).metadata,
   }
 }
 
