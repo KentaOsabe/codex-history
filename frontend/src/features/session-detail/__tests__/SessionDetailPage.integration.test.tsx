@@ -153,7 +153,7 @@ describe('SessionDetailPage (integration)', () => {
 
     expect(conversationPanel).toHaveAttribute('hidden')
     expect(detailPanel).not.toHaveAttribute('hidden')
-    expect(detailPanel).toHaveTextContent('ツール呼び出しとメタイベントの詳細を読み込み中です')
+    expect(await screen.findByText('ツール呼び出しイベントはまだありません')).toBeInTheDocument()
 
     await waitFor(() => {
       expect(document.activeElement).toBe(detailPanel)

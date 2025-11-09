@@ -23,6 +23,7 @@ export interface ToolCallViewModel {
 
 export interface SessionMessageViewModel {
   id: string
+  timestampIso?: string | null
   timestampLabel?: string
   role: 'user' | 'assistant' | 'tool' | 'system' | 'meta'
   sourceType: 'message' | 'tool_call' | 'tool_result' | 'meta' | 'session'
@@ -57,4 +58,20 @@ export interface SessionDetailViewModel {
     lastUpdatedLabel?: string
   }
   messages: SessionMessageViewModel[]
+}
+
+export type ToolInvocationStatus = 'pending' | 'success' | 'error'
+
+export interface ToolInvocationGroup {
+  id: string
+  callId: string
+  name?: string
+  status: ToolInvocationStatus
+  startedAtLabel?: string
+  completedAtLabel?: string
+  durationMs?: number
+  argumentsValue?: unknown
+  argumentsLabel?: string
+  resultValue?: unknown
+  resultLabel?: string
 }

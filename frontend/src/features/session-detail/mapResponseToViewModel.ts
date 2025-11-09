@@ -79,6 +79,7 @@ const mapMessage = (message: SessionMessage): SessionMessageViewModel => {
 
   return {
     id: message.id,
+    timestampIso: message.timestamp ?? undefined,
     timestampLabel: formatDateTimeLabel(message.timestamp),
     role: message.role,
     sourceType: message.source_type,

@@ -1,6 +1,8 @@
 import styles from './DetailInsightsPanel.module.css'
 
+import ToolInvocationTimeline from './ToolInvocationTimeline'
 import type { SessionDetailStatus, SessionDetailViewModel } from './types'
+import { useDetailInsights } from './useDetailInsights'
 
 
 interface DetailInsightsPanelProps {
@@ -24,17 +26,22 @@ const DetailInsightsPanel = ({ detail, status }: DetailInsightsPanelProps) => {
     )
   }
 
+  const { toolInvocations } = useDetailInsights(detail)
+
   return (
     <div className={styles.panel} role="status" aria-live="polite" aria-busy={status === 'loading'}>
-      <div className={styles.placeholderCard}>
-        <h3 className={styles.placeholderTitle}>詳細ビューを準備中です</h3>
-        <p className={styles.placeholderBody}>{LOADING_MESSAGE}。今後の更新でこちらに表示されます。</p>
-        <ul className={styles.placeholderList}>
-          <li>call_id 単位のツール呼び出し履歴</li>
-          <li>token_count / agent_reasoning のメタイベント</li>
-          <li>SafeList サニタイズ済み JSON ビューア</li>
-        </ul>
-      </div>
+      <section className={styles.section} aria-label="ツール呼び出し詳細">
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>ツール呼び出しタイムライン</h3>
+          <span className={styles.sectionBadge}>{toolInvocations.length}件</span>
+        </div>
+        <ToolInvocationTimeline toolInvocations={toolInvocations} />
+      </section>
+
+      <section className={styles.sectionMuted} aria-label="メタイベント">
+        <h3 className={styles.sectionTitle}>メタイベント</h3>
+        <p className={styles.placeholderBody}>メタイベントパネルは後続タスクで追加予定です。</p>
+      </section>
     </div>
   )
 }

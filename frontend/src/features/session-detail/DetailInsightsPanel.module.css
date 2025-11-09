@@ -4,6 +4,45 @@
   gap: 1rem;
 }
 
+.section {
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #fff;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.sectionMuted {
+  border: 1px dashed #cbd5f5;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #f8faff;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.sectionBadge {
+  border-radius: 999px;
+  background: #edf2ff;
+  color: #3730a3;
+  font-weight: 600;
+  padding: 0.2rem 0.8rem;
+  font-size: 0.85rem;
+}
+
 .skeletonBars {
   display: grid;
   gap: 0.5rem;

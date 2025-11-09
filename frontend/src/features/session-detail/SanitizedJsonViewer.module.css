@@ -1,0 +1,80 @@
+.viewer {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 140px;
+}
+
+.viewerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.viewerTitle {
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.toggleButton {
+  border: 1px solid #cbd5f5;
+  background: #edf2ff;
+  color: #3730a3;
+  border-radius: 999px;
+  padding: 0.25rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggleButton[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.viewerBody {
+  min-height: 90px;
+  background: #f8fafc;
+  border-radius: 0.65rem;
+  padding: 0.75rem;
+  overflow: auto;
+  font-family: 'JetBrains Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.preview {
+  margin: 0;
+  white-space: pre-wrap;
+  color: #2d3748;
+}
+
+.viewerContent {
+  margin: 0;
+  white-space: pre-wrap;
+  color: #1a202c;
+}
+
+.placeholder {
+  margin: 0;
+  color: #718096;
+  font-style: italic;
+}
+
+.warning {
+  margin: 0;
+  color: #b7791f;
+  font-size: 0.85rem;
+}
+
+.errorMessage {
+  margin: 0;
+  color: #c53030;
+  font-weight: 600;
+}

@@ -11,13 +11,13 @@
   - タブ切替時に detail が undefined の場合はスケルトン表示へフォールバックする
   - _Requirements: R1, R5_
 
-- [ ] 2. ツール呼び出し集約フックとタイムラインを実装する
+- [x] 2. ツール呼び出し集約フックとタイムラインを実装する
   - `useDetailInsights` フックを作成し、`sessionDetail.messages` から `call_id` 単位で `toolInvocations` を抽出・memo 化する
   - `ToolInvocationTimeline` コンポーネントを作成し、引数/結果・ステータス・duration の表示と折りたたみトグルを実装する
   - call_id 未完了・不整合時の pending 表示を含むユニットテストを追加する
   - _Requirements: R2, R5_
 
-- [ ] 2.1 ツール呼び出しカードの JSON/HTML ビューアと警告表示を実装する
+- [x] 2.1 ツール呼び出しカードの JSON/HTML ビューアと警告表示を実装する
   - `SanitizedJsonViewer` を実装し、10KB 超の遅延展開・SafeList サニタイズ・警告バナー表示を行う
   - `ToolInvocationTimeline` へビューアを組み込み、引数/結果ごとに状態保持するフックを適用する
   - サニタイズで除去要素が発生したケースを Vitest で Red→Green→Refactor する
