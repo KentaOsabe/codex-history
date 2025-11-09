@@ -23,7 +23,7 @@ const getScheduler = () => {
 
   return {
     schedule: (cb: IdleRequestCallback) =>
-      (root.setTimeout as typeof setTimeout)(
+      (root.setTimeout)(
         () =>
           cb({
             didTimeout: false,
@@ -31,17 +31,14 @@ const getScheduler = () => {
           } as IdleDeadlineLike),
         1,
       ),
-    cancel: (id: number) => (root.clearTimeout as typeof clearTimeout)(id),
+    cancel: (id: number) => (root.clearTimeout)(id),
   }
 }
 
 const scheduler = getScheduler()
 
 const ToolCallPanel = ({ title, data }: ToolCallPanelProps) => {
-  if (!data) return null
-
-  const isPrimitiveString = typeof data === 'string'
-  const [serialized, setSerialized] = useState<string | null>(() => (isPrimitiveString ? data : null))
+  const [serialized, setSerialized] = useState<string | null>(() => (typeof data === 'string' ? data : null))
 
   useEffect(() => {
     if (!data) {
@@ -75,6 +72,10 @@ const ToolCallPanel = ({ title, data }: ToolCallPanelProps) => {
     }
     return <span className={styles.placeholder}>整形中...</span>
   }, [serialized])
+
+  if (!data) {
+    return null
+  }
 
   return (
     <details className={styles.panel}>

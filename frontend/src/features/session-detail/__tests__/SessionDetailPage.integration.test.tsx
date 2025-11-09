@@ -1,16 +1,22 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
+import { forwardRef, useEffect } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
-import { forwardRef, useEffect } from 'react'
 
-import type { SessionDetailResponse } from '@/api/types/sessions'
 import { server } from '@/api/testServer'
+import type { SessionDetailResponse } from '@/api/types/sessions'
 
 import SessionDetailPage from '../SessionDetailPage'
 
+interface MockTimelineProps {
+  messages: SessionDetailResponse['data']['attributes']['messages']
+  virtualizationThreshold?: number
+  onScrollAnchorChange?: (snapshot: { offsetRatio: number; absoluteOffset: number }) => void
+}
+
 vi.mock('../MessageTimeline', () => {
-  const MockTimeline = forwardRef<HTMLDivElement, any>(({ messages, onScrollAnchorChange }, ref) => {
+  const MockTimeline = forwardRef<HTMLDivElement, MockTimelineProps>(({ messages, onScrollAnchorChange }, ref) => {
     useEffect(() => {
       onScrollAnchorChange?.({ offsetRatio: 0, absoluteOffset: 0 })
     }, [onScrollAnchorChange])
@@ -21,7 +27,7 @@ vi.mock('../MessageTimeline', () => {
         data-testid="message-timeline"
         data-virtualized={messages.length > 120 ? 'true' : 'false'}
       >
-        {messages.map((message: any) => (
+        {messages.map((message) => (
           <article key={message.id}>{message.segments[0]?.text ?? '本文なし。'}</article>
         ))}
       </div>
@@ -117,6 +123,46 @@ const renderDetailPage = () => {
 }
 
 describe('SessionDetailPage (integration)', () => {
+  it('会話/詳細タブのアクセシビリティ要件を満たし、詳細タブ切替時にプレースホルダーを表示する', async () => {
+    // タブ UI の ARIA 属性とフォーカス移動・ライブアナウンスが満たされることを保証する
+    server.use(
+      http.get('*/api/sessions/:sessionId', () => {
+        return HttpResponse.json(buildSessionDetailResponse())
+      }),
+    )
+
+    renderDetailPage()
+
+    const conversationTab = await screen.findByRole('tab', { name: '会話' })
+    const detailsTab = screen.getByRole('tab', { name: '詳細' })
+
+    expect(conversationTab).toHaveAttribute('aria-selected', 'true')
+    expect(detailsTab).toHaveAttribute('aria-selected', 'false')
+
+    const conversationPanel = screen.getByTestId('conversation-tab-panel')
+    const detailPanel = screen.getByTestId('details-tab-panel')
+
+    expect(conversationPanel).not.toHaveAttribute('hidden')
+    expect(detailPanel).toHaveAttribute('hidden')
+
+    fireEvent.keyDown(conversationTab, { key: 'ArrowRight' })
+
+    await waitFor(() => {
+      expect(detailsTab).toHaveAttribute('aria-selected', 'true')
+    })
+
+    expect(conversationPanel).toHaveAttribute('hidden')
+    expect(detailPanel).not.toHaveAttribute('hidden')
+    expect(detailPanel).toHaveTextContent('ツール呼び出しとメタイベントの詳細を読み込み中です')
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(detailPanel)
+    })
+
+    const announcement = screen.getByTestId('session-tab-announcement')
+    expect(announcement).toHaveTextContent('詳細タブを表示しています')
+  })
+
   it('詳細を取得しサニタイズ切替時もスクロール位置と仮想スクロール状態を維持する', async () => {
     // 大量メッセージで仮想スクロールが有効な環境でも、variant 切替後にアンカーが再現されることを保証する
     const requestLog: string[] = []
@@ -154,7 +200,7 @@ describe('SessionDetailPage (integration)', () => {
       expect(screen.getByTestId('message-timeline')).toBeInTheDocument()
     }, { timeout: 3000 })
 
-    const timeline = screen.getByTestId('message-timeline') as HTMLDivElement
+    const timeline = screen.getByTestId('message-timeline')
     expect(timeline).toHaveAttribute('data-virtualized', 'true')
 
     Object.defineProperty(timeline, 'clientHeight', { value: 400, configurable: true })

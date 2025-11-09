@@ -3,15 +3,25 @@ import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-d
 import styles from './App.module.css'
 
 const AppErrorBoundary = () => {
-  const routeError = useRouteError()
+  const routeError: unknown = useRouteError()
   const navigate = useNavigate()
 
   const statusLabel = isRouteErrorResponse(routeError) ? `HTTP ${routeError.status}` : '不明なエラー'
-  const detailMessage = isRouteErrorResponse(routeError)
-    ? routeError.statusText || routeError.data
-    : routeError instanceof Error
-      ? routeError.message
-      : ''
+  const detailMessage = (() => {
+    if (isRouteErrorResponse(routeError)) {
+      if (routeError.statusText) {
+        return routeError.statusText
+      }
+      if (routeError.data) {
+        return String(routeError.data)
+      }
+      return ''
+    }
+    if (routeError instanceof Error) {
+      return routeError.message
+    }
+    return ''
+  })()
 
   return (
     <main className={styles.app}>
@@ -24,7 +34,7 @@ const AppErrorBoundary = () => {
         <p className={styles.errorSummary}>{statusLabel}</p>
         {detailMessage ? <p className={styles.errorDetail}>{String(detailMessage)}</p> : null}
         <div className={styles.errorActions}>
-          <button type="button" onClick={() => navigate('/')} className={styles.backButton}>
+          <button type="button" onClick={() => { void navigate('/') }} className={styles.backButton}>
             一覧に戻る
           </button>
         </div>
@@ -34,4 +44,3 @@ const AppErrorBoundary = () => {
 }
 
 export default AppErrorBoundary
-

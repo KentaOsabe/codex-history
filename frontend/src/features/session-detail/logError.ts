@@ -1,9 +1,7 @@
 export const logError = (error: unknown, context = 'session-detail'): void => {
-  if (process.env.NODE_ENV !== 'production') {
-    // eslint-disable-next-line no-console
+  if (import.meta.env.DEV) {
     console.error(`[${context}]`, error)
   }
 }
 
 export default logError
-

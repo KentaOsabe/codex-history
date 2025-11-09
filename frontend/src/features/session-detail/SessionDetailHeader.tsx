@@ -1,9 +1,10 @@
 import type { SessionVariant } from '@/api/types/sessions'
 
+import styles from './SessionDetailHeader.module.css'
 import SessionVariantSwitch from './SessionVariantSwitch'
+
 import type { SessionDetailViewModel } from './types'
 
-import styles from './SessionDetailHeader.module.css'
 
 interface SessionDetailHeaderProps {
   detail: SessionDetailViewModel
