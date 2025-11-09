@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 
 import CalendarStrip from './CalendarStrip'
 import { toISODate } from './dateUtils'
-import { navigateToSessionDetail } from './navigation'
+import { useSessionNavigation } from './navigation'
 import SearchInput from './SearchInput'
 import SessionList, { type SessionListVariant } from './SessionList'
 import styles from './SessionsDateListView.module.css'
@@ -21,6 +21,7 @@ const SessionsDateListView = () => {
     refetch,
     lastUpdatedLabel,
   } = useSessionsViewModel()
+  const { navigateToSessionDetail } = useSessionNavigation()
 
   const handleDateSelect = useCallback(
     (dateIso: string) => {
@@ -44,9 +45,12 @@ const SessionsDateListView = () => {
     void refetch({ force: true })
   }, [refetch])
 
-  const handleSessionSelect = useCallback((sessionId: string) => {
-    navigateToSessionDetail(sessionId)
-  }, [])
+  const handleSessionSelect = useCallback(
+    (sessionId: string) => {
+      navigateToSessionDetail(sessionId)
+    },
+    [navigateToSessionDetail],
+  )
 
   return (
     <div className={styles.container}>

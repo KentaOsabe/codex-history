@@ -12,7 +12,9 @@ const { navigateToSessionDetailMock } = vi.hoisted(() => ({
 }))
 
 vi.mock('../navigation', () => ({
-  navigateToSessionDetail: navigateToSessionDetailMock,
+  useSessionNavigation: () => ({
+    navigateToSessionDetail: navigateToSessionDetailMock,
+  }),
 }))
 
 const buildSessionsResponse = (sessionOverrides: Partial<Record<string, unknown>> = {}) => {

@@ -1,0 +1,163 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 9999px;
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  width: fit-content;
+}
+
+.heroMeta {
+  margin: 0;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.heroMeta code {
+  font-family: 'JetBrains Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+}
+
+.errorBanner {
+  border-radius: 1.25rem;
+  border: 1px solid #fed7d7;
+  background-color: #fff5f5;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.errorBanner > div {
+  flex: 1;
+  min-width: 220px;
+}
+
+.errorTitle {
+  margin: 0;
+  font-weight: 700;
+  color: #c53030;
+}
+
+.errorMessage {
+  margin: 0.3rem 0 0;
+  color: #742a2a;
+}
+
+.retryButton {
+  border: none;
+  border-radius: 9999px;
+  background-color: #c53030;
+  color: #fff;
+  padding: 0.65rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background-color: #9b2c2c;
+}
+
+.infoBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  background-color: #f7fafc;
+  border-radius: 1rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid #e2e8f0;
+}
+
+.infoBar code {
+  font-family: 'JetBrains Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+}
+
+.timelinePlaceholder {
+  border-radius: 1.25rem;
+  border: 1px solid #e2e8f0;
+  background-color: #fff;
+  padding: 1.5rem;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+}
+
+.timelineSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.timelineHeading {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1a202c;
+}
+
+.timelineContainer {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.skeleton {
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.skeletonLine {
+  height: 14px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #edf2f7, #f7fafc 45%, #edf2f7);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: 200px 0;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  background-color: #1a202c;
+  color: #fff;
+  font-weight: 600;
+}
+
+.backLink:hover {
+  background-color: #111827;
+}
