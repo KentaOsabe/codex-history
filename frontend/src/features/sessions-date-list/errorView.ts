@@ -12,7 +12,10 @@ export interface FetchErrorView {
   kind: FetchErrorKind
   message: string
   detail?: string
+  invalidFields?: InvalidFieldMessages
 }
+
+export type InvalidFieldMessages = Record<string, string[]>
 
 const DEFAULT_MESSAGES: Record<FetchErrorKind, string> = {
   client: '入力内容に誤りがあります。選択した日付を確認してください。',
@@ -24,34 +27,52 @@ const DEFAULT_MESSAGES: Record<FetchErrorKind, string> = {
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === 'string' && value.trim().length > 0
 
-const extractInvalidFieldsDetail = (meta: unknown): string | undefined => {
+export const extractInvalidFieldMessages = (meta: unknown): InvalidFieldMessages | undefined => {
   if (!meta || typeof meta !== 'object') return undefined
 
   const invalidFields = (meta as { invalid_fields?: unknown }).invalid_fields
-  if (Array.isArray(invalidFields) && invalidFields.length > 0) {
-    return `問題が発生した項目: ${invalidFields.join(', ')}`
-  }
+  if (!invalidFields || typeof invalidFields !== 'object') return undefined
 
-  if (isNonEmptyString(invalidFields)) {
-    return invalidFields
-  }
+  const resultEntries: [string, string[]][] = Object.entries(invalidFields).flatMap(([ field, raw ]) => {
+    if (Array.isArray(raw)) {
+      const messages = raw.filter(isNonEmptyString)
+      return messages.length > 0 ? [ [ field, messages ] ] : []
+    }
 
-  return undefined
+    if (isNonEmptyString(raw)) {
+      return [ [ field, [ raw ] ] ]
+    }
+
+    return []
+  })
+
+  return resultEntries.length > 0 ? Object.fromEntries(resultEntries) : undefined
+}
+
+const buildInvalidFieldsDetail = (invalidFields?: InvalidFieldMessages): string | undefined => {
+  if (!invalidFields) return undefined
+  const fieldNames = Object.keys(invalidFields)
+  if (fieldNames.length === 0) return undefined
+  return `問題が発生した項目: ${fieldNames.join(', ')}`
 }
 
 const buildView = (
   kind: FetchErrorKind,
   error: ApiErrorBase | Error,
-  additionalDetail?: string,
+  options: {
+    detailOverride?: string
+    invalidFields?: InvalidFieldMessages
+  } = {},
 ): FetchErrorView => {
   const message = isNonEmptyString(error.message) ? error.message : DEFAULT_MESSAGES[kind]
   const detailFromError = error instanceof ApiErrorBase && isNonEmptyString(error.detail) ? error.detail : undefined
-  const detail = additionalDetail ?? detailFromError
+  const detail = options.detailOverride ?? detailFromError
 
   return {
     kind,
     message: message || DEFAULT_MESSAGES[kind],
     detail,
+    invalidFields: options.invalidFields,
   }
 }
 
@@ -67,8 +88,9 @@ export const mapApiErrorToFetchError = (error: unknown): FetchErrorView | undefi
   }
 
   if (error instanceof ApiClientError) {
-    const detailFromMeta = extractInvalidFieldsDetail(error.meta)
-    return buildView('client', error, detailFromMeta)
+    const invalidFields = extractInvalidFieldMessages(error.meta)
+    const detailFromMeta = buildInvalidFieldsDetail(invalidFields)
+    return buildView('client', error, { detailOverride: detailFromMeta, invalidFields })
   }
 
   if (error instanceof ApiServerError) {

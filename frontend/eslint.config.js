@@ -12,7 +12,7 @@ import prettier from 'eslint-config-prettier'
 const project = ['./tsconfig.app.json']
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage']),
+  globalIgnores(['dist', 'coverage', '.vite']),
   {
     files: ['**/*.{ts,tsx}'],
     ignores: [
