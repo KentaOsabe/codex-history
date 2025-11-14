@@ -16,7 +16,7 @@ const resolveSearchTimeout = (): number => {
 const SEARCH_TIMEOUT_MS = resolveSearchTimeout()
 
 export const searchApi = {
-  async search(params: SearchParams): Promise<SearchResponse> {
+  async search(this: void, params: SearchParams): Promise<SearchResponse> {
     const query = buildSearchQuery(params)
     return httpClient.request<SearchResponse>('/api/search', {
       method: 'GET',

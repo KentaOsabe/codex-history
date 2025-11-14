@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi, type Mock } from 'vitest'
 
@@ -92,7 +91,7 @@ describe('useSessionsByDate', () => {
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('success'))
 
-    expect(listMock).toHaveBeenCalledWith({ startDate: '2025-03-15', endDate: '2025-03-15' })
+    expect(listMock).toHaveBeenCalledWith({ startDate: '2025-03-15', endDate: '2025-03-15', page: 1, perPage: 25 })
     expect(screen.getByTestId('count').textContent).toBe('1')
   })
 
@@ -136,7 +135,7 @@ describe('useSessionsByDate', () => {
     expect(screen.getByTestId('error').textContent).toBe('error')
     expect(screen.getByTestId('error-kind').textContent).toBe('timeout')
     expect(screen.getByTestId('error-message').textContent).toContain('セッションの取得がタイムアウトしました')
-    expect(logError).toHaveBeenCalledWith(expect.any(ApiTimeoutError), 'sessions-date-list:fetch')
+    expect(logError).toHaveBeenCalledWith(expect.any(ApiTimeoutError), 'sessions-date-range:fetch')
 
     listMock.mockResolvedValueOnce(buildResponse('session-3'))
     fireEvent.click(screen.getByTestId('refetch'))

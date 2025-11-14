@@ -10,7 +10,7 @@
   - 422 の invalid_parameters をフォームバリデーションで活用できるよう、invalid_fields を受け取るユーティリティを実装する
   - _Requirements: R1, R5, R6_
 
-- [ ] 2. 検索・日付フィルタ用のフック層を構築する
+- [x] 2. 検索・日付フィルタ用のフック層を構築する
   - `useSessionsFilters` を作成し、キーワード・日付範囲・ページネーション状態とバリデーションを集約する
   - `useSearchResults` でキャッシュ/AbortController/ローディング状態/エラー情報を管理し、`useSessionsByDateRange` で一覧 API を範囲 + ページネーション対応に拡張する
   - 各フックの Vitest を TDD で追加し、競合リクエスト抑止やキャッシュヒットを検証する
