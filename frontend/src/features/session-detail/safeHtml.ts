@@ -9,6 +9,7 @@ const ALLOWED_TAGS = new Set([
   'strong',
   'em',
   'span',
+  'mark',
   'a',
   'ul',
   'ol',

@@ -1,3 +1,4 @@
+import EmptyStateView from './EmptyStateView'
 import SessionCard, { type SessionListItem } from './SessionCard'
 import styles from './SessionList.module.css'
 
@@ -7,6 +8,7 @@ interface SessionListProps {
   items: SessionListItem[]
   variant: SessionListVariant
   onSelect: (id: string) => void
+  contextLabel?: string
 }
 
 const SkeletonCard = () => (
@@ -18,7 +20,7 @@ const SkeletonCard = () => (
   </div>
 )
 
-const SessionList = ({ items, variant, onSelect }: SessionListProps) => {
+const SessionList = ({ items, variant, onSelect, contextLabel }: SessionListProps) => {
   if (variant === 'loading') {
     return (
       <div className={styles.list}>
@@ -31,17 +33,17 @@ const SessionList = ({ items, variant, onSelect }: SessionListProps) => {
 
   if (variant === 'empty') {
     return (
-      <div className={styles.emptyState}>
-        <p>この日に保存されたセッションはありません。</p>
-        <p className={styles.emptyHint}>別の日付を選択するか、インデックスを更新してください。</p>
-      </div>
+      <EmptyStateView
+        title="指定した期間内のセッションはありません"
+        hint="別の日付を選択するか、検索条件を調整してください。"
+      />
     )
   }
 
   return (
     <div className={styles.list}>
       {items.map((item) => (
-        <SessionCard key={item.id} item={item} onSelect={onSelect} />
+        <SessionCard key={item.id} item={item} onSelect={onSelect} contextLabel={contextLabel} />
       ))}
     </div>
   )

@@ -1,49 +1,57 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import CalendarStrip from './CalendarStrip'
-import { toISODate } from './dateUtils'
 import { useSessionNavigation } from './navigation'
-import SearchInput from './SearchInput'
-import SessionList, { type SessionListVariant } from './SessionList'
+import PaginationControls from './PaginationControls'
+import SearchAndFilterPanel from './SearchAndFilterPanel'
+import SearchResultsList from './SearchResultsList'
+import SessionList from './SessionList'
+import { deriveLastUpdatedLabel, mapSessionsToListItems } from './sessionListMappers'
 import styles from './SessionsDateListView.module.css'
 import StatusBanner from './StatusBanner'
-import { useSessionsViewModel } from './useSessionsViewModel'
+import { useSearchResults } from './useSearchResults'
+import { useSessionsByDateRange } from './useSessionsByDateRange'
+import { useSessionsFilters } from './useSessionsFilters'
 
 const SessionsDateListView = () => {
-  const {
-    activeDateIso,
-    setActiveDateIso,
-    status,
-    items,
-    error,
-    searchDraft,
-    setSearchDraft,
-    refetch,
-    lastUpdatedLabel,
-  } = useSessionsViewModel()
+  const filters = useSessionsFilters()
   const { navigateToSessionDetail } = useSessionNavigation()
+  const [ activeKeyword, setActiveKeyword ] = useState<string | undefined>(undefined)
 
-  const handleDateSelect = useCallback(
-    (dateIso: string) => {
-      setActiveDateIso(dateIso)
-    },
-    [setActiveDateIso],
-  )
+  useEffect(() => {
+    if (!filters.keyword.trim()) {
+      setActiveKeyword(undefined)
+    }
+  }, [filters.keyword])
 
-  const handleNavigateMonth = useCallback(
-    (offset: number) => {
-      const selected = new Date(`${activeDateIso}T00:00:00Z`)
-      selected.setUTCMonth(selected.getUTCMonth() + offset, 1)
-      setActiveDateIso(toISODate(selected))
-    },
-    [activeDateIso, setActiveDateIso],
-  )
+  const searchResponse = useSearchResults({
+    keyword: activeKeyword,
+    page: filters.searchPagination.page,
+    limit: filters.searchPagination.limit,
+  })
 
-  const listVariant: SessionListVariant = status === 'loading' ? 'loading' : items.length === 0 ? 'empty' : 'ready'
+  const sessionsResponse = useSessionsByDateRange({
+    startDate: filters.dateRange.startDate,
+    endDate: filters.dateRange.endDate,
+    page: filters.listPagination.page,
+    perPage: filters.listPagination.perPage,
+    enabled: !filters.dateRangeError,
+  })
 
-  const handleRetry = useCallback(() => {
-    void refetch({ force: true })
-  }, [refetch])
+  const sessionItems = useMemo(() => mapSessionsToListItems(sessionsResponse.data), [sessionsResponse.data])
+  const lastUpdatedLabel = useMemo(() => deriveLastUpdatedLabel(sessionsResponse.data), [sessionsResponse.data])
+
+  const handleSearchSubmit = useCallback(() => {
+    if (!filters.normalizedKeyword) {
+      filters.validateKeyword()
+      return
+    }
+    setActiveKeyword(filters.normalizedKeyword)
+  }, [filters])
+
+  const handleClearFilters = useCallback(() => {
+    filters.clearAll()
+    setActiveKeyword(undefined)
+  }, [filters])
 
   const handleSessionSelect = useCallback(
     (sessionId: string) => {
@@ -52,53 +60,87 @@ const SessionsDateListView = () => {
     [navigateToSessionDetail],
   )
 
+  const handleResultSelect = useCallback(
+    (sessionId: string, options?: { targetPath?: string }) => {
+      navigateToSessionDetail(sessionId, options)
+    },
+    [navigateToSessionDetail],
+  )
+
+  const sessionVariant: 'loading' | 'ready' | 'empty' = sessionsResponse.status === 'loading' && sessionItems.length === 0
+    ? 'loading'
+    : sessionItems.length === 0
+      ? 'empty'
+      : 'ready'
+
+  const sessionTotalPages = sessionsResponse.data?.meta.total_pages ?? 0
+  const sessionContextLabel = filters.dateRange.startDate === filters.dateRange.endDate
+    ? undefined
+    : `${filters.dateRange.startDate}〜${filters.dateRange.endDate}`
+
   return (
     <div className={styles.container}>
-      <section className={styles.section} aria-labelledby="sessions-date-list-calendar">
-        <h2 id="sessions-date-list-calendar" className={styles.heading}>
-          日付を選択
-        </h2>
-        <CalendarStrip
-          activeDateIso={activeDateIso}
-          onSelect={handleDateSelect}
-          onNavigateMonth={handleNavigateMonth}
-        />
-      </section>
+      <SearchAndFilterPanel
+        keyword={filters.keyword}
+        keywordError={filters.keywordError}
+        onKeywordChange={filters.setKeyword}
+        onSubmit={handleSearchSubmit}
+        isSearchDisabled={searchResponse.status === 'loading'}
+        dateRange={filters.dateRange}
+        dateRangeError={filters.dateRangeError}
+        onDateRangeChange={filters.setDateRange}
+        onClearFilters={handleClearFilters}
+      />
 
-      <section className={styles.section} aria-labelledby="sessions-date-list-search">
-        <h2 id="sessions-date-list-search" className={styles.heading}>
-          キーワード検索
-        </h2>
-        <div className={styles.searchContainer}>
-          <label className={styles.visuallyHidden} htmlFor="sessions-date-list-search-input">
-            キーワードで検索
-          </label>
-          <SearchInput
-            value={searchDraft}
-            onChange={setSearchDraft}
-            className={styles.searchInput}
-          />
-          <p id="sessions-date-list-search-help" className={styles.helperText}>
-            検索動作は後続タスクで実装予定です。
-          </p>
-        </div>
-      </section>
+      <SearchResultsList
+        status={searchResponse.status}
+        response={searchResponse.data}
+        error={searchResponse.error}
+        keyword={activeKeyword}
+        fetchedAt={searchResponse.fetchedAt}
+        page={filters.searchPagination.page}
+        onPageChange={filters.setSearchPage}
+        isPagingDisabled={searchResponse.status === 'loading'}
+        onRetry={() => {
+          void searchResponse.refetch({ force: true })
+        }}
+        onResultSelect={handleResultSelect}
+      />
 
-      <section className={styles.section} aria-labelledby="sessions-date-list-sessions">
-        <h2 id="sessions-date-list-sessions" className={styles.heading}>
-          セッション一覧
-        </h2>
+      <section className={styles.section} aria-labelledby="sessions-list-heading">
+        <header className={styles.listHeader}>
+          <div>
+            <h2 id="sessions-list-heading">セッション一覧</h2>
+            {lastUpdatedLabel ? <p className={styles.metaInfo}>最終更新: {lastUpdatedLabel}</p> : null}
+          </div>
+          {sessionContextLabel ? <p className={styles.metaInfo}>期間: {sessionContextLabel}</p> : null}
+        </header>
+
         <StatusBanner
-          error={error}
-          onRetry={handleRetry}
-          isRetrying={status === 'loading'}
+          error={sessionsResponse.error}
+          onRetry={() => {
+            void sessionsResponse.refetch({ force: true })
+          }}
+          isRetrying={sessionsResponse.status === 'loading'}
         />
-        {lastUpdatedLabel ? <p className={styles.metaInfo}>最終更新: {lastUpdatedLabel}</p> : null}
+
         <SessionList
-          variant={listVariant}
-          items={items}
+          variant={sessionVariant}
+          items={sessionItems}
           onSelect={handleSessionSelect}
+          contextLabel={sessionContextLabel}
         />
+
+        {sessionTotalPages > 1 ? (
+          <PaginationControls
+            page={filters.listPagination.page}
+            totalPages={sessionTotalPages}
+            onPageChange={filters.setListPage}
+            label="セッション一覧"
+            isLoading={sessionsResponse.status === 'loading'}
+            className={styles.pagination}
+          />
+        ) : null}
       </section>
     </div>
   )

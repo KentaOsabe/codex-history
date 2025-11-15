@@ -48,4 +48,19 @@ describe('SanitizedJsonViewer', () => {
 
     expect(safeHtmlMock).toHaveBeenCalledTimes(1)
   })
+
+  it('展開中に値が変わっても直ちに警告を維持する', () => {
+    safeHtmlMock.mockReturnValueOnce({ html: '<pre>{"foo":"bar"}</pre>', removed: true })
+
+    const { rerender } = render(<SanitizedJsonViewer id="call-3" label="引数" value={{ foo: 'bar' }} expanded />)
+
+    expect(screen.getByText('安全のため一部の内容をマスクしました')).toBeInTheDocument()
+
+    safeHtmlMock.mockReturnValueOnce({ html: '<pre>{"baz":1}</pre>', removed: true })
+
+    rerender(<SanitizedJsonViewer id="call-3" label="引数" value={{ baz: 1 }} expanded />)
+
+    expect(screen.getByText('安全のため一部の内容をマスクしました')).toBeInTheDocument()
+    expect(screen.getByText('{"baz":1}')).toBeInTheDocument()
+  })
 })

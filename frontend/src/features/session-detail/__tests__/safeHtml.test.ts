@@ -32,4 +32,14 @@ describe('safeHtml', () => {
     expect(result.html).toBe('<a href="about:blank" rel="noreferrer noopener">danger</a>')
     expect(result.removed).toBe(true)
   })
+
+  it('<mark> タグを含むハイライトを保持する', () => {
+    // Purpose: Allow backend-provided highlight markup (mark) without stripping
+    const input = '<mark>keyword</mark> snippet'
+
+    const result = safeHtml(input)
+
+    expect(result.html).toBe('<mark>keyword</mark> snippet')
+    expect(result.removed).toBe(false)
+  })
 })

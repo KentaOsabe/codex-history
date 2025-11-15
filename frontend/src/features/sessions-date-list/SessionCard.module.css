@@ -48,6 +48,15 @@
   border: 1px solid #6ee7b7;
 }
 
+.context {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  font-weight: 600;
+}
+
 .metadata {
   width: 100%;
   margin: 0;

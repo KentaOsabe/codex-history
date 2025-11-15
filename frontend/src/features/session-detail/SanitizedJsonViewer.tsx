@@ -55,9 +55,6 @@ const SanitizedJsonViewer = ({
 
   const isControlled = typeof expanded === 'boolean'
   const [internalExpanded, setInternalExpanded] = useState(false)
-  const [sanitizedContent, setSanitizedContent] = useState<string | null>(null)
-  const [removedDangerousContent, setRemovedDangerousContent] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const resolvedExpanded = isControlled ? Boolean(expanded) : internalExpanded
   const contentId = `${id}-content`
   const canExpand = Boolean(serialized)
@@ -66,27 +63,27 @@ const SanitizedJsonViewer = ({
     if (!isControlled) {
       setInternalExpanded(false)
     }
-    setSanitizedContent(null)
-    setRemovedDangerousContent(false)
-    setErrorMessage(null)
   }, [serialized, isControlled])
 
-  useEffect(() => {
-    if (!resolvedExpanded || !serialized || sanitizedContent || errorMessage) {
-      return
+  const sanitizedState = useMemo(() => {
+    if (!resolvedExpanded || !serialized) {
+      return { html: null, removed: false, error: null }
     }
 
     try {
       const result = safeHtml(serialized)
-      setSanitizedContent(result.html)
-      setRemovedDangerousContent(result.removed)
+      return { html: result.html, removed: result.removed, error: null }
     } catch (cause) {
-      setErrorMessage('JSONの整形に失敗しました')
       if (typeof console !== 'undefined' && typeof console.error === 'function') {
         console.error('[SanitizedJsonViewer] failed to sanitize payload', cause)
       }
+      return { html: null, removed: false, error: 'JSONの整形に失敗しました' }
     }
-  }, [resolvedExpanded, serialized, sanitizedContent, errorMessage])
+  }, [resolvedExpanded, serialized])
+
+  const sanitizedContent = sanitizedState.html
+  const removedDangerousContent = sanitizedState.removed
+  const errorMessage = sanitizedState.error
 
   const toggleExpanded = () => {
     if (!canExpand) {
@@ -128,7 +125,7 @@ const SanitizedJsonViewer = ({
         ) : sanitizedContent ? (
           <pre className={styles.viewerContent} dangerouslySetInnerHTML={{ __html: sanitizedContent }} />
         ) : (
-          <p className={styles.placeholder}>読み込み中...</p>
+          <p className={styles.placeholder}>データなし</p>
         )}
       </div>
       {removedDangerousContent ? (

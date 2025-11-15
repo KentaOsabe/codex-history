@@ -8,9 +8,10 @@ interface StatusBannerProps {
   onRetry: () => void
   isRetrying?: boolean
   className?: string
+  retryLabel?: string
 }
 
-const StatusBanner = ({ error, onRetry, isRetrying = false, className }: StatusBannerProps) => {
+const StatusBanner = ({ error, onRetry, isRetrying = false, className, retryLabel }: StatusBannerProps) => {
   if (!error) return null
 
   const classNames = className ? `${styles.banner} ${className}` : styles.banner
@@ -21,7 +22,7 @@ const StatusBanner = ({ error, onRetry, isRetrying = false, className }: StatusB
         <p className={styles.message}>{error.message}</p>
         {error.detail ? <p className={styles.detail}>{error.detail}</p> : null}
       </div>
-      <RetryButton onClick={onRetry} disabled={isRetrying} />
+      <RetryButton onClick={onRetry} disabled={isRetrying} label={retryLabel} />
     </div>
   )
 }
