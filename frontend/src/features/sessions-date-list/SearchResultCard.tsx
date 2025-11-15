@@ -17,14 +17,27 @@ export interface SearchResultCardProps {
   onSelect: (sessionId: string, options?: { targetPath?: string }) => void
 }
 
+const resolveTargetPath = ({ sessionLink, sessionId }: SearchResultCardViewModel) => {
+  if (!sessionLink) return undefined
+
+  if (sessionLink.includes('/api/sessions/')) {
+    return `/sessions/${encodeURIComponent(sessionId)}`
+  }
+
+  return sessionLink
+}
+
 const SearchResultCard = ({ result, onSelect }: SearchResultCardProps) => {
   const actionLabel = `${result.sessionId} を開く`
+  const targetPath = resolveTargetPath(result)
 
   return (
     <button
       type="button"
       className={styles.card}
-      onClick={() => onSelect(result.sessionId, { targetPath: result.sessionLink })}
+      onClick={() =>
+        onSelect(result.sessionId, targetPath ? { targetPath } : undefined)
+      }
       aria-label={actionLabel}
     >
       <header className={styles.header}>
