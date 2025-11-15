@@ -11,7 +11,7 @@
   - `eslint.config.js` に CSS Modules 内の直書きカラーを禁止するプラグイン設定や codemod を導入し、CI で強制する
   - _Requirements: 1,5_
 
-- [ ] 2. ThemeProvider と ThemeToggle を実装し、意思決定を文書化する
+- [x] 2. ThemeProvider と ThemeToggle を実装し、意思決定を文書化する
   - `frontend/src/features/ui-theme/ThemeProvider.tsx` と `ThemeContext` を作成し、`prefers-color-scheme` と `localStorage` を統合して `<body data-theme>` を制御する（50ms 以内更新）
   - `ThemeToggle` コンポーネントを `AppShell` に組み込み、`data-testid="theme-toggle"` や `aria-pressed` を備えた操作を提供する
   - `.kiro/specs/issue-24/decisions.md` or `docs/theme_toggle.md` にライト/ダーク採否・理由・再検討条件を記録し、README/FAQ にサポート状況を追記する

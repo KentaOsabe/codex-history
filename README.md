@@ -69,8 +69,9 @@ npm run format
 - `npm run test -- httpClient.test.ts errors.test.ts sessions.test.ts sessions.msw.test.ts`: API クライアント層のユニット / 統合テストのみを実行（MSW モック込み）
 
 ### UI テーマとトークン運用
-- `frontend/src/styles/theme/` に CSS 変数を集約し、`main.tsx` で `tokens.css` / `typography.css` / `dark.css` をグローバル適用しています。
-- ライト/ダーク双方のプレビューやフォントスケール、アクセシビリティ要件は `docs/theme-tokens.md` を参照してください。
+- `frontend/src/styles/theme/` に CSS 変数を集約し、`main.tsx` で `tokens.css` / `typography.css` / `dark.css` をグローバル適用しています。React 側では `src/app/App.tsx` が `ThemeProvider` でアプリ全体をラップし、`prefers-color-scheme` + `localStorage (codex:theme-preference)` を基に `<body data-theme>` と `color-scheme` を 50ms 以内に切り替えます。
+- ライト/ダーク双方のプレビューやフォントスケール、アクセシビリティ要件は `docs/theme-tokens.md` を参照してください。ライト/ダーク採否の記録、再検討条件、トグル仕様は `docs/theme_toggle.md` にまとめています。
+- `AppLayout` の右上には `ThemeToggle` があり、クリックでライト/ダークをトグル、`SYS` ボタンでシステム既定（mode=system）へ戻せます。テストを書く際は `data-testid="theme-toggle"` と `aria-pressed` をアサートするとテーマ状態を把握できます。
 - Stylelint を `color-no-hex` + カスタム禁止リストで拡張し、ESLint では `theme-guard/no-literal-colors` ルールで inline style のカラー直書きを検出しています。必ず `var(--theme-*)` を利用してください。
 
 ## テスト実行
