@@ -8,6 +8,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 import eslintPluginImport from 'eslint-plugin-import'
 import prettier from 'eslint-config-prettier'
+import themeGuard from './eslint-rules/no-literal-colors.js'
 
 const project = ['./tsconfig.app.json']
 
@@ -26,6 +27,7 @@ export default defineConfig([
       'react-hooks': reactHooks,
       'jsx-a11y': jsxA11y,
       import: eslintPluginImport,
+      'theme-guard': themeGuard,
     },
     settings: {
       react: {
@@ -84,6 +86,7 @@ export default defineConfig([
           'newlines-between': 'always',
         },
       ],
+      'theme-guard/no-literal-colors': 'error',
     },
   },
   {

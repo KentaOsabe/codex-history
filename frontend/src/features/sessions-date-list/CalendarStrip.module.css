@@ -14,24 +14,25 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--theme-text-strong);
 }
 
 .navButton {
   background: transparent;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border-muted);
   border-radius: 8px;
-  color: #1f2937;
+  color: var(--theme-text-default);
   cursor: pointer;
   font-size: 0.9rem;
   padding: 0.35rem 0.75rem;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition: background var(--theme-transition-fast),
+    border-color var(--theme-transition-fast);
 }
 
 .navButton:hover,
 .navButton:focus-visible {
-  background: #eff6ff;
-  border-color: #1d4ed8;
+  background: var(--theme-color-primary-subtle);
+  border-color: var(--theme-color-primary-base);
   outline: none;
 }
 
@@ -40,7 +41,12 @@
 }
 
 .grid {
-  border: 1px solid #cbd5f5;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 20%,
+      var(--theme-border-muted)
+    );
   border-radius: 12px;
   display: grid;
   gap: 0.35rem;
@@ -55,10 +61,15 @@
 
 .cell {
   align-items: center;
-  background: #fff;
-  border: 1px solid #dbeafe;
+  background: var(--theme-surface-raised);
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 15%,
+      var(--theme-border-muted)
+    );
   border-radius: 10px;
-  color: #1f2937;
+  color: var(--theme-text-default);
   cursor: pointer;
   display: inline-flex;
   font-size: 0.95rem;
@@ -67,11 +78,13 @@
   justify-content: center;
   line-height: 1;
   padding: 0;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition: background var(--theme-transition-fast),
+    border-color var(--theme-transition-fast),
+    color var(--theme-transition-fast);
 }
 
 .cell:hover {
-  border-color: #3b82f6;
+  border-color: var(--theme-color-primary-active);
 }
 
 .cell:focus {
@@ -79,7 +92,12 @@
 }
 
 .cell:focus-visible {
-  outline: 3px solid #93c5fd;
+  outline: 3px solid
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 45%,
+      var(--theme-surface-base)
+    );
   outline-offset: 1px;
 }
 
@@ -88,13 +106,13 @@
 }
 
 .cellSelected {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
-  color: #fff;
+  background: var(--theme-color-primary-base);
+  border-color: var(--theme-color-primary-base);
+  color: var(--theme-text-inverse);
 }
 
 .cellMuted {
-  color: #64748b;
-  border-color: #e5e7eb;
-  background: #f9fafb;
+  color: var(--theme-text-secondary);
+  border-color: var(--theme-border-muted);
+  background: var(--theme-surface-muted);
 }

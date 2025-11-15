@@ -5,9 +5,13 @@
   gap: 1rem;
   margin: 0 0 1rem;
   padding: 0.75rem 1rem;
-  border-radius: 12px;
-  background: #fee2e2;
-  color: #991b1b;
+  border-radius: var(--theme-radius-sm);
+  background: var(--theme-color-danger-subtle);
+  color: color-mix(
+    in srgb,
+    var(--theme-color-danger-base) 80%,
+    var(--theme-text-default)
+  );
 }
 
 .content {
@@ -26,5 +30,9 @@
 .detail {
   margin: 0;
   font-size: 0.85rem;
-  color: #7f1d1d;
+  color: color-mix(
+    in srgb,
+    var(--theme-color-danger-active) 70%,
+    var(--theme-text-muted)
+  );
 }

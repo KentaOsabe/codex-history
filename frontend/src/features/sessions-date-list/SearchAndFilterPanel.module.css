@@ -1,9 +1,9 @@
 .container {
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
+  border: 1px solid var(--theme-border-muted);
+  border-radius: var(--theme-radius-lg);
   padding: 1.75rem;
-  background: #fff;
-  box-shadow: 0 12px 32px rgb(15 23 42 / 6%);
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-shadow-soft);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -17,14 +17,14 @@
 
 .helper {
   margin: 0;
-  color: #475569;
+  color: var(--theme-text-muted);
   font-size: 0.9rem;
 }
 
 .hint {
   margin: 0;
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--theme-text-muted);
 }
 
 .form {
@@ -34,7 +34,12 @@
 }
 
 .searchInput {
-  border: 1px solid #cbd5f5;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 20%,
+      var(--theme-border-muted)
+    );
   border-radius: 12px;
   padding: 0.75rem 1rem;
   font-size: 1rem;
@@ -52,9 +57,11 @@
   padding: 0.5rem 1.5rem;
   font-size: 0.95rem;
   font-weight: 600;
-  background: #1d4ed8;
-  color: #fff;
+  background: var(--theme-color-primary-base);
+  color: var(--theme-text-inverse);
   cursor: pointer;
+  transition: background var(--theme-transition-fast),
+    box-shadow var(--theme-transition-fast);
 }
 
 .primaryButton:disabled {
@@ -63,20 +70,27 @@
 }
 
 .secondaryButton {
-  border: 1px solid #cbd5f5;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 18%,
+      var(--theme-border-muted)
+    );
   border-radius: 9999px;
   padding: 0.5rem 1.25rem;
   font-size: 0.9rem;
   font-weight: 600;
   background: transparent;
-  color: #0f172a;
+  color: var(--theme-text-strong);
   cursor: pointer;
+  transition: background var(--theme-transition-fast),
+    color var(--theme-transition-fast);
 }
 
 .error {
   margin: 0;
   font-size: 0.85rem;
-  color: #b91c1c;
+  color: var(--theme-color-danger-active);
 }
 
 .visuallyHidden {

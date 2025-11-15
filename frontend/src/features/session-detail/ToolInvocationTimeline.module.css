@@ -8,12 +8,20 @@
 }
 
 .card {
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #667eea;
+  border: 1px solid var(--theme-border-muted);
+  border-left: 4px solid var(--theme-color-primary-active);
   border-radius: 0.85rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgb(236 239 255 / 50%), rgb(248 249 255 / 90%));
-  box-shadow: 0 8px 20px rgb(15 23 42 / 8%);
+  background: linear-gradient(
+    135deg,
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-subtle) 70%,
+      transparent
+    ),
+    var(--theme-surface-raised)
+  );
+  box-shadow: var(--theme-shadow-soft);
 }
 
 .cardHeader {
@@ -27,18 +35,18 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #1a202c;
+  color: var(--theme-text-strong);
 }
 
 .callId {
   margin: 0.1rem 0 0;
-  color: #4a5568;
+  color: var(--theme-text-muted);
   font-size: 0.85rem;
 }
 
 .callId code {
   font-size: 0.85rem;
-  background: #edf2f7;
+  background: var(--theme-surface-muted);
   padding: 0.05rem 0.35rem;
   border-radius: 0.35rem;
 }
@@ -50,22 +58,26 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #1a202c;
+  color: var(--theme-text-strong);
 }
 
 .status-success {
-  background: #c6f6d5;
-  color: #22543d;
+  background: var(--theme-color-success-subtle);
+  color: var(--theme-text-success);
 }
 
 .status-error {
-  background: #fed7d7;
-  color: #742a2a;
+  background: var(--theme-color-danger-subtle);
+  color: var(--theme-color-danger-active);
 }
 
 .status-pending {
-  background: #feebc8;
-  color: #7b341e;
+  background: var(--theme-color-warning-subtle);
+  color: color-mix(
+    in srgb,
+    var(--theme-color-warning-active) 70%,
+    var(--theme-text-default)
+  );
 }
 
 .metaList {
@@ -79,7 +91,7 @@
 
 .metaList li {
   font-size: 0.9rem;
-  color: #2d3748;
+  color: var(--theme-text-default);
 }
 
 .metaLabel {
@@ -87,8 +99,7 @@
 }
 
 .metaValue {
-  font-family: 'JetBrains Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+  font-family: var(--theme-font-mono);
 }
 
 .payloadGrid {
@@ -102,21 +113,26 @@
   margin: 0;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  border: 1px dashed #cbd5f5;
-  background: #f8faff;
-  color: #4a5568;
+  border: 1px dashed
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 25%,
+      var(--theme-border-muted)
+    );
+  background: var(--theme-surface-muted);
+  color: var(--theme-text-muted);
   font-size: 0.9rem;
 }
 
 .emptyPayload {
-  border: 1px dashed #e2e8f0;
+  border: 1px dashed var(--theme-border-muted);
   border-radius: 0.75rem;
   padding: 0.75rem;
-  background: #fff;
+  background: var(--theme-surface-raised);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a0aec0;
+  color: var(--theme-text-secondary);
   font-style: italic;
 }
 

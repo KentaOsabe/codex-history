@@ -68,6 +68,11 @@ npm run format
 - `npm run lint:fix`: ESLint / Stylelint を自動修正モードで実行
 - `npm run test -- httpClient.test.ts errors.test.ts sessions.test.ts sessions.msw.test.ts`: API クライアント層のユニット / 統合テストのみを実行（MSW モック込み）
 
+### UI テーマとトークン運用
+- `frontend/src/styles/theme/` に CSS 変数を集約し、`main.tsx` で `tokens.css` / `typography.css` / `dark.css` をグローバル適用しています。
+- ライト/ダーク双方のプレビューやフォントスケール、アクセシビリティ要件は `docs/theme-tokens.md` を参照してください。
+- Stylelint を `color-no-hex` + カスタム禁止リストで拡張し、ESLint では `theme-guard/no-literal-colors` ルールで inline style のカラー直書きを検出しています。必ず `var(--theme-*)` を利用してください。
+
 ## テスト実行
 ```bash
 # プロジェクト全体の RSpec を実行（SimpleCov 有効）

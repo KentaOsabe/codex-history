@@ -1,13 +1,18 @@
 .container {
-  border-radius: 16px;
-  border: 1px dashed #cbd5f5;
-  background: #f8fafc;
+  border-radius: var(--theme-radius-md);
+  border: 1px dashed
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 35%,
+      var(--theme-border-muted)
+    );
+  background: var(--theme-surface-muted);
   padding: 1.75rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  color: #0f172a;
+  color: var(--theme-text-strong);
 }
 
 .title {
@@ -19,23 +24,25 @@
 .hint {
   margin: 0;
   font-size: 0.9rem;
-  color: #475569;
+  color: var(--theme-text-muted);
 }
 
 .action {
   align-self: center;
-  border: 1px solid #94a3b8;
+  border: 1px solid var(--theme-border-strong);
   border-radius: 9999px;
   padding: 0.35rem 1.25rem;
   font-size: 0.85rem;
   font-weight: 600;
-  background: #fff;
-  color: #0f172a;
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-strong);
   cursor: pointer;
+  transition: background var(--theme-transition-fast),
+    color var(--theme-transition-fast);
 }
 
 .action:hover,
 .action:focus-visible {
-  background: #e2e8f0;
+  background: var(--theme-surface-muted);
   outline: none;
 }

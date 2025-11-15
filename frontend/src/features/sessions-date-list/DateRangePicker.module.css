@@ -10,7 +10,7 @@
   flex-direction: column;
   gap: 0.4rem;
   font-size: 0.9rem;
-  color: #0f172a;
+  color: var(--theme-text-strong);
 }
 
 .label {
@@ -18,7 +18,12 @@
 }
 
 .input {
-  border: 1px solid #cbd5f5;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 20%,
+      var(--theme-border-muted)
+    );
   border-radius: 10px;
   padding: 0.45rem 0.65rem;
   font-size: 0.95rem;
@@ -26,12 +31,12 @@
 
 .separator {
   font-size: 0.95rem;
-  color: #475569;
+  color: var(--theme-text-muted);
 }
 
 .error {
   width: 100%;
   margin: 0;
   font-size: 0.85rem;
-  color: #b91c1c;
+  color: var(--theme-color-danger-active);
 }

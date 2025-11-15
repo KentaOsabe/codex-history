@@ -1,9 +1,9 @@
 .card {
   border-radius: 1.25rem;
-  border: 1px solid #e2e8f0;
-  background-color: #fff;
+  border: 1px solid var(--theme-border-muted);
+  background-color: var(--theme-surface-raised);
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 8px 24px rgb(15 23 42 / 6%);
+  box-shadow: var(--theme-shadow-soft);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -20,7 +20,7 @@
 .role {
   font-weight: 700;
   font-size: 1rem;
-  color: #1a202c;
+  color: var(--theme-text-strong);
 }
 
 .metaGroup {
@@ -32,7 +32,7 @@
 
 .timestamp {
   font-size: 0.9rem;
-  color: #4a5568;
+  color: var(--theme-text-muted);
 }
 
 .badge {
@@ -42,22 +42,43 @@
   letter-spacing: 0.05em;
   padding: 0.2rem 0.5rem;
   border-radius: 9999px;
-  border: 1px solid #d6bcfa;
-  color: #553c9a;
-  background-color: #faf5ff;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--theme-color-info-base) 30%,
+      var(--theme-border-muted)
+    );
+  color: color-mix(
+    in srgb,
+    var(--theme-color-info-active) 75%,
+    var(--theme-text-default)
+  );
+  background-color: var(--theme-color-info-subtle);
 }
 
 .channelBadge {
-  border-color: #b2f5ea;
-  color: #065666;
-  background-color: #e6fffa;
+  border-color: color-mix(
+    in srgb,
+    var(--theme-color-success-base) 25%,
+    var(--theme-border-muted)
+  );
+  color: color-mix(
+    in srgb,
+    var(--theme-color-success-active) 70%,
+    var(--theme-text-default)
+  );
+  background-color: color-mix(
+    in srgb,
+    var(--theme-color-success-subtle) 90%,
+    transparent
+  );
 }
 
 .body {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  color: #2d3748;
+  color: var(--theme-text-default);
   line-height: 1.5;
 }
 
@@ -67,22 +88,26 @@
 }
 
 .roleUser {
-  border-left: 4px solid #3182ce;
+  border-left: 4px solid var(--theme-color-primary-active);
 }
 
 .roleAssistant {
-  border-left: 4px solid #805ad5;
+  border-left: 4px solid color-mix(
+    in srgb,
+    var(--theme-color-info-active) 60%,
+    var(--theme-color-primary-active)
+  );
 }
 
 .roleTool {
-  border-left: 4px solid #38a169;
+  border-left: 4px solid var(--theme-color-success-base);
 }
 
 .roleMeta {
-  border-left: 4px solid #718096;
+  border-left: 4px solid var(--theme-text-secondary);
 }
 
 .footer {
-  border-top: 1px solid #edf2f7;
+  border-top: 1px solid var(--theme-border-muted);
   padding-top: 0.75rem;
 }

@@ -5,10 +5,10 @@
 }
 
 .section {
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  box-shadow: 0 12px 32px rgb(15 23 42 / 6%);
-  background: #fff;
+  border: 1px solid var(--theme-border-muted);
+  border-radius: var(--theme-radius-lg);
+  box-shadow: var(--theme-shadow-soft);
+  background: var(--theme-surface-raised);
   padding: 1.75rem;
   display: flex;
   flex-direction: column;
@@ -25,7 +25,7 @@
 .metaInfo {
   margin: 0;
   font-size: 0.9rem;
-  color: #475569;
+  color: var(--theme-text-muted);
 }
 
 .pagination {

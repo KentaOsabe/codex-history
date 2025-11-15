@@ -5,6 +5,15 @@ const config = {
   ignoreFiles: ['dist/**/*', 'node_modules/**/*'],
   rules: {
     'color-hex-length': 'short',
+    'color-no-hex': true,
+    'declaration-property-value-disallowed-list': {
+      '/^(color|background|border|fill|stroke)/': [
+        '/#/',
+        '/\\brgb(a)?\\(/i',
+        '/\\bhsl(a)?\\(/i',
+      ],
+      'box-shadow': ['/\\brgb(a)?\\(/i', '/#/', '/\\bhsl(a)?\\(/i'],
+    },
     'selector-class-pattern': null,
     'order/order': [
       'custom-properties',

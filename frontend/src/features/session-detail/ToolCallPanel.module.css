@@ -1,7 +1,7 @@
 .panel {
   border-radius: 0.85rem;
-  border: 1px solid #e2e8f0;
-  background-color: #f8fafc;
+  border: 1px solid var(--theme-border-muted);
+  background-color: var(--theme-surface-muted);
   padding: 0.75rem 1rem;
 }
 
@@ -12,16 +12,15 @@
   align-items: center;
   font-weight: 600;
   font-size: 0.95rem;
-  color: #2d3748;
+  color: var(--theme-text-default);
 }
 
 .content {
   margin-top: 0.75rem;
-  font-family: 'JetBrains Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+  font-family: var(--theme-font-mono);
   font-size: 0.85rem;
   line-height: 1.4;
-  color: #1a202c;
+  color: var(--theme-text-strong);
   overflow-x: auto;
 }
 
@@ -32,6 +31,6 @@
 
 .placeholder {
   display: inline-block;
-  color: #718096;
+  color: var(--theme-text-secondary);
   font-style: italic;
 }
