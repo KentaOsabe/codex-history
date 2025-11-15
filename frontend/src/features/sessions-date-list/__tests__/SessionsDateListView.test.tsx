@@ -1,10 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/api/testServer'
 
-import { toISODate } from '../dateUtils'
 import SessionsDateListView from '../SessionsDateListView'
 
 const { navigateToSessionDetailMock } = vi.hoisted(() => ({
@@ -17,157 +17,230 @@ vi.mock('../navigation', () => ({
   }),
 }))
 
-const buildSessionsResponse = (sessionOverrides: Partial<Record<string, unknown>> = {}) => {
-  return {
-    data: [
-      {
-        id: 'session-1',
-        type: 'session',
-        attributes: {
-          session_id: 'session-1',
-          title: 'デモセッション: サマリー付き',
-          relative_path: '2025/03/14/session-1.jsonl',
-          created_at: '2025-03-14T09:00:00Z',
-          completed_at: '2025-03-14T10:00:00Z',
-          duration_seconds: 3600,
-          message_count: 58,
-          tool_call_count: 4,
-          tool_result_count: 4,
-          reasoning_count: 0,
-          meta_event_count: 0,
-          has_sanitized_variant: true,
-          speaker_roles: [ 'user', 'assistant' ],
-          raw_session_meta: {
-            summary: 'サマリーです',
-          },
-          ...sessionOverrides,
+const buildSessionsResponse = (overrides: Partial<Record<string, unknown>> = {}) => ({
+  data: [
+    {
+      id: 'session-1',
+      type: 'session',
+      attributes: {
+        session_id: 'session-1',
+        title: 'フィルタ済みセッション',
+        relative_path: '2025/03/14/session-1.jsonl',
+        created_at: '2025-03-14T09:00:00Z',
+        completed_at: '2025-03-14T10:00:00Z',
+        duration_seconds: 3600,
+        message_count: 58,
+        tool_call_count: 4,
+        tool_result_count: 4,
+        reasoning_count: 0,
+        meta_event_count: 0,
+        has_sanitized_variant: true,
+        speaker_roles: ['user', 'assistant'],
+        raw_session_meta: {
+          summary: 'サマリーです',
         },
-      },
-    ],
-    meta: {
-      page: 1,
-      per_page: 25,
-      total_pages: 1,
-      total_count: 1,
-      filters: {},
-      index: {
-        updated_at: '2025-03-14T10:30:00Z',
+        ...overrides,
       },
     },
-    errors: [],
-  }
-}
+  ],
+  meta: {
+    page: 1,
+    per_page: 25,
+    total_pages: 1,
+    total_count: 1,
+    filters: {
+      start_date: '2025-03-14',
+      end_date: '2025-03-20',
+    },
+    index: {
+      updated_at: '2025-03-14T10:30:00Z',
+    },
+  },
+  errors: [],
+})
+
+const buildSearchResponse = (overrides: Partial<Record<string, unknown>> = {}) => ({
+  data: [
+    {
+      id: 'search-hit-1',
+      type: 'search_result',
+      attributes: {
+        session_id: 'session-99',
+        scope: 'chat_messages',
+        highlight: 'ログ内で <mark>history</mark> を検出',
+        occurred_at: '2025-03-20T11:00:00Z',
+        message_role: 'assistant',
+        message_id: 'message-1',
+        relative_path: '2025/03/20/session-99.jsonl',
+        occurrence_index: 1,
+      },
+      links: {
+        session: '/sessions/session-99',
+      },
+    },
+  ],
+  meta: {
+    pagination: {
+      page: 1,
+      limit: 25,
+      total_count: 1,
+      total_pages: 2,
+    },
+    filters: {
+      keyword: 'history',
+      scope: 'chat_messages',
+    },
+  },
+  errors: [],
+  ...overrides,
+})
 
 describe('SessionsDateListView (integration)', () => {
+  const searchRequests: URLSearchParams[] = []
+  const sessionRequests: URLSearchParams[] = []
+
   beforeEach(() => {
     navigateToSessionDetailMock.mockReset()
+    searchRequests.length = 0
+    sessionRequests.length = 0
+
+    server.use(
+      http.get('/api/sessions', ({ request }) => {
+        const url = new URL(request.url)
+        sessionRequests.push(url.searchParams)
+        return HttpResponse.json(buildSessionsResponse())
+      }),
+      http.get('/api/search', ({ request }) => {
+        const url = new URL(request.url)
+        searchRequests.push(url.searchParams)
+        return HttpResponse.json(buildSearchResponse())
+      }),
+    )
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('当日分のセッションを取得し、正しいクエリパラメータでAPIを呼び出す', async () => {
-    // 利用者が画面表示直後に当日のセッションを確認できることを保証する
-    const requestedDates: { start?: string | null; end?: string | null }[] = []
+  it('検索キーワード送信で search API を呼び出し、結果カードから詳細遷移できる', async () => {
+    // 目的: 検索→結果表示→ページング→ナビゲーションの一連フローを保証する
+    const user = userEvent.setup()
+
+    render(<SessionsDateListView />)
+
+    await user.type(screen.getByPlaceholderText('キーワードで検索'), ' history ')
+    await user.click(screen.getByRole('button', { name: '検索を実行' }))
+
+    expect(await screen.findByText('session-99')).toBeInTheDocument()
+    expect(screen.getByText('検索ヒット 1 件')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '検索結果を次のページへ' }))
+
+    await waitFor(() => {
+      expect(searchRequests.at(-1)?.get('page')).toBe('2')
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'session-99 を開く' }))
+    expect(navigateToSessionDetailMock).toHaveBeenCalledWith('session-99', { targetPath: '/sessions/session-99' })
+    expect(searchRequests[0]?.get('keyword')).toBe('history')
+  })
+
+  it('日付範囲を更新すると sessions API が start/end パラメータ付きで呼ばれる', async () => {
+    // 目的: DateRangePicker の入力が API クエリへ反映されることを確認する
+    const user = userEvent.setup()
+
+    render(<SessionsDateListView />)
+
+    await user.clear(screen.getByLabelText('開始日'))
+    await user.type(screen.getByLabelText('開始日'), '2025-03-10')
+    await user.clear(screen.getByLabelText('終了日'))
+    await user.type(screen.getByLabelText('終了日'), '2025-03-12')
+
+    await waitFor(() => {
+      const params = sessionRequests.at(-1)
+      expect(params?.get('start_date')).toBe('2025-03-10')
+      expect(params?.get('end_date')).toBe('2025-03-12')
+    })
+  })
+
+  it('検索結果が0件の場合に空状態メッセージを表示する', async () => {
+    // 目的: ゼロ件時に要件どおりのコピーとヒントが表示されることを検証する
     server.use(
-      http.get('/api/sessions', ({ request }) => {
+      http.get('/api/search', ({ request }) => {
         const url = new URL(request.url)
-        requestedDates.push({
-          start: url.searchParams.get('start_date'),
-          end: url.searchParams.get('end_date'),
-        })
-        return HttpResponse.json(buildSessionsResponse())
+        searchRequests.push(url.searchParams)
+        return HttpResponse.json(
+          buildSearchResponse({
+            data: [],
+            meta: {
+              pagination: {
+                page: 1,
+                limit: 25,
+                total_count: 0,
+                total_pages: 0,
+              },
+              filters: {
+                keyword: 'history',
+                scope: 'chat_messages',
+              },
+            },
+          }),
+        )
       }),
     )
 
+    const user = userEvent.setup()
     render(<SessionsDateListView />)
 
-    expect(screen.getAllByTestId('session-card-skeleton')).toHaveLength(3)
+    await user.type(screen.getByPlaceholderText('キーワードで検索'), 'history')
+    await user.click(screen.getByRole('button', { name: '検索を実行' }))
 
-    expect(await screen.findByRole('heading', { name: 'デモセッション: サマリー付き' })).toBeInTheDocument()
-    expect(screen.getByText('最終更新: 2025/3/14 10:30')).toBeInTheDocument()
-    const todayIso = toISODate(new Date())
-    expect(requestedDates).toEqual([
-      { start: todayIso, end: todayIso },
-    ])
+    expect(await screen.findByText('該当する会話が見つかりません')).toBeInTheDocument()
+    expect(screen.getByText('フィルタ条件を見直すか、別のキーワードを試してください。')).toBeInTheDocument()
   })
 
-  it('ゼロ件レスポンス時に空状態メッセージを表示する', async () => {
-    // 対象日にセッションが存在しない場合でも正しい案内が表示されることを保証する
+  it('検索エラー後に再試行すると成功レスポンスへ復帰する', async () => {
+    // 目的: エラー時にもバナーで状況を把握し再試行で回復できる
+    let attempt = 0
     server.use(
-      http.get('/api/sessions', () => {
-        return HttpResponse.json({
-          data: [],
-          meta: {
-            page: 1,
-            per_page: 25,
-            total_pages: 0,
-            total_count: 0,
-            filters: {},
-          },
-          errors: [],
-        })
-      }),
-    )
-
-    render(<SessionsDateListView />)
-
-    expect(await screen.findByText('この日に保存されたセッションはありません。')).toBeInTheDocument()
-    expect(screen.getByText('別の日付を選択するか、インデックスを更新してください。')).toBeInTheDocument()
-  })
-
-  it('サーバーエラー後にリトライすると成功レスポンスへ復帰する', async () => {
-    // 利用者がエラー再発時に即座にリトライできることを保証する
-    let requestCount = 0
-    server.use(
-      http.get('/api/sessions', () => {
-        requestCount += 1
-        if (requestCount <= 2) {
+      http.get('/api/search', ({ request }) => {
+        attempt += 1
+        const url = new URL(request.url)
+        searchRequests.push(url.searchParams)
+        if (attempt <= 2) {
           return HttpResponse.json(
             {
-              data: null,
               errors: [
                 {
                   status: '500',
-                  title: 'Server error',
-                  detail: 'Temporary failure',
+                  title: 'error',
+                  detail: 'temporary',
                 },
               ],
-              meta: {},
             },
             { status: 500 },
           )
         }
-        return HttpResponse.json(buildSessionsResponse())
+        return HttpResponse.json(buildSearchResponse())
       }),
     )
 
+    const user = userEvent.setup()
     render(<SessionsDateListView />)
+
+    await user.type(screen.getByPlaceholderText('キーワードで検索'), 'history')
+    await user.click(screen.getByRole('button', { name: '検索を実行' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('HTTP 500')
 
-    fireEvent.click(screen.getByRole('button', { name: '再読み込み' }))
+    fireEvent.click(screen.getByRole('button', { name: 'もう一度試す' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'デモセッション: サマリー付き' })).toBeInTheDocument()
+      expect(searchRequests.length).toBeGreaterThan(1)
     })
-    expect(requestCount).toBe(3)
-  })
 
-  it('セッションカードを選択すると詳細ナビゲーションをトリガーする', async () => {
-    // 利用者がカード操作でセッション詳細へ遷移できる導線を保証する
-    server.use(
-      http.get('/api/sessions', () => {
-        return HttpResponse.json(buildSessionsResponse())
-      }),
-    )
-
-    render(<SessionsDateListView />)
-
-    const cardHeading = await screen.findByRole('heading', { name: 'デモセッション: サマリー付き' })
-    fireEvent.click(cardHeading.closest('button')!)
-
-    expect(navigateToSessionDetailMock).toHaveBeenCalledWith('session-1')
+    const cards = await screen.findAllByText('session-99')
+    expect(cards.length).toBeGreaterThan(0)
+    expect(attempt).toBe(3)
   })
 })

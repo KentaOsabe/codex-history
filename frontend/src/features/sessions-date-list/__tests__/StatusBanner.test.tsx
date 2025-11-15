@@ -27,6 +27,14 @@ describe('StatusBanner', () => {
     expect(handleRetry).toHaveBeenCalledTimes(1)
   })
 
+  it('retryLabel を指定するとボタン文言を差し替える', () => {
+    const handleRetry = vi.fn()
+
+    render(<StatusBanner error={networkError} onRetry={handleRetry} retryLabel="もう一度試す" />)
+
+    expect(screen.getByRole('button', { name: 'もう一度試す' })).toBeInTheDocument()
+  })
+
   it('エラーが存在しないときは何も表示しない', () => {
     const { container } = render(<StatusBanner error={undefined} onRetry={vi.fn()} />)
 

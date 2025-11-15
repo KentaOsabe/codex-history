@@ -13,9 +13,10 @@ export interface SessionListItem {
 interface SessionCardProps {
   item: SessionListItem
   onSelect: (id: string) => void
+  contextLabel?: string
 }
 
-const SessionCard = ({ item, onSelect }: SessionCardProps) => {
+const SessionCard = ({ item, onSelect, contextLabel }: SessionCardProps) => {
   const displayTitle = item.title?.trim() || item.fallbackLabel
 
   return (
@@ -28,6 +29,7 @@ const SessionCard = ({ item, onSelect }: SessionCardProps) => {
       <header className={styles.header}>
         <h3 className={styles.title}>{displayTitle}</h3>
         {item.hasSanitized ? <span className={styles.badge}>Sanitized</span> : null}
+        {contextLabel ? <span className={styles.context}>{contextLabel}</span> : null}
       </header>
       <div className={styles.metadata}>
         <div className={styles.metaItem}>

@@ -16,12 +16,12 @@
   - 各フックの Vitest を TDD で追加し、競合リクエスト抑止やキャッシュヒットを検証する
   - _Requirements: R1, R2, R3, R4, R6_
 
-- [ ] 3. UI コンポーネントを検索・フィルタ対応に更新する
+- [x] 3. UI コンポーネントを検索・フィルタ対応に更新する
   - `SearchAndFilterPanel`, `DateRangePicker`, `PaginationControls`, `SearchResultsList`, `SearchResultCard` を実装／更新し、`SessionsDateListView` に統合する
   - ローディングスケルトン、ARIA 属性、ハイライトスニペット表示、ヒット数バッジを実装する
   - _Requirements: R1, R2, R3, R4_
 
-- [ ] 3.1 既存コンポーネントの状態表示とアクセシビリティを強化する
+- [x] 3.1 既存コンポーネントの状態表示とアクセシビリティを強化する
   - `SessionCard`, `StatusBanner`, `RetryButton`, `EmptyStateView` を検索・フィルタ状態に応じたメッセージや再試行ハンドラに対応させる
   - 0件時・エラー時のコピー/ヒントを要件通りに表示し、`aria-live` 領域を追加する
   - _Requirements: R3, R4, R5_

@@ -31,6 +31,12 @@ describe('SessionList', () => {
   it('empty variant で空状態メッセージを表示する', () => {
     render(<SessionList variant="empty" items={[]} onSelect={vi.fn()} />)
 
-    expect(screen.getByText('この日に保存されたセッションはありません。')).toBeInTheDocument()
+    expect(screen.getByText('指定した期間内のセッションはありません')).toBeInTheDocument()
+  })
+
+  it('contextLabel を渡すとバッジを表示する', () => {
+    render(<SessionList variant="ready" items={sampleItems} onSelect={vi.fn()} contextLabel="期間フィルタ" />)
+
+    expect(screen.getByText('期間フィルタ')).toBeInTheDocument()
   })
 })

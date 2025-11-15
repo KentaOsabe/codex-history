@@ -6,6 +6,8 @@ interface SearchInputProps {
   placeholder?: string
   className?: string
   inputId?: string
+  disabled?: boolean
+  ariaDescribedBy?: string
 }
 
 const SearchInput = ({
@@ -14,6 +16,8 @@ const SearchInput = ({
   placeholder = 'キーワードで検索',
   className,
   inputId = 'sessions-date-list-search-input',
+  disabled = false,
+  ariaDescribedBy,
 }: SearchInputProps) => {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.value)
@@ -26,9 +30,10 @@ const SearchInput = ({
       type="text"
       value={value}
       placeholder={placeholder}
-      aria-describedby="sessions-date-list-search-help"
+      aria-describedby={ariaDescribedBy ?? 'sessions-date-list-search-help'}
       autoComplete="off"
       onChange={handleChange}
+      disabled={disabled}
     />
   )
 }

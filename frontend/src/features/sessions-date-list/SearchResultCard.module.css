@@ -1,0 +1,72 @@
+.card {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.1rem;
+  background: #fff;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.card:hover,
+.card:focus-visible {
+  border-color: #1d4ed8;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 10%);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.sessionId {
+  margin: 0;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.path {
+  margin: 0.1rem 0 0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.badge {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 9999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.metadata {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.meta {
+  margin: 0;
+}
+
+.highlight {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.highlight mark {
+  background: #fef3c7;
+  padding: 0 0.15rem;
+  border-radius: 4px;
+}

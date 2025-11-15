@@ -4,9 +4,10 @@ interface RetryButtonProps {
   onClick: () => void
   disabled?: boolean
   className?: string
+  label?: string
 }
 
-const RetryButton = ({ onClick, disabled = false, className }: RetryButtonProps) => {
+const RetryButton = ({ onClick, disabled = false, className, label = '再読み込み' }: RetryButtonProps) => {
   const classNames = className ? `${styles.button} ${className}` : styles.button
 
   return (
@@ -16,7 +17,7 @@ const RetryButton = ({ onClick, disabled = false, className }: RetryButtonProps)
       onClick={onClick}
       disabled={disabled}
     >
-      再読み込み
+      {label}
     </button>
   )
 }
