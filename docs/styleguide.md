@@ -1,6 +1,6 @@
 # Codex History スタイルガイド
 
-Codex History の UI は Bootstrap 互換のトークンとレスポンシブテンプレートで統一しています。本ドキュメントでは主要ブレークポイント、`ResponsiveGrid` / 余白ユーティリティの使い方、そしてテスト／検証フローをまとめます。Task 4 で追加予定の Storybook でも同じ設定を共有します。
+ Codex History の UI は Bootstrap 互換のトークンとレスポンシブテンプレートで統一しています。本ドキュメントでは主要ブレークポイント、`ResponsiveGrid` / 余白ユーティリティの使い方、そしてテスト／検証フローをまとめます。Storybook (`npm run storybook`) でもここで定義したトークンやレイアウトをそのまま参照できます。
 
 ## ブレークポイントマトリクス
 
@@ -47,6 +47,17 @@ import ResponsiveGrid from '@/features/layout/ResponsiveGrid'
 
 > CSS Modules 側では余白やボーダーを極力定義せず、これらユーティリティを `className="layout-panel layout-panel--padded"` のように付与してください。`layout-pill` は `PaginationControls` / `StatusBanner` がデフォルトで追加しますが、サイズ変更が必要な場合は `className` 経由で上書きできます。
 
+## Storybook とスタイルガイド
+
+- `cd frontend && npm run storybook` で Storybook が起動し、ツールバー右側に `Theme` グローバルコントロール（system/light/dark）と Viewport アドオン（xs/sm/md/lg/xl）が表示されます。切り替えのたびに `<body data-theme>` と `data-breakpoint` が即時更新されることを Docs タブでも確認できます。
+- 代表ストーリーは次の 4 つです。
+  - `Sessions/SessionsDateListView` … `ResponsiveGrid` + `StatusBanner` を含むページ全体。Docs には使用トークンの一覧を記載しています。
+  - `Sessions/SessionCard` … `layout-panel` とタイポグラフィトークンの適用例。Controls で `contextLabel` / `summary` を変更して余白と折り返しを検証できます。
+  - `Navigation/AppShell` … `AppLayout` + `ThemeToggle` を表示し、ライト/ダーク + ブレークポイントでヘッダー余白が破綻しないかを確認します。
+  - `Feedback/StatusBanner` … `layout-pill` ユーティリティと警告色トークンのコントラスト確認に使用します。
+- Storybook のデータは `frontend/src/mocks/storybookHandlers.ts` の MSW ハンドラーで供給されています。`/api/sessions` と `/api/search` をモックしているため、追加シナリオを作る際はこのファイルにレスポンスを追記してください。
+- 静的サイトは `cd frontend && npm run build-storybook` で `frontend/storybook-static/` に生成されます。CI ではこのディレクトリを Artifact として保存し、ブラウザで `index.html` を開くか `npx http-server storybook-static -p 6007` で共有できます。
+
 ## テストと検証フロー
 
 1. **Vitest (DOM テスト)**
@@ -56,8 +67,9 @@ import ResponsiveGrid from '@/features/layout/ResponsiveGrid'
    - 余白／色を直接ハードコードしていないかは `npm run lint:style` で検出できます。`layout/spacing.css` に無いサイズ値は原則導入しません。
 3. **手動確認**
    - ブラウザ幅 520px / 900px / 1280px を順に確認し、`body[data-theme]` 切り替え時も `ResponsiveGrid` が 50ms 以内に再レイアウトすることを DevTools の `data-breakpoint` で確認します。
-4. **ストーリーブック予定 (Task 4)**
-   - Viewport アドオンで `xs/md/xl` を切り替え、Docs タブに現在の `breakpoint`・利用トークン (space, color, typography) を表示します。`docs/styleguide.md` の表は Storybook Docs へも転記予定です。
+4. **Storybook**
+  - `npm run storybook -- --ci` でヘッドレス起動し、Theme/Viewport を切り替えながら `Sessions/SessionsDateListView` と `AppShell` の Docs タブで `--theme-*` / `--space-*` トークンが揃っているかを確認します。
+  - `npm run build-storybook` の成果物をブラウザで確認し、`Feedback/StatusBanner` がライト/ダーク共に 4.5:1 のコントラストを維持することを確認してください。
 
 ## 開発者チェックリスト
 

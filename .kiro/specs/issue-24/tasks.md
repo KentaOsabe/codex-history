@@ -28,7 +28,7 @@
   - Storybook/Docs に各ブレークポイントでの例を掲載し、開発者が参照できるレイアウトガイドを `docs/styleguide.md` に記述する
   - _Requirements: 2,4_
 
-- [ ] 4. Storybook とスタイルガイドを構築する
+- [x] 4. Storybook とスタイルガイドを構築する
   - `frontend/.storybook/` を作成し、`ThemeProvider` デコレーター・Viewport/Controls/Docs アドオンを設定、`npm run storybook` / `build-storybook` スクリプトを package.json に追加する
   - `SessionsDateListView`, `SessionCard`, `AppShell`, `StatusBanner` などのストーリーを追加し、Controls から `theme` と `breakpoint` を操作可能にする
   - `docs/styleguide.md` に Storybook の閲覧手順、静的ビルド Artifact の参照方法、トークン/レイアウトルールを整理する
