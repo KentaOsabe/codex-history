@@ -26,6 +26,19 @@ docker compose run --rm backend bundle install
 
 2025年11月実装の Sessions Date List View（カレンダー＋セッション一覧＋検索入力プレースホルダー）は同ディレクトリの `src/features/sessions-date-list/` にまとまっており、MSW + Vitest を用いた統合テストで初期表示、ゼロ件時の空状態、500 系エラー後のリトライ、カード選択時のナビゲーションを検証しています。
 
+### Sessions Date List View の検索 / フィルタ UX
+- 上部の検索パネルで 2 文字以上のキーワードを入力し「検索を実行」を押すと、前後の空白を除去したクエリで `GET /api/search` が呼ばれ、レスポンスのハイライト付きカードが一覧上部に挿入されます。
+- 「検索結果」セクションではページャーでヒット結果を前後に移動でき、進行中はボタンが自動的に無効化されます。フィルタをリセットすると検索結果・ページ番号・入力欄が即座に初期化されます。
+- 日付範囲の開始・終了を変更すると `GET /api/sessions?start_date=...&end_date=...` が再フェッチされ、`期間: YYYY-MM-DD〜YYYY-MM-DD` のコンテキスト表示と一覧ページャーが同期します。開始日 > 終了日 の場合はフォーム上にエラーが表示され API を抑止します。
+- すべての条件を初期状態に戻したい場合は「フィルタをリセット」を押してください。初期期間（既定 7 日分）と1ページ目に戻り、検索結果セクションは非表示になります。
+
+検索 UX の振る舞いは次の統合テストで網羅しているため、変更時は以下のコマンドで動作を検証してください。
+
+```bash
+cd frontend
+npm run test -- src/features/sessions-date-list/__tests__/SessionsDateListView.test.tsx
+```
+
 `.env`（またはシェル環境変数）に以下を指定するとバックエンド API やデフォルト絞り込み期間を変更できます。
 
 ※ `docker compose up backend frontend` の構成では `VITE_API_BASE_URL` を未設定にすると自動的に `http://backend:3000` へプロキシされます。Docker を使わずローカルで Rails(API) を起動する場合は `VITE_API_BASE_URL=http://localhost:3000` を指定してください。

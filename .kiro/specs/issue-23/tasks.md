@@ -26,7 +26,7 @@
   - 0件時・エラー時のコピー/ヒントを要件通りに表示し、`aria-live` 領域を追加する
   - _Requirements: R3, R4, R5_
 
-- [ ] 4. 統合テストとドキュメント整備を行う
+- [x] 4. 統合テストとドキュメント整備を行う
   - `SessionsDateListView.test.tsx` などで検索→結果表示→ページング→フィルタ解除の E2E ライクなフローを MSW モックで検証する
   - README もしくは features の AGENTS/ドキュメントに検索UXの使い方とテストコマンドを追記する
   - _Requirements: R1, R2, R3, R4, R5, R6_

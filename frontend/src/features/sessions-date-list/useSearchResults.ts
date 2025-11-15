@@ -175,7 +175,7 @@ export const useSearchResults = (params: UseSearchResultsParams): UseSearchResul
   useEffect(() => {
     if (!cacheKey || !shouldFetch) {
       cancelPending()
-      setState((prev) => ({ status: 'idle', data: prev.data, error: undefined, fetchedAt: prev.fetchedAt }))
+      setState({ status: 'idle', data: undefined, error: undefined, fetchedAt: undefined })
       return
     }
 

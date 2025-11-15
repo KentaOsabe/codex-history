@@ -145,6 +145,58 @@ describe('SessionsDateListView (integration)', () => {
     expect(searchRequests[0]?.get('keyword')).toBe('history')
   })
 
+  it('検索後にフィルタをリセットすると検索結果とページングが初期化される', async () => {
+    // 目的: 検索→ページング→フィルタ解除で UI 状態が正しく初期値に戻ることを保証する
+    const user = userEvent.setup()
+
+    render(<SessionsDateListView />)
+
+    await waitFor(() => {
+      expect(sessionRequests.length).toBeGreaterThan(0)
+    })
+    const initialStartDate = sessionRequests[0]?.get('start_date') ?? ''
+    const initialEndDate = sessionRequests[0]?.get('end_date') ?? ''
+
+    await user.type(screen.getByPlaceholderText('キーワードで検索'), 'history')
+    await user.click(screen.getByRole('button', { name: '検索を実行' }))
+
+    expect(await screen.findByText('検索ヒット 1 件')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '検索結果を次のページへ' }))
+    await waitFor(() => {
+      expect(searchRequests.at(-1)?.get('page')).toBe('2')
+    })
+
+    await user.clear(screen.getByLabelText('開始日'))
+    await user.type(screen.getByLabelText('開始日'), '2025-03-10')
+    await user.clear(screen.getByLabelText('終了日'))
+    await user.type(screen.getByLabelText('終了日'), '2025-03-11')
+
+    await waitFor(() => {
+      const params = sessionRequests.at(-1)
+      expect(params?.get('start_date')).toBe('2025-03-10')
+      expect(params?.get('end_date')).toBe('2025-03-11')
+    })
+
+    await user.click(screen.getByRole('button', { name: 'フィルタをリセット' }))
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('キーワードで検索')).toHaveValue('')
+    })
+    await waitFor(() => {
+      expect(screen.queryByText('検索ヒット 1 件')).not.toBeInTheDocument()
+    })
+
+    expect(screen.getByLabelText('開始日')).toHaveValue(initialStartDate)
+    expect(screen.getByLabelText('終了日')).toHaveValue(initialEndDate)
+
+    await user.type(screen.getByPlaceholderText('キーワードで検索'), 'history')
+    await user.click(screen.getByRole('button', { name: '検索を実行' }))
+
+    expect(await screen.findByText('検索ヒット 1 件')).toBeInTheDocument()
+    expect(screen.getByText('検索結果 ページ 1 / 2')).toBeInTheDocument()
+  })
+
   it('日付範囲を更新すると sessions API が start/end パラメータ付きで呼ばれる', async () => {
     // 目的: DateRangePicker の入力が API クエリへ反映されることを確認する
     const user = userEvent.setup()
