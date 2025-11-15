@@ -6,7 +6,7 @@ import styles from './App.module.css'
 
 const AppLayout = () => {
   return (
-    <main className={styles.app}>
+    <main className={`${styles.app} layout-container`}>
       <header className={styles.hero}>
         <div className={styles.heroHeader}>
           <div>

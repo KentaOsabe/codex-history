@@ -14,7 +14,8 @@ interface StatusBannerProps {
 const StatusBanner = ({ error, onRetry, isRetrying = false, className, retryLabel }: StatusBannerProps) => {
   if (!error) return null
 
-  const classNames = className ? `${styles.banner} ${className}` : styles.banner
+  const fallbackUtilities = 'layout-pill layout-full-width'
+  const classNames = className ? `${styles.banner} ${className}` : `${styles.banner} ${fallbackUtilities}`
 
   return (
     <div className={classNames} role="alert" aria-live="assertive">

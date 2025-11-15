@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import ResponsiveGrid from '@/features/layout/ResponsiveGrid'
 import { useSessionNavigation } from './navigation'
 import PaginationControls from './PaginationControls'
 import SearchAndFilterPanel from './SearchAndFilterPanel'
@@ -79,69 +80,83 @@ const SessionsDateListView = () => {
     : `${filters.dateRange.startDate}〜${filters.dateRange.endDate}`
 
   return (
-    <div className={styles.container}>
-      <SearchAndFilterPanel
-        keyword={filters.keyword}
-        keywordError={filters.keywordError}
-        onKeywordChange={filters.setKeyword}
-        onSubmit={handleSearchSubmit}
-        isSearchDisabled={searchResponse.status === 'loading'}
-        dateRange={filters.dateRange}
-        dateRangeError={filters.dateRangeError}
-        onDateRangeChange={filters.setDateRange}
-        onClearFilters={handleClearFilters}
-      />
-
-      <SearchResultsList
-        status={searchResponse.status}
-        response={searchResponse.data}
-        error={searchResponse.error}
-        keyword={activeKeyword}
-        fetchedAt={searchResponse.fetchedAt}
-        page={filters.searchPagination.page}
-        onPageChange={filters.setSearchPage}
-        isPagingDisabled={searchResponse.status === 'loading'}
-        onRetry={() => {
-          void searchResponse.refetch({ force: true })
-        }}
-        onResultSelect={handleResultSelect}
-      />
-
-      <section className={styles.section} aria-labelledby="sessions-list-heading">
-        <header className={styles.listHeader}>
-          <div>
-            <h2 id="sessions-list-heading">セッション一覧</h2>
-            {lastUpdatedLabel ? <p className={styles.metaInfo}>最終更新: {lastUpdatedLabel}</p> : null}
-          </div>
-          {sessionContextLabel ? <p className={styles.metaInfo}>期間: {sessionContextLabel}</p> : null}
-        </header>
-
-        <StatusBanner
-          error={sessionsResponse.error}
-          onRetry={() => {
-            void sessionsResponse.refetch({ force: true })
-          }}
-          isRetrying={sessionsResponse.status === 'loading'}
-        />
-
-        <SessionList
-          variant={sessionVariant}
-          items={sessionItems}
-          onSelect={handleSessionSelect}
-          contextLabel={sessionContextLabel}
-        />
-
-        {sessionTotalPages > 1 ? (
-          <PaginationControls
-            page={filters.listPagination.page}
-            totalPages={sessionTotalPages}
-            onPageChange={filters.setListPage}
-            label="セッション一覧"
-            isLoading={sessionsResponse.status === 'loading'}
-            className={styles.pagination}
+    <div className={styles.page}>
+      <ResponsiveGrid
+        className={styles.layout}
+        data-testid="sessions-responsive-grid"
+        minSidebarWidth="320px"
+        gap="var(--space-xl)"
+      >
+        <div className={styles.sidebarColumn}>
+          <SearchAndFilterPanel
+            keyword={filters.keyword}
+            keywordError={filters.keywordError}
+            onKeywordChange={filters.setKeyword}
+            onSubmit={handleSearchSubmit}
+            isSearchDisabled={searchResponse.status === 'loading'}
+            dateRange={filters.dateRange}
+            dateRangeError={filters.dateRangeError}
+            onDateRangeChange={filters.setDateRange}
+            onClearFilters={handleClearFilters}
+            className="layout-panel layout-panel--padded"
           />
-        ) : null}
-      </section>
+        </div>
+
+        <div className={styles.contentColumn}>
+          <SearchResultsList
+            status={searchResponse.status}
+            response={searchResponse.data}
+            error={searchResponse.error}
+            keyword={activeKeyword}
+            fetchedAt={searchResponse.fetchedAt}
+            page={filters.searchPagination.page}
+            onPageChange={filters.setSearchPage}
+            isPagingDisabled={searchResponse.status === 'loading'}
+            onRetry={() => {
+              void searchResponse.refetch({ force: true })
+            }}
+            onResultSelect={handleResultSelect}
+            className="layout-panel layout-panel--padded"
+          />
+
+          <section className={`${styles.section} layout-panel layout-panel--padded`} aria-labelledby="sessions-list-heading">
+            <header className={styles.listHeader}>
+              <div>
+                <h2 id="sessions-list-heading">セッション一覧</h2>
+                {lastUpdatedLabel ? <p className={styles.metaInfo}>最終更新: {lastUpdatedLabel}</p> : null}
+              </div>
+              {sessionContextLabel ? <p className={styles.metaInfo}>期間: {sessionContextLabel}</p> : null}
+            </header>
+
+            <StatusBanner
+              error={sessionsResponse.error}
+              onRetry={() => {
+                void sessionsResponse.refetch({ force: true })
+              }}
+              isRetrying={sessionsResponse.status === 'loading'}
+              className="layout-pill layout-full-width"
+            />
+
+            <SessionList
+              variant={sessionVariant}
+              items={sessionItems}
+              onSelect={handleSessionSelect}
+              contextLabel={sessionContextLabel}
+            />
+
+            {sessionTotalPages > 1 ? (
+              <PaginationControls
+                page={filters.listPagination.page}
+                totalPages={sessionTotalPages}
+                onPageChange={filters.setListPage}
+                label="セッション一覧"
+                isLoading={sessionsResponse.status === 'loading'}
+                className={`${styles.pagination} layout-pill`}
+              />
+            ) : null}
+          </section>
+        </div>
+      </ResponsiveGrid>
     </div>
   )
 }

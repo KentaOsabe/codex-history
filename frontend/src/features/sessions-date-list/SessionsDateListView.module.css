@@ -1,25 +1,31 @@
-.container {
+.page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  width: 100%;
+}
+
+.layout {
+  width: 100%;
+}
+
+.sidebarColumn,
+.contentColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }
 
 .section {
-  border: 1px solid var(--theme-border-muted);
-  border-radius: var(--theme-radius-lg);
-  box-shadow: var(--theme-shadow-soft);
-  background: var(--theme-surface-raised);
-  padding: 1.75rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-md);
 }
 
 .listHeader {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-sm);
 }
 
 .metaInfo {
@@ -29,5 +35,14 @@
 }
 
 .pagination {
-  align-self: flex-end;
+  align-self: stretch;
+  width: 100%;
+  justify-content: center;
+}
+
+@media (min-width: 1200px) {
+  .pagination {
+    align-self: flex-end;
+    width: auto;
+  }
 }

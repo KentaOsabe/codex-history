@@ -2,6 +2,26 @@ export type ColorSchemePreference = 'light' | 'dark'
 
 type MediaQueryListener = (event: MediaQueryListEvent) => void
 
+interface MatchMediaEnvironment {
+  setViewportWidth: (next: number) => void
+  setColorScheme: (mode: ColorSchemePreference) => void
+  cleanup: () => void
+}
+
+const isColorSchemeQuery = (query: string): query is '(prefers-color-scheme: dark)' | '(prefers-color-scheme: light)' =>
+  /prefers-color-scheme/i.test(query)
+
+const parseColorScheme = (query: string): ColorSchemePreference =>
+  query.includes('dark') ? 'dark' : 'light'
+
+const evaluateWidthQuery = (query: string, width: number): boolean => {
+  const minMatch = query.match(/min-width:\s*(\d+)px/i)
+  const maxMatch = query.match(/max-width:\s*(\d+)px/i)
+  const minOk = minMatch ? width >= Number(minMatch[1]) : true
+  const maxOk = maxMatch ? width <= Number(maxMatch[1]) : true
+  return minOk && maxOk
+}
+
 class MatchMediaMock implements MediaQueryList {
   media: string
   onchange: ((this: MediaQueryList, ev: MediaQueryListEvent) => any) | null = null
@@ -37,36 +57,42 @@ class MatchMediaMock implements MediaQueryList {
     this.listeners.delete(listener)
   }
 
+  dispatch(matches: boolean) {
+    const event = { media: this.media, matches } as MediaQueryListEvent
+    this.listeners.forEach((listener) => listener.call(this, event))
+    this.onchange?.call(this, event)
+  }
+
   dispatchEvent(event: Event): boolean {
-    const mediaEvent = event as MediaQueryListEvent
-    this.listeners.forEach((listener) => listener.call(this, mediaEvent))
-    this.onchange?.call(this, mediaEvent)
+    this.listeners.forEach((listener) => listener.call(this, event as MediaQueryListEvent))
+    this.onchange?.call(this, event as MediaQueryListEvent)
     return true
   }
-
-  dispatch(event: MediaQueryListEvent) {
-    this.dispatchEvent(event)
-  }
 }
 
-interface PrefersColorSchemeEnv {
-  setColorScheme: (mode: ColorSchemePreference) => void
-  cleanup: () => void
-}
-
-export const setupPrefersColorSchemeMock = (
-  initial: ColorSchemePreference = 'light',
-): PrefersColorSchemeEnv => {
+export const setupMatchMediaMock = (
+  options: {
+    initialWidth?: number
+    initialColorScheme?: ColorSchemePreference
+  } = {},
+): MatchMediaEnvironment => {
   const originalMatchMedia = window.matchMedia
-  let currentScheme: ColorSchemePreference = initial
+  let width = options.initialWidth ?? 1024
+  let colorScheme: ColorSchemePreference = options.initialColorScheme ?? 'light'
   const instances = new Set<MatchMediaMock>()
-  const mediaQuery = '(prefers-color-scheme: dark)'
 
-  const createEvent = (): MediaQueryListEvent =>
-    ({ media: mediaQuery, matches: currentScheme === 'dark' } as MediaQueryListEvent)
+  const evaluateQuery = (query: string): boolean => {
+    if (isColorSchemeQuery(query)) {
+      return colorScheme === parseColorScheme(query)
+    }
+    if (/width/i.test(query)) {
+      return evaluateWidthQuery(query, width)
+    }
+    return false
+  }
 
   const matchMedia = (query: string): MediaQueryList => {
-    const instance = new MatchMediaMock(query, () => currentScheme === 'dark')
+    const instance = new MatchMediaMock(query, () => evaluateQuery(query))
     instances.add(instance)
     return instance
   }
@@ -77,15 +103,22 @@ export const setupPrefersColorSchemeMock = (
     value: matchMedia,
   })
 
-  const setColorScheme = (mode: ColorSchemePreference) => {
-    if (currentScheme === mode) return
-    currentScheme = mode
-    const event = createEvent()
+  const notify = () => {
     instances.forEach((instance) => {
-      if (instance.media === mediaQuery) {
-        instance.dispatch(event)
-      }
+      instance.dispatch(evaluateQuery(instance.media))
     })
+  }
+
+  const setViewportWidth = (next: number) => {
+    if (width === next) return
+    width = next
+    notify()
+  }
+
+  const setColorScheme = (mode: ColorSchemePreference) => {
+    if (colorScheme === mode) return
+    colorScheme = mode
+    notify()
   }
 
   const cleanup = () => {
@@ -101,5 +134,33 @@ export const setupPrefersColorSchemeMock = (
     }
   }
 
-  return { setColorScheme, cleanup }
+  return { setViewportWidth, setColorScheme, cleanup }
+}
+
+interface PrefersColorSchemeEnv {
+  setColorScheme: (mode: ColorSchemePreference) => void
+  cleanup: () => void
+}
+
+export const setupPrefersColorSchemeMock = (
+  initial: ColorSchemePreference = 'light',
+): PrefersColorSchemeEnv => {
+  const env = setupMatchMediaMock({ initialColorScheme: initial })
+  return {
+    setColorScheme: env.setColorScheme,
+    cleanup: env.cleanup,
+  }
+}
+
+interface ViewportMatchMediaEnv {
+  setViewportWidth: (next: number) => void
+  cleanup: () => void
+}
+
+export const setupViewportMatchMediaMock = (initialWidth = 1280): ViewportMatchMediaEnv => {
+  const env = setupMatchMediaMock({ initialWidth })
+  return {
+    setViewportWidth: env.setViewportWidth,
+    cleanup: env.cleanup,
+  }
 }

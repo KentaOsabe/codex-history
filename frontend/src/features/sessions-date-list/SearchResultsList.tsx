@@ -66,6 +66,7 @@ export interface SearchResultsListProps {
   isPagingDisabled?: boolean
   onRetry: () => void
   onResultSelect: (sessionId: string, options?: { targetPath?: string }) => void
+  className?: string
 }
 
 const SearchResultsList = ({
@@ -79,6 +80,7 @@ const SearchResultsList = ({
   isPagingDisabled = false,
   onRetry,
   onResultSelect,
+  className,
 }: SearchResultsListProps) => {
   const results = useMemo(() => buildViewModels(response), [response])
   const totalCount = response?.meta.pagination.total_count ?? 0
@@ -102,8 +104,10 @@ const SearchResultsList = ({
     return null
   }
 
+  const sectionClass = className ? `${styles.section} ${className}` : styles.section
+
   return (
-    <section className={styles.section} aria-labelledby="sessions-search-results">
+    <section className={sectionClass} aria-labelledby="sessions-search-results">
       <header className={styles.header}>
         <div>
           <h2 id="sessions-search-results">検索結果</h2>
@@ -117,7 +121,13 @@ const SearchResultsList = ({
       </header>
 
       {error ? (
-        <StatusBanner error={error} onRetry={onRetry} isRetrying={isLoading} retryLabel="もう一度試す" />
+        <StatusBanner
+          error={error}
+          onRetry={onRetry}
+          isRetrying={isLoading}
+          retryLabel="もう一度試す"
+          className="layout-pill layout-full-width"
+        />
       ) : null}
 
       {isLoading && !results.length ? renderSkeletons() : null}
@@ -149,7 +159,7 @@ const SearchResultsList = ({
           onPageChange={onPageChange}
           label="検索結果"
           isLoading={isPagingDisabled || isLoading}
-          className={styles.pagination}
+          className={`${styles.pagination} layout-pill`}
         />
       ) : null}
     </section>

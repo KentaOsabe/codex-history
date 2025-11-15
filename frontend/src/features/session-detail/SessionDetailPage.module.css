@@ -1,14 +1,14 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding-bottom: 3rem;
+  gap: var(--space-lg);
+  padding-bottom: var(--space-xl);
 }
 
 .hero {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--space-xs);
 }
 
 .heroBadge {
@@ -17,7 +17,7 @@
   gap: 0.35rem;
   font-weight: 600;
   font-size: 0.85rem;
-  padding: 0.2rem 0.75rem;
+  padding: var(--space-xs) var(--space-sm);
   border-radius: 9999px;
   background-color: var(--theme-color-primary-subtle);
   color: var(--theme-color-primary-active);
@@ -43,11 +43,11 @@
       var(--theme-color-danger-subtle)
     );
   background-color: var(--theme-color-danger-subtle);
-  padding: 1rem 1.5rem;
+  padding: var(--space-md);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-md);
 }
 
 .errorBanner > div {
@@ -90,10 +90,10 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem 1.5rem;
+  gap: var(--space-sm) var(--space-lg);
   background-color: var(--theme-surface-muted);
-  border-radius: 1rem;
-  padding: 0.75rem 1.25rem;
+  border-radius: var(--theme-radius-lg);
+  padding: var(--space-sm) var(--space-md);
   border: 1px solid var(--theme-border-muted);
 }
 
@@ -101,30 +101,28 @@
   font-family: var(--theme-font-mono);
 }
 
+
 .timelinePlaceholder {
-  border-radius: 1.25rem;
-  border: 1px solid var(--theme-border-muted);
-  background-color: var(--theme-surface-raised);
-  padding: 1.5rem;
+  border-radius: var(--theme-radius-lg);
   box-shadow: var(--theme-shadow-medium);
 }
 
 .timelineSection {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-md);
 }
 
 .tabHost {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-md);
 }
 
 .tabPanels {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--space-md);
 }
 
 .tabPanel {
@@ -149,15 +147,15 @@
 .timelineContainer {
   max-height: 70vh;
   overflow-y: auto;
-  padding-right: 0.5rem;
+  padding-right: var(--space-xs);
 }
 
 .skeleton {
   border: 1px solid var(--theme-border-muted);
-  border-radius: 1rem;
-  padding: 1.25rem;
+  border-radius: var(--theme-radius-lg);
+  padding: var(--space-lg);
   display: grid;
-  gap: 0.8rem;
+  gap: var(--space-sm);
 }
 
 .skeletonLine {
@@ -191,7 +189,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.75rem 1.5rem;
+  padding: var(--space-sm) var(--space-lg);
   border-radius: 9999px;
   background-color: var(--theme-color-dark-base);
   color: var(--theme-text-inverse);

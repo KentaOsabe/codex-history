@@ -2,10 +2,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  margin: 0 0 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: var(--theme-radius-sm);
+  gap: var(--space-sm);
+  margin: 0;
   background: var(--theme-color-danger-subtle);
   color: color-mix(
     in srgb,

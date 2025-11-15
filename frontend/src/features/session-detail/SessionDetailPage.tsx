@@ -193,7 +193,7 @@ const SessionDetailPage = () => {
             hasSanitizedVariant={hasSanitizedVariant}
             onVariantChange={handleVariantChange}
           />
-          <section className={styles.infoBar}>
+          <section className={`${styles.infoBar} layout-full-width`}>
             <span>
               データソース: <code>{detail.meta.relativePath}</code>
             </span>
@@ -227,7 +227,7 @@ const SessionDetailPage = () => {
               tabIndex={-1}
               ref={conversationPanelRef}
               data-testid="conversation-tab-panel"
-              className={`${styles.timelinePlaceholder} ${styles.timelineSection} ${styles.tabPanel}`}
+              className={`${styles.timelinePlaceholder} layout-panel layout-panel--padded ${styles.timelineSection} ${styles.tabPanel}`}
             >
               <h2 className={styles.timelineHeading}>メッセージタイムライン</h2>
               {detail ? (
@@ -255,7 +255,7 @@ const SessionDetailPage = () => {
               tabIndex={-1}
               ref={detailPanelRef}
               data-testid="details-tab-panel"
-              className={`${styles.timelinePlaceholder} ${styles.tabPanel}`}
+              className={`${styles.timelinePlaceholder} layout-panel layout-panel--padded ${styles.tabPanel}`}
             >
               <h2 className={styles.timelineHeading}>技術的詳細</h2>
               <DetailInsightsPanel detail={detail} status={status} />

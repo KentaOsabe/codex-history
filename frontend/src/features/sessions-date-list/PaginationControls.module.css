@@ -1,10 +1,11 @@
 .container {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
+  gap: var(--space-sm);
   background: var(--theme-surface-muted);
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .button {
@@ -16,7 +17,7 @@
     );
   background: var(--theme-surface-raised);
   border-radius: 9999px;
-  padding: 0.25rem 0.9rem;
+  padding: 0.35rem 1rem;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--theme-color-primary-base);

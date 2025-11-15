@@ -17,13 +17,13 @@
   - `.kiro/specs/issue-24/decisions.md` or `docs/theme_toggle.md` にライト/ダーク採否・理由・再検討条件を記録し、README/FAQ にサポート状況を追記する
   - _Requirements: 1,3,4_
 
-- [ ] 3. レスポンシブレイアウト基盤を導入し主要画面を更新する
+- [x] 3. レスポンシブレイアウト基盤を導入し主要画面を更新する
   - `useResponsiveLayout` フックと `ResponsiveGrid` を `frontend/src/features/layout/` に追加し、Bootstrap 基準のブレークポイント定義を共通化する
   - `SessionsDateListView`・`SearchAndFilterPanel`・`SessionList` の CSS Modules を再設計し、xl=2カラム、md-lg=スタック、xs=単一カラムのテンプレートを適用する
   - `SessionDetail` や `Navigation/AppShell` も新しいレイアウトトークンと余白スケールへ合わせ、横スクロール/折り返し問題を解消する
   - _Requirements: 2_
 
-- [ ] 3.1 レスポンシブ余白・コンテナユーティリティを共通化する
+- [x] 3.1 レスポンシブ余白・コンテナユーティリティを共通化する
   - `frontend/src/styles/layout/spacing.css` で `--space-xs〜xl` トークンとコンテナユーティリティクラスを提供し、Session/Status/Pagination で共有する
   - Storybook/Docs に各ブレークポイントでの例を掲載し、開発者が参照できるレイアウトガイドを `docs/styleguide.md` に記述する
   - _Requirements: 2,4_
