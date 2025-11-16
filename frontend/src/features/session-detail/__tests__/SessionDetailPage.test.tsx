@@ -2,15 +2,26 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
+import type { ResponsiveLayoutState } from '@/features/layout/useResponsiveLayout'
+
 import SessionDetailPage from '../SessionDetailPage'
 
 import type { SessionDetailHookResult } from '../useSessionDetailViewModel'
 
 const useSessionDetailViewModelMock = vi.fn<SessionDetailHookResult, []>()
+const responsiveLayoutMock = vi.fn<[], ResponsiveLayoutState>()
 
 vi.mock('../useSessionDetailViewModel', () => ({
   useSessionDetailViewModel: (): SessionDetailHookResult => useSessionDetailViewModelMock(),
 }))
+
+vi.mock('@/features/layout/useResponsiveLayout', () => {
+  const mockResponsiveLayout = () => responsiveLayoutMock()
+  return {
+    __esModule: true,
+    default: mockResponsiveLayout,
+  }
+})
 
 const buildDetail = () => ({
   sessionId: 'session-123',
@@ -70,6 +81,12 @@ const buildDetail = () => ({
   ],
 })
 
+const defaultLayout: ResponsiveLayoutState = {
+  breakpoint: 'lg',
+  columns: 2,
+  isStackedPanels: false,
+}
+
 const renderPage = () => {
   return render(
     <MemoryRouter initialEntries={[ '/sessions/session-123' ]}>
@@ -81,6 +98,12 @@ const renderPage = () => {
 }
 
 describe('SessionDetailPage', () => {
+  beforeEach(() => {
+    useSessionDetailViewModelMock.mockReset()
+    responsiveLayoutMock.mockReset()
+    responsiveLayoutMock.mockReturnValue(defaultLayout)
+  })
+
   it('詳細情報のヘッダー・統計・ダウンロードリンクを表示する', () => {
     const setVariantMock = vi.fn()
     const preserveAnchorMock = vi.fn()
@@ -156,5 +179,50 @@ describe('SessionDetailPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('取得に失敗しました')
     fireEvent.click(screen.getByRole('button', { name: '再読み込み' }))
     expect(refetchMock).toHaveBeenCalled()
+  })
+
+  it('xsレイアウトでは会話領域が先頭に描画され、サマリーは折りたたみに格納される', () => {
+    responsiveLayoutMock.mockReturnValue({ breakpoint: 'xs', columns: 1, isStackedPanels: true })
+    useSessionDetailViewModelMock.mockReturnValue({
+      status: 'success',
+      detail: buildDetail(),
+      error: undefined,
+      variant: 'original',
+      hasSanitizedVariant: true,
+      setVariant: vi.fn(),
+      refetch: vi.fn(),
+      preserveScrollAnchor: vi.fn(),
+      consumeScrollAnchor: vi.fn(),
+    })
+
+    renderPage()
+
+    const grid = screen.getByTestId('session-detail-grid')
+    const conversationRegion = screen.getByTestId('conversation-region')
+    expect(grid.firstElementChild).toBe(conversationRegion)
+
+    const accordion = screen.getByTestId('session-summary-accordion')
+    expect(accordion).not.toHaveAttribute('open')
+  })
+
+  it('lgレイアウトではサマリーが補助ランドマークとして常時表示される', () => {
+    responsiveLayoutMock.mockReturnValue({ breakpoint: 'lg', columns: 2, isStackedPanels: false })
+    useSessionDetailViewModelMock.mockReturnValue({
+      status: 'success',
+      detail: buildDetail(),
+      error: undefined,
+      variant: 'original',
+      hasSanitizedVariant: true,
+      setVariant: vi.fn(),
+      refetch: vi.fn(),
+      preserveScrollAnchor: vi.fn(),
+      consumeScrollAnchor: vi.fn(),
+    })
+
+    renderPage()
+
+    expect(screen.queryByTestId('session-summary-accordion')).toBeNull()
+    const summaryRail = screen.getByRole('complementary', { name: 'セッション概要' })
+    expect(summaryRail).toHaveAttribute('data-testid', 'session-summary-rail')
   })
 })

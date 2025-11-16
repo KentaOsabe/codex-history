@@ -1,25 +1,6 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type PropsWithChildren,
-} from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react'
 
-export type ThemeMode = 'light' | 'dark' | 'system'
-
-type ResolvedTheme = Exclude<ThemeMode, 'system'>
-
-interface ThemeContextValue {
-  mode: ThemeMode
-  resolvedTheme: ResolvedTheme
-  isSystemMode: boolean
-  setTheme: (mode: ThemeMode) => void
-}
+import { ThemeContext, type ResolvedTheme, type ThemeContextValue, type ThemeMode } from './ThemeContext'
 
 interface ThemePreferencePayload {
   mode: ThemeMode
@@ -30,8 +11,6 @@ interface ThemePreferencePayload {
 const STORAGE_KEY = 'codex:theme-preference'
 const SYSTEM_QUERY = '(prefers-color-scheme: dark)'
 const isBrowser = typeof window !== 'undefined'
-const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
-
 const readPreference = (): ThemeMode | null => {
   if (!isBrowser) return null
 
@@ -137,12 +116,5 @@ const ThemeProvider = ({ children }: PropsWithChildren): JSX.Element => {
   return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>
 }
 
-export const useTheme = () => {
-  const context = useContext(ThemeContext)
-  if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider')
-  }
-  return context
-}
-
 export default ThemeProvider
+export type { ThemeMode } from './ThemeContext'

@@ -1,9 +1,10 @@
 import { act, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import { setupViewportMatchMediaMock } from '@/test-utils/matchMediaMock'
+
 import ResponsiveGrid from '../ResponsiveGrid'
 
-import { setupViewportMatchMediaMock } from '@/test-utils/matchMediaMock'
 
 describe('ResponsiveGrid', () => {
   it('現在のbreakpointに応じてdata属性とgridテンプレートを更新する', () => {

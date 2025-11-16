@@ -15,8 +15,8 @@ const parseColorScheme = (query: string): ColorSchemePreference =>
   query.includes('dark') ? 'dark' : 'light'
 
 const evaluateWidthQuery = (query: string, width: number): boolean => {
-  const minMatch = query.match(/min-width:\s*(\d+)px/i)
-  const maxMatch = query.match(/max-width:\s*(\d+)px/i)
+  const minMatch = /min-width:\s*(\d+)px/i.exec(query)
+  const maxMatch = /max-width:\s*(\d+)px/i.exec(query)
   const minOk = minMatch ? width >= Number(minMatch[1]) : true
   const maxOk = maxMatch ? width <= Number(maxMatch[1]) : true
   return minOk && maxOk
@@ -24,7 +24,7 @@ const evaluateWidthQuery = (query: string, width: number): boolean => {
 
 class MatchMediaMock implements MediaQueryList {
   media: string
-  onchange: ((this: MediaQueryList, ev: MediaQueryListEvent) => any) | null = null
+  onchange: ((this: MediaQueryList, ev: MediaQueryListEvent) => void) | null = null
   private readonly getMatches: () => boolean
   private readonly listeners = new Set<MediaQueryListener>()
 

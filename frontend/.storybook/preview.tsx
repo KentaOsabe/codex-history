@@ -2,8 +2,9 @@
 import { initialize, mswDecorator } from 'msw-storybook-addon'
 import { useEffect } from 'react'
 
-import ThemeProvider, { type ThemeMode, useTheme } from '@/features/ui-theme/ThemeProvider'
 import type { Breakpoint } from '@/features/layout/useResponsiveLayout'
+import { useTheme, type ThemeMode } from '@/features/ui-theme/ThemeContext'
+import ThemeProvider from '@/features/ui-theme/ThemeProvider'
 import { setupMatchMediaMock } from '@/test-utils/matchMediaMock'
 
 import type { Preview, Decorator } from '@storybook/react'

@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. セッション詳細レイアウトを会話ファーストへ再配置する
+- [x] 1. セッション詳細レイアウトを会話ファーストへ再配置する
   - `SessionDetailPage.tsx` を分割し、`SessionSummaryRail`（Hero/Stats/Variant Switch を格納）と `ConversationRegion`（メッセージタイムラインと landmark）を実装する。
   - xs–md では summary を `<details>` ベースのアコーディオンでデフォルト折りたたみ、lg+ では 2 カラム配置とする。`useResponsiveLayout` への breakpoints 追加と CSS Modules 更新を忘れずに。
   - タブ状態・スクリーンリーダー告知を維持したまま、初回表示でタイムライン先頭がファーストビューに入ることを Storybook + Playwright スナップショットで確認する。

@@ -2,15 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import type { SessionVariant } from '@/api/types/sessions'
+import ResponsiveGrid from '@/features/layout/ResponsiveGrid'
 import useResponsiveLayout from '@/features/layout/useResponsiveLayout'
 
-import DetailInsightsPanel from './DetailInsightsPanel'
-import MessageTimeline from './MessageTimeline'
-import SessionDetailHeader from './SessionDetailHeader'
+import ConversationRegion from './ConversationRegion'
 import styles from './SessionDetailPage.module.css'
-import SessionDetailTabs, { type SessionDetailTab } from './SessionDetailTabs'
+import SessionSummaryRail from './SessionSummaryRail'
 import { useSessionDetailViewModel } from './useSessionDetailViewModel'
 
+import type { SessionDetailTab } from './SessionDetailTabs'
 import type { ScrollAnchorSnapshot } from './types'
 
 const TAB_IDS = {
@@ -156,8 +156,6 @@ const SessionDetailPage = () => {
     tabStateRef.current[sessionKey] = activeTab
   }, [activeTab, sessionKey])
 
-  const showTabLayout = status === 'loading' || Boolean(detail)
-
   return (
     <article
       className={styles.container}
@@ -166,111 +164,34 @@ const SessionDetailPage = () => {
       data-breakpoint={layout.breakpoint}
       data-columns={layout.columns}
     >
-      <div className={styles.hero}>
-        <span className={styles.heroBadge}>Session Detail</span>
-        <p className={styles.heroMeta}>
-          現在のセッション: <code>{resolvedSessionId}</code>
-        </p>
-      </div>
+      <ResponsiveGrid className={styles.contentGrid} data-testid="session-detail-grid">
+        <ConversationRegion
+          status={status}
+          detail={detail}
+          activeTab={activeTab}
+          tabAnnouncement={tabAnnouncement}
+          tabIds={TAB_IDS}
+          panelIds={PANEL_IDS}
+          onTabChange={handleTabChange}
+          timelineRef={timelineRef}
+          conversationPanelRef={conversationPanelRef}
+          detailPanelRef={detailPanelRef}
+          onReachTop={handleReachTop}
+          onReachBottom={handleReachBottom}
+          onScrollAnchorChange={handleScrollAnchorChange}
+          errorMessage={status === 'error' && error ? error.message : undefined}
+          onRetry={handleRetry}
+        />
 
-      {status === 'error' && error ? (
-        <section className={styles.errorBanner} role="alert">
-          <div>
-            <p className={styles.errorTitle}>表示に失敗しました</p>
-            <p className={styles.errorMessage}>{error.message}</p>
-          </div>
-          <button type="button" className={styles.retryButton} onClick={handleRetry}>
-            再読み込み
-          </button>
-        </section>
-      ) : null}
-
-      {status === 'loading' ? (
-        <div className={styles.skeleton}>
-          <div className={styles.skeletonLine} />
-          <div className={styles.skeletonLine} />
-          <div className={styles.skeletonLine} />
-        </div>
-      ) : null}
-
-      {detail ? (
-        <>
-          <SessionDetailHeader
-            detail={detail}
-            variant={variant}
-            hasSanitizedVariant={hasSanitizedVariant}
-            onVariantChange={handleVariantChange}
-          />
-          <section className={`${styles.infoBar} layout-full-width`}>
-            <span>
-              データソース: <code>{detail.meta.relativePath}</code>
-            </span>
-            {detail.meta.lastUpdatedLabel ? <span>最終更新: {detail.meta.lastUpdatedLabel}</span> : null}
-          </section>
-        </>
-      ) : null}
-
-      {showTabLayout ? (
-        <section className={styles.tabHost} aria-label="セッション詳細ナビゲーション領域">
-          <SessionDetailTabs
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            tabIds={TAB_IDS}
-            panelIds={PANEL_IDS}
-          />
-          <p
-            className={styles.srOnly}
-            aria-live="polite"
-            role="status"
-            data-testid="session-tab-announcement"
-          >
-            {tabAnnouncement}
-          </p>
-          <div className={styles.tabPanels}>
-            <section
-              id={PANEL_IDS.conversation}
-              role="tabpanel"
-              aria-labelledby={TAB_IDS.conversation}
-              hidden={activeTab !== 'conversation'}
-              tabIndex={-1}
-              ref={conversationPanelRef}
-              data-testid="conversation-tab-panel"
-              className={`${styles.timelinePlaceholder} layout-panel layout-panel--padded ${styles.timelineSection} ${styles.tabPanel}`}
-            >
-              <h2 className={styles.timelineHeading}>メッセージタイムライン</h2>
-              {detail ? (
-                <MessageTimeline
-                  ref={timelineRef}
-                  className={styles.timelineContainer}
-                  messages={detail.messages}
-                  onReachStart={handleReachTop}
-                  onReachEnd={handleReachBottom}
-                  onScrollAnchorChange={handleScrollAnchorChange}
-                />
-              ) : (
-                <div className={styles.skeleton} role="status" aria-live="polite">
-                  <div className={styles.skeletonLine} />
-                  <div className={styles.skeletonLine} />
-                  <div className={styles.skeletonLine} />
-                </div>
-              )}
-            </section>
-            <section
-              id={PANEL_IDS.details}
-              role="tabpanel"
-              aria-labelledby={TAB_IDS.details}
-              hidden={activeTab !== 'details'}
-              tabIndex={-1}
-              ref={detailPanelRef}
-              data-testid="details-tab-panel"
-              className={`${styles.timelinePlaceholder} layout-panel layout-panel--padded ${styles.tabPanel}`}
-            >
-              <h2 className={styles.timelineHeading}>技術的詳細</h2>
-              <DetailInsightsPanel detail={detail} status={status} />
-            </section>
-          </div>
-        </section>
-      ) : null}
+        <SessionSummaryRail
+          detail={detail}
+          variant={variant}
+          hasSanitizedVariant={hasSanitizedVariant}
+          onVariantChange={handleVariantChange}
+          layout={layout}
+          resolvedSessionId={resolvedSessionId}
+        />
+      </ResponsiveGrid>
 
       <div className={styles.actions}>
         <Link to="/" className={styles.backLink}>

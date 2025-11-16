@@ -22,7 +22,7 @@
   justify-content: flex-end;
 }
 
-@media (max-width: 640px) {
+@media (width <= 640px) {
   .heroHeader {
     flex-direction: column;
     align-items: stretch;

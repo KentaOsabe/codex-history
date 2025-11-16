@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
+import ThemeProvider from '@/features/ui-theme/ThemeProvider'
+
 import { appRoutes } from '../AppRouter'
 
 vi.mock('@/features/sessions-date-list/SessionsDateListView', () => ({
@@ -42,7 +44,11 @@ vi.mock('@/features/session-detail/useSessionDetailViewModel', () => ({
 
 const renderWithPath = (path: string) => {
   const router = createMemoryRouter(appRoutes, { initialEntries: [path] })
-  return render(<RouterProvider router={router} />)
+  return render(
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>,
+  )
 }
 
 describe('AppRouter', () => {
