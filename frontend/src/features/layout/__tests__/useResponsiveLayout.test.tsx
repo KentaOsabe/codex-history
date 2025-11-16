@@ -51,4 +51,35 @@ describe('useResponsiveLayout', () => {
 
     env.cleanup()
   })
+
+  it('xsからxlまで全ブレークポイントで期待通りの状態を返す', () => {
+    const env = setupViewportMatchMediaMock(360)
+    const { result } = renderHook(() => useResponsiveLayout())
+
+    expect(result.current.breakpoint).toBe('xs')
+    expect(result.current.columns).toBe(1)
+
+    act(() => {
+      env.setViewportWidth(580)
+    })
+    expect(result.current.breakpoint).toBe('sm')
+
+    act(() => {
+      env.setViewportWidth(780)
+    })
+    expect(result.current.breakpoint).toBe('md')
+
+    act(() => {
+      env.setViewportWidth(1000)
+    })
+    expect(result.current.breakpoint).toBe('lg')
+
+    act(() => {
+      env.setViewportWidth(1280)
+    })
+    expect(result.current.breakpoint).toBe('xl')
+    expect(result.current.columns).toBe(2)
+
+    env.cleanup()
+  })
 })

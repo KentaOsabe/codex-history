@@ -1,5 +1,8 @@
 import SessionCard, { type SessionListItem } from './SessionCard'
 
+import { expect } from '@storybook/jest'
+import { within } from '@storybook/testing-library'
+
 import type { Meta, StoryObj } from '@storybook/react'
 
 const baseItem: SessionListItem = {
@@ -34,7 +37,14 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const cardButton = await canvas.findByRole('button', { name: /Voiceflow アーカイブ同期ジョブ/ })
+    await expect(cardButton.className).toMatch(/card/i)
+    await expect(cardButton).toHaveAttribute('aria-label', expect.stringContaining('開く'))
+  },
+}
 
 export const SanitizedBadgeHidden: Story = {
   args: {

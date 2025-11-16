@@ -1,5 +1,8 @@
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
+import { expect } from '@storybook/jest'
+import { within } from '@storybook/testing-library'
+
 import SessionsDateListView from '@/features/sessions-date-list/SessionsDateListView'
 import { storybookSessionHandlers } from '@/mocks/storybookHandlers'
 
@@ -39,4 +42,10 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const toggle = await canvas.findByTestId('theme-toggle')
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+  },
+}

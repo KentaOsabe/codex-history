@@ -57,6 +57,7 @@ import ResponsiveGrid from '@/features/layout/ResponsiveGrid'
   - `Feedback/StatusBanner` … `layout-pill` ユーティリティと警告色トークンのコントラスト確認に使用します。
 - Storybook のデータは `frontend/src/mocks/storybookHandlers.ts` の MSW ハンドラーで供給されています。`/api/sessions` と `/api/search` をモックしているため、追加シナリオを作る際はこのファイルにレスポンスを追記してください。
 - 静的サイトは `cd frontend && npm run build-storybook` で `frontend/storybook-static/` に生成されます。CI ではこのディレクトリを Artifact として保存し、ブラウザで `index.html` を開くか `npx http-server storybook-static -p 6007` で共有できます。
+- ビューポート切り替えは独自の `Breakpoint` ツールバー（xs/sm/md/lg/xl）に統合しました。選択すると `window.matchMedia` をモックした上でストーリーコンテナ幅も変更されるため、旧 `@storybook/addon-viewport` がなくても実寸シミュレーションが可能です。
 
 ## テストと検証フロー
 
@@ -68,8 +69,9 @@ import ResponsiveGrid from '@/features/layout/ResponsiveGrid'
 3. **手動確認**
    - ブラウザ幅 520px / 900px / 1280px を順に確認し、`body[data-theme]` 切り替え時も `ResponsiveGrid` が 50ms 以内に再レイアウトすることを DevTools の `data-breakpoint` で確認します。
 4. **Storybook**
-  - `npm run storybook -- --ci` でヘッドレス起動し、Theme/Viewport を切り替えながら `Sessions/SessionsDateListView` と `AppShell` の Docs タブで `--theme-*` / `--space-*` トークンが揃っているかを確認します。
+  - `npm run storybook -- --ci` でヘッドレス起動し、Theme/Breakpoint を切り替えながら `Sessions/SessionsDateListView` と `AppShell` の Docs タブで `--theme-*` / `--space-*` トークンが揃っているかを確認します。
   - `npm run build-storybook` の成果物をブラウザで確認し、`Feedback/StatusBanner` がライト/ダーク共に 4.5:1 のコントラストを維持することを確認してください。
+  - 自動化された Storybook Test Runner の代わりに、`npm run test:storybook` / `npm run test:visual` を利用して Playwright 上で DOM 検証とスクリーンショットを実行します。
 
 ## 開発者チェックリスト
 

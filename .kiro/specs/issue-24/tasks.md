@@ -34,7 +34,7 @@
   - `docs/styleguide.md` に Storybook の閲覧手順、静的ビルド Artifact の参照方法、トークン/レイアウトルールを整理する
   - _Requirements: 4_
 
-- [ ] 5. TDD によるテーマ/レスポンシブテストとビジュアル検証を整備する
+- [x] 5. TDD によるテーマ/レスポンシブテストとビジュアル検証を整備する
   - `frontend/src/features/ui-theme/__tests__/ThemeProvider.test.tsx` と `features/layout/__tests__/useResponsiveLayout.test.ts` を Red→Green→Refactor で追加し、`renderWithTheme`・`matchMediaMock` ヘルパーを整備する
   - Storybook Test Runner or Playwright のスクリプト (`npm run test:storybook`, `npm run test:visual`) を作成し、xs/md/xl の DOM or 画像スナップショットを CI へ組み込む
   - README「テスト実行」節に新スクリプト/手順を追記し、検出不具合をテストコメントへ残すフローを明記する

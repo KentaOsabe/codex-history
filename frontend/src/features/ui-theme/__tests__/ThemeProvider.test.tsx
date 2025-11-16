@@ -1,10 +1,11 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ThemeProvider, { useTheme } from '@/features/ui-theme/ThemeProvider'
 import ThemeToggle from '@/features/ui-theme/ThemeToggle'
 import { setupPrefersColorSchemeMock } from '@/test-utils/matchMediaMock'
+import { renderWithTheme } from '@/test-utils/renderWithTheme'
 
 const ThemeViewer = () => {
   const { mode, resolvedTheme } = useTheme()
@@ -29,11 +30,7 @@ describe('ThemeProvider', () => {
   it('prefers system color scheme when no explicit preference exists', () => {
     const env = setupPrefersColorSchemeMock('dark')
 
-    render(
-      <ThemeProvider>
-        <ThemeViewer />
-      </ThemeProvider>,
-    )
+    renderWithTheme(<ThemeViewer />)
 
     expect(screen.getByTestId('theme-mode')).toHaveTextContent('system')
     expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark')
@@ -49,11 +46,7 @@ describe('ThemeProvider', () => {
     )
     const env = setupPrefersColorSchemeMock('light')
 
-    render(
-      <ThemeProvider>
-        <ThemeViewer />
-      </ThemeProvider>,
-    )
+    renderWithTheme(<ThemeViewer />)
 
     expect(screen.getByTestId('theme-mode')).toHaveTextContent('dark')
     expect(document.body.dataset.theme).toBe('dark')
@@ -65,11 +58,11 @@ describe('ThemeProvider', () => {
     const env = setupPrefersColorSchemeMock('light')
     const user = userEvent.setup()
 
-    render(
-      <ThemeProvider>
+    renderWithTheme(
+      <>
         <ThemeToggle aria-label="テーマを切り替える" />
         <ThemeViewer />
-      </ThemeProvider>,
+      </>,
     )
 
     const toggle = screen.getByTestId('theme-toggle')
@@ -90,11 +83,7 @@ describe('ThemeProvider', () => {
   it('reacts to system color scheme changes while mode=system', async () => {
     const env = setupPrefersColorSchemeMock('light')
 
-    render(
-      <ThemeProvider>
-        <ThemeViewer />
-      </ThemeProvider>,
-    )
+    renderWithTheme(<ThemeViewer />)
 
     expect(document.body.dataset.theme).toBe('light')
 
@@ -104,6 +93,52 @@ describe('ThemeProvider', () => {
 
     expect(document.body.dataset.theme).toBe('dark')
 
+    env.cleanup()
+  })
+  it('システムボタンでsystemモードに戻し、body属性を再同期する', async () => {
+    const env = setupPrefersColorSchemeMock('dark')
+    const user = userEvent.setup()
+
+    renderWithTheme(
+      <>
+        <ThemeToggle aria-label="テーマを切り替える" />
+        <ThemeViewer />
+      </>,
+      { initialMode: 'light' },
+    )
+
+    expect(document.body.dataset.theme).toBe('light')
+    await user.click(screen.getByRole('button', { name: 'システム設定に合わせる' }))
+
+    await waitFor(() => {
+      expect(document.body.dataset.theme).toBe('dark')
+    })
+    expect(screen.getByTestId('theme-mode')).toHaveTextContent('system')
+    expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark')
+
+    env.cleanup()
+  })
+
+  it('requestAnimationFrame経由で50ms以内にbody属性を更新する', async () => {
+    const env = setupPrefersColorSchemeMock('light')
+    vi.useFakeTimers()
+    const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
+      return window.setTimeout(() => cb(performance.now()), 0)
+    })
+
+    renderWithTheme(<ThemeToggle aria-label="テーマを切り替える" />)
+
+    fireEvent.click(screen.getByTestId('theme-toggle'))
+
+    await act(async () => {
+      vi.advanceTimersByTime(16)
+    })
+
+    expect(document.body.dataset.theme).toBe('dark')
+    expect(raf).toHaveBeenCalled()
+
+    raf.mockRestore()
+    vi.useRealTimers()
     env.cleanup()
   })
 })

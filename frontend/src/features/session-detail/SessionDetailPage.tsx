@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import type { SessionVariant } from '@/api/types/sessions'
+import useResponsiveLayout from '@/features/layout/useResponsiveLayout'
 
 import DetailInsightsPanel from './DetailInsightsPanel'
 import MessageTimeline from './MessageTimeline'
@@ -29,6 +30,7 @@ const TAB_ANNOUNCEMENTS: Record<SessionDetailTab, string> = {
 
 const SessionDetailPage = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
+  const layout = useResponsiveLayout()
   const resolvedSessionId = sessionId ?? '(未指定)'
   const {
     status,
@@ -157,7 +159,13 @@ const SessionDetailPage = () => {
   const showTabLayout = status === 'loading' || Boolean(detail)
 
   return (
-    <article className={styles.container} aria-live="polite">
+    <article
+      className={styles.container}
+      aria-live="polite"
+      data-testid="session-detail-root"
+      data-breakpoint={layout.breakpoint}
+      data-columns={layout.columns}
+    >
       <div className={styles.hero}>
         <span className={styles.heroBadge}>Session Detail</span>
         <p className={styles.heroMeta}>

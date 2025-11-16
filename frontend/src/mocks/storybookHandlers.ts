@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 
 import type { SearchResponse } from '@/api/types/search'
-import type { SessionsIndexResponse } from '@/api/types/sessions'
+import type { SessionDetailResponse, SessionsIndexResponse } from '@/api/types/sessions'
 
 const sampleSessionsResponse: SessionsIndexResponse = {
   data: [
@@ -54,6 +54,92 @@ const sampleSessionsResponse: SessionsIndexResponse = {
       end_date: '2025-03-14',
     },
     updated_at: '2025-03-14T12:07:00Z',
+  },
+  errors: [],
+}
+
+const sampleSessionDetailResponse: SessionDetailResponse = {
+  data: {
+    id: 'session-2025-03-14-001',
+    type: 'session',
+    attributes: {
+      session_id: 'session-2025-03-14-001',
+      title: 'Voiceflow アーカイブ同期ジョブ',
+      relative_path: '2025/03/14/session-2025-03-14-001.jsonl',
+      created_at: '2025-03-14T08:10:00Z',
+      completed_at: '2025-03-14T08:38:00Z',
+      duration_seconds: 1680,
+      message_count: 42,
+      tool_call_count: 4,
+      tool_result_count: 4,
+      reasoning_count: 1,
+      meta_event_count: 3,
+      has_sanitized_variant: true,
+      speaker_roles: ['user', 'assistant', 'tool'],
+      messages: [
+        {
+          id: 'message-user-1',
+          timestamp: '2025-03-14T08:12:00Z',
+          source_type: 'message',
+          role: 'user',
+          segments: [
+            {
+              channel: 'input',
+              type: 'text',
+              text: '最新の同期ジョブの結果をまとめてください。',
+            },
+          ],
+        },
+        {
+          id: 'message-assistant-1',
+          timestamp: '2025-03-14T08:12:15Z',
+          source_type: 'message',
+          role: 'assistant',
+          segments: [
+            {
+              channel: 'output',
+              type: 'text',
+              text: 'ジョブは 28 分で完了し、エラーは検出されませんでした。',
+            },
+          ],
+        },
+        {
+          id: 'tool-call-1',
+          timestamp: '2025-03-14T08:13:00Z',
+          source_type: 'tool_call',
+          role: 'tool',
+          segments: [
+            {
+              channel: 'meta',
+              type: 'text',
+              text: 'refreshSessionsIndex を起動しています…',
+            },
+          ],
+          tool_call: {
+            call_id: 'refresh-1',
+            name: 'refreshSessionsIndex',
+            arguments: '{"range":"2025-03-10..2025-03-14"}',
+            status: 'succeeded',
+          },
+          tool_result: {
+            call_id: 'refresh-1',
+            output: 'index=codex_history refreshed successfully',
+          },
+        },
+      ],
+    },
+  },
+  meta: {
+    session: {
+      relative_path: '2025/03/14/session-2025-03-14-001.jsonl',
+      signature: 'sha256:abcd1234',
+      raw_session_meta: {
+        source: 'voiceflow-sync',
+      },
+    },
+    links: {
+      download: '/downloads/session-2025-03-14-001.jsonl',
+    },
   },
   errors: [],
 }
@@ -118,6 +204,16 @@ export const storybookSessionHandlers = () => [
   http.get('/api/search', () => HttpResponse.json(sampleSearchResponse)),
 ]
 
+export const storybookSessionDetailHandlers = () => [
+  http.get('/api/sessions/:sessionId', ({ params }) => {
+    const { sessionId } = params as { sessionId: string }
+    if (sessionId === 'session-2025-03-14-001') {
+      return HttpResponse.json(sampleSessionDetailResponse)
+    }
+    return HttpResponse.json(sampleSessionDetailResponse)
+  }),
+]
+
 export const storybookSessionErrorHandlers = () => [
   http.get('/api/sessions', () =>
     HttpResponse.json(
@@ -142,4 +238,5 @@ export const storybookSessionErrorHandlers = () => [
 export const storybookData = {
   sessions: sampleSessionsResponse,
   search: sampleSearchResponse,
+  sessionDetail: sampleSessionDetailResponse,
 }
