@@ -11,6 +11,7 @@ import styles from './SessionDetailPage.module.css'
 import SessionSummaryRail from './SessionSummaryRail'
 import { useConversationEvents } from './useConversationEvents'
 import { useSessionDetailViewModel } from './useSessionDetailViewModel'
+import { useTimelineLoadController, type TimelineLoadDirection } from './useTimelineLoadController'
 
 import type { SessionDetailTab } from './SessionDetailTabs'
 import type { ScrollAnchorSnapshot, TimelineBundleSummary, TimelineDisplayMode } from './types'
@@ -46,7 +47,6 @@ const SessionDetailPage = () => {
     consumeScrollAnchor,
   } = useSessionDetailViewModel({ sessionId })
   const timelineRef = useRef<HTMLDivElement | null>(null)
-  const boundaryTriggerRef = useRef<{ direction: 'start' | 'end'; timestamp: number } | null>(null)
   const [activeTab, setActiveTab] = useState<SessionDetailTab>('conversation')
   const [timelineMode, setTimelineMode] = useState<TimelineDisplayMode>('conversation')
   const [drawerSummary, setDrawerSummary] = useState<TimelineBundleSummary | null>(null)
@@ -139,14 +139,9 @@ const SessionDetailPage = () => {
     void refetch()
   }, [refetch])
 
-  const triggerBoundaryLoad = useCallback(
-    (direction: 'start' | 'end') => {
-      const now = typeof performance !== 'undefined' ? performance.now() : Date.now()
-      const lastTrigger = boundaryTriggerRef.current
-      if (lastTrigger?.direction === direction && now - lastTrigger.timestamp < 1200) {
-        return
-      }
-      boundaryTriggerRef.current = { direction, timestamp: now }
+  const handleTimelineLoad = useCallback(
+    (direction: TimelineLoadDirection) => {
+      void direction
       const anchor = captureScrollAnchor()
       preserveScrollAnchor(anchor)
       void refetch()
@@ -154,13 +149,10 @@ const SessionDetailPage = () => {
     [captureScrollAnchor, preserveScrollAnchor, refetch],
   )
 
-  const handleReachTop = useCallback(() => {
-    triggerBoundaryLoad('start')
-  }, [triggerBoundaryLoad])
-
-  const handleReachBottom = useCallback(() => {
-    triggerBoundaryLoad('end')
-  }, [triggerBoundaryLoad])
+  const { canLoadPrev, canLoadNext, requestLoad: requestTimelineLoad } = useTimelineLoadController({
+    detail,
+    onLoad: handleTimelineLoad,
+  })
 
   useEffect(() => {
     setTabAnnouncement(TAB_ANNOUNCEMENTS[activeTab])
@@ -261,14 +253,15 @@ const SessionDetailPage = () => {
           timelineRef={timelineRef}
           conversationPanelRef={conversationPanelRef}
           detailPanelRef={detailPanelRef}
-          onReachTop={handleReachTop}
-          onReachBottom={handleReachBottom}
           onScrollAnchorChange={handleScrollAnchorChange}
           errorMessage={status === 'error' && error ? error.message : undefined}
           onRetry={handleRetry}
           timelineMessages={timelineMessages}
           timelineFilterControls={layout.columns === 1 ? timelineFilterControls : undefined}
           highlightedMessageIds={highlightedIds}
+          canLoadPrev={canLoadPrev}
+          canLoadNext={canLoadNext}
+          onRequestTimelineLoad={requestTimelineLoad}
         />
 
         <SessionSummaryRail

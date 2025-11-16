@@ -18,7 +18,7 @@
   - `MetaEventDrawer.sanitized.test.tsx` と Storybook Interaction Test を追加し、伏字・ハイライト・ARIA 属性を確認する。
   - _Requirements: 2.2, 2.3, 2.4_
 
-- [ ] 4. TimelineLoadController と `useSessionDetailViewModel` のローディング制御を実装する
+- [x] 4. TimelineLoadController と `useSessionDetailViewModel` のローディング制御を実装する
   - `TimelineLoadController` フックを作成し、`totalMessages` vs `detail.messages.length` を比較して `canLoadPrev/Next` を算出、不要な `refetch()` を抑止する。方向ごとに 1.2 秒のクールダウンを設ける。
   - `useSessionDetailViewModel` に `status: 'refetching'` 状態を導入し、再フェッチ中も既存 detail を保持する。`MessageTimeline` へ `canLoadPrev/Next` と `onRequestLoad` を渡し、`shouldVirtualize` false 時は端検知をショートサーキットする。
   - `TimelineLoadController.test.ts` と `SessionDetailPage.integration.test.tsx` を拡張し、スクリーンが空になる回帰を防止する。

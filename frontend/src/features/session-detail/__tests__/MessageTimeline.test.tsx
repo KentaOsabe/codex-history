@@ -157,23 +157,65 @@ describe('MessageTimeline', () => {
     expect(renderedCards.length).toBeLessThan(manyMessages.length)
   })
 
-  it('スクロール上端に到達したら追加読み込みフックを呼び出す', () => {
+  it('canLoadPrev が true のとき上端到達で requestLoad(prev) を呼び出す', () => {
     const manyMessages = buildManyMessages(200)
-    const handleReachStart = vi.fn()
+    const handleRequest = vi.fn()
 
-    render(<MessageTimeline messages={manyMessages} onReachStart={handleReachStart} />)
+    render(<MessageTimeline messages={manyMessages} canLoadPrev onRequestLoad={handleRequest} />)
 
-    expect(handleReachStart).toHaveBeenCalledTimes(1)
+    expect(handleRequest).toHaveBeenCalledWith('prev')
   })
 
-  it('スクロール下端に到達したら追加読み込みフックを呼び出す', () => {
+  it('canLoadNext が true のとき下端到達で requestLoad(next) を呼び出す', () => {
     const manyMessages = buildManyMessages(200)
-    const handleReachEnd = vi.fn()
+    const handleRequest = vi.fn()
     virtualizerMock.state.startIndex = manyMessages.length - 8
 
-    render(<MessageTimeline messages={manyMessages} onReachEnd={handleReachEnd} />)
+    render(
+      <MessageTimeline
+        messages={manyMessages}
+        canLoadNext
+        onRequestLoad={handleRequest}
+      />,
+    )
 
-    expect(handleReachEnd).toHaveBeenCalledTimes(1)
+    expect(handleRequest).toHaveBeenCalledWith('next')
+  })
+
+  it('仮想スクロールが無効な場合は追加ロードを要求しない', () => {
+    const messages = buildManyMessages(10)
+    const handleRequest = vi.fn()
+
+    render(
+      <MessageTimeline
+        messages={messages}
+        virtualizationThreshold={999}
+        canLoadNext
+        canLoadPrev
+        onRequestLoad={handleRequest}
+      />,
+    )
+
+    expect(handleRequest).not.toHaveBeenCalled()
+  })
+
+  it('canLoadPrev が false の場合は上端で requestLoad を呼び出さない', () => {
+    const manyMessages = buildManyMessages(200)
+    const handleRequest = vi.fn()
+
+    render(<MessageTimeline messages={manyMessages} onRequestLoad={handleRequest} />)
+
+    expect(handleRequest).not.toHaveBeenCalled()
+  })
+
+  it('canLoadNext が false の場合は下端で requestLoad を呼び出さない', () => {
+    const manyMessages = buildManyMessages(200)
+    const handleRequest = vi.fn()
+    virtualizerMock.state.startIndex = manyMessages.length - 8
+
+    render(<MessageTimeline messages={manyMessages} onRequestLoad={handleRequest} />)
+
+    expect(handleRequest).not.toHaveBeenCalled()
   })
 
   it('スクロール操作時にアンカー情報を通知する', () => {

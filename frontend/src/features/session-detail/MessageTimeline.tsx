@@ -5,14 +5,16 @@ import MessageCard from './MessageCard'
 import styles from './MessageTimeline.module.css'
 
 import type { ScrollAnchorSnapshot, SessionMessageViewModel } from './types'
+import type { TimelineLoadDirection } from './useTimelineLoadController'
 
 
 interface MessageTimelineProps {
   messages: SessionMessageViewModel[]
   className?: string
   virtualizationThreshold?: number
-  onReachStart?: () => void
-  onReachEnd?: () => void
+  canLoadPrev?: boolean
+  canLoadNext?: boolean
+  onRequestLoad?: (direction: TimelineLoadDirection) => void
   onScrollAnchorChange?: (snapshot: ScrollAnchorSnapshot) => void
   highlightedIds?: string[]
 }
@@ -52,8 +54,9 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
       messages,
       className,
       virtualizationThreshold = VIRTUALIZATION_THRESHOLD,
-      onReachStart,
-      onReachEnd,
+      canLoadPrev = false,
+      canLoadNext = false,
+      onRequestLoad,
       onScrollAnchorChange,
       highlightedIds,
     },
@@ -88,25 +91,35 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
       return shouldVirtualize ? virtualizer.getVirtualItems() : []
     }, [shouldVirtualize, virtualizer])
 
+    const canTriggerLoad = useCallback(
+      (edge: 'top' | 'bottom') => {
+        if (!shouldVirtualize) {
+          return false
+        }
+        return edge === 'top' ? canLoadPrev : canLoadNext
+      },
+      [canLoadNext, canLoadPrev, shouldVirtualize],
+    )
+
     const updateEdgeState = useCallback(
       (edge: 'top' | 'bottom', active: boolean) => {
-        if (!((edge === 'top' && onReachStart) || (edge === 'bottom' && onReachEnd))) {
+        if (!onRequestLoad) {
           edgeStateRef.current[edge] = active
+          return
+        }
+        if (!canTriggerLoad(edge)) {
+          edgeStateRef.current[edge] = false
           return
         }
         const previous = edgeStateRef.current[edge]
         if (active && !previous) {
           edgeStateRef.current[edge] = true
-          if (edge === 'top') {
-            onReachStart?.()
-          } else {
-            onReachEnd?.()
-          }
+          onRequestLoad(edge === 'top' ? 'prev' : 'next')
         } else if (!active && previous) {
           edgeStateRef.current[edge] = false
         }
       },
-      [onReachEnd, onReachStart],
+      [canTriggerLoad, onRequestLoad],
     )
 
     const emitAnchorSnapshot = useCallback(() => {

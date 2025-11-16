@@ -14,13 +14,25 @@ interface MockTimelineProps {
   virtualizationThreshold?: number
   onScrollAnchorChange?: (snapshot: { offsetRatio: number; absoluteOffset: number }) => void
   highlightedIds?: string[]
+  canLoadPrev?: boolean
+  canLoadNext?: boolean
+  onRequestLoad?: (direction: 'prev' | 'next') => void
 }
 
 vi.mock('../MessageTimeline', () => {
-  const MockTimeline = forwardRef<HTMLDivElement, MockTimelineProps>(({ messages, onScrollAnchorChange, highlightedIds }, ref) => {
+  const MockTimeline = forwardRef<HTMLDivElement, MockTimelineProps>((props, ref) => {
+    const { messages, onScrollAnchorChange, highlightedIds, canLoadNext, canLoadPrev, onRequestLoad } = props
+
     useEffect(() => {
       onScrollAnchorChange?.({ offsetRatio: 0, absoluteOffset: 0 })
     }, [onScrollAnchorChange])
+
+    const handleRequestLoad = () => {
+      if (!onRequestLoad) {
+        return
+      }
+      onRequestLoad('next')
+    }
 
     return (
       <div
@@ -28,7 +40,13 @@ vi.mock('../MessageTimeline', () => {
         data-testid="message-timeline"
         data-virtualized={messages.length > 120 ? 'true' : 'false'}
         data-highlighted-count={highlightedIds?.length ?? 0}
+        data-can-load-prev={canLoadPrev ? 'true' : 'false'}
+        data-can-load-next={canLoadNext ? 'true' : 'false'}
+        data-has-request={onRequestLoad ? 'true' : 'false'}
       >
+        <button type="button" data-testid="mock-timeline-request-load" onClick={handleRequestLoad}>
+          load-more
+        </button>
         {messages.map((message) => {
           const highlighted = highlightedIds?.includes(message.id)
           return (
@@ -417,6 +435,78 @@ describe('SessionDetailPage (integration)', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('message-timeline').getAttribute('data-highlighted-count')).toBe('0')
+    })
+  })
+
+  it('追加ロード中もタイムライン DOM を維持し空白化を防ぐ (R3.2)', async () => {
+    let requestCount = 0
+    let resolveSecond: ((response: SessionDetailResponse) => void) | null = null
+
+    server.use(
+      http.get('*/api/sessions/:sessionId', () => {
+        requestCount += 1
+        if (requestCount === 1) {
+          return HttpResponse.json(
+            buildSessionDetailResponse({
+              attributes: {
+                session_id: 'session-123',
+                message_count: 320,
+              },
+              messages: buildMessages(180, '追加ロード'),
+            }),
+          )
+        }
+
+        if (requestCount === 2) {
+          return new Promise((resolve) => {
+            resolveSecond = (response) => resolve(HttpResponse.json(response))
+          })
+        }
+
+        return HttpResponse.json(
+          buildSessionDetailResponse({
+            attributes: {
+              session_id: 'session-123',
+              message_count: 320,
+            },
+            messages: buildMessages(180, '追加ロード'),
+          }),
+        )
+      }),
+    )
+
+    renderDetailPage()
+
+    const timeline = await screen.findByTestId('message-timeline')
+
+    await waitFor(() => {
+      expect(timeline.getAttribute('data-can-load-next')).toBe('true')
+      expect(timeline.getAttribute('data-has-request')).toBe('true')
+    })
+
+    fireEvent.click(screen.getByTestId('mock-timeline-request-load'))
+
+    await waitFor(() => {
+      expect(requestCount).toBe(2)
+    })
+
+    const visibleMessages = screen.getAllByRole('article')
+    expect(visibleMessages.length).toBeGreaterThan(0)
+
+    expect(screen.queryByTestId('detail-panel-skeleton')).not.toBeInTheDocument()
+
+    resolveSecond?.(
+      buildSessionDetailResponse({
+        attributes: {
+          session_id: 'session-123',
+          message_count: 320,
+        },
+        messages: buildMessages(200, '追加ロード完了'),
+      }),
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('article')[0]).toHaveTextContent('追加ロード完了 #0')
     })
   })
 

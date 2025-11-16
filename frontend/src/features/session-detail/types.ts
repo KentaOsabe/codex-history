@@ -1,6 +1,6 @@
 import type { SessionVariant } from '@/api/types/sessions'
 
-export type SessionDetailStatus = 'idle' | 'loading' | 'success' | 'error'
+export type SessionDetailStatus = 'idle' | 'loading' | 'refetching' | 'success' | 'error'
 
 export type MessageChannel = 'input' | 'output' | 'meta'
 

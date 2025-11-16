@@ -162,23 +162,37 @@ describe('useSessionDetailViewModel', () => {
     expect(resultRef.current?.error?.kind).toBeDefined()
   })
 
-  it('refetch を呼び出すと最新データで更新する', async () => {
+  it('refetch を呼び出すと status が refetching になり既存 DOM を保持する', async () => {
     getSessionDetailMock.mockResolvedValueOnce(buildSessionDetailResponse())
     const { resultRef } = createHookRenderer()
 
     await waitFor(() => expect(resultRef.current?.status).toBe('success'))
 
-    getSessionDetailMock.mockResolvedValueOnce(
-      buildSessionDetailResponse({
-        title: 'Updated Session',
-      }),
-    )
-
-    await act(async () => {
-      await resultRef.current?.refetch()
+    let resolveSecond: ((response: SessionDetailResponse) => void) | undefined
+    const secondPromise = new Promise<SessionDetailResponse>((resolve) => {
+      resolveSecond = resolve
     })
 
-    expect(resultRef.current?.detail?.title).toBe('Updated Session')
+    getSessionDetailMock.mockReturnValueOnce(secondPromise)
+
+    act(() => {
+      void resultRef.current?.refetch()
+    })
+
+    expect(resultRef.current?.status).toBe('refetching')
+    expect(resultRef.current?.detail?.title).toBe('Demo Session')
+
+    await act(async () => {
+      resolveSecond?.(
+        buildSessionDetailResponse({
+          title: 'Updated Session',
+        }),
+      )
+      await Promise.resolve()
+    })
+
+    await waitFor(() => expect(resultRef.current?.detail?.title).toBe('Updated Session'))
+    expect(resultRef.current?.status).toBe('success')
     expect(getSessionDetailMock).toHaveBeenCalledTimes(2)
   })
 

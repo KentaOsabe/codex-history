@@ -1,4 +1,3 @@
-
 import styles from './ConversationRegion.module.css'
 import DetailInsightsPanel from './DetailInsightsPanel'
 import MessageTimeline from './MessageTimeline'
@@ -11,6 +10,7 @@ import type {
   SessionDetailViewModel,
   SessionMessageViewModel,
 } from './types'
+import type { TimelineLoadDirection } from './useTimelineLoadController'
 import type { RefObject } from 'react'
 
 interface ConversationRegionProps {
@@ -24,14 +24,15 @@ interface ConversationRegionProps {
   timelineRef: RefObject<HTMLDivElement>
   conversationPanelRef: RefObject<HTMLElement>
   detailPanelRef: RefObject<HTMLElement>
-  onReachTop: () => void
-  onReachBottom: () => void
   onScrollAnchorChange: (anchor: ScrollAnchorSnapshot | null) => void
   errorMessage?: string
   onRetry: () => void
   timelineMessages?: SessionMessageViewModel[]
   timelineFilterControls?: TimelineFilterControls
   highlightedMessageIds?: string[]
+  canLoadPrev?: boolean
+  canLoadNext?: boolean
+  onRequestTimelineLoad?: (direction: TimelineLoadDirection) => void
 }
 
 const ConversationRegion = ({
@@ -45,14 +46,15 @@ const ConversationRegion = ({
   timelineRef,
   conversationPanelRef,
   detailPanelRef,
-  onReachTop,
-  onReachBottom,
   onScrollAnchorChange,
   errorMessage,
   onRetry,
   timelineMessages,
   timelineFilterControls,
   highlightedMessageIds,
+  canLoadPrev,
+  canLoadNext,
+  onRequestTimelineLoad,
 }: ConversationRegionProps) => {
   const showTabLayout = status === 'loading' || Boolean(detail)
 
@@ -96,8 +98,9 @@ const ConversationRegion = ({
                   ref={timelineRef}
                   className={styles.timelineContainer}
                   messages={timelineMessages ?? detail.messages}
-                  onReachStart={onReachTop}
-                  onReachEnd={onReachBottom}
+                  canLoadPrev={canLoadPrev}
+                  canLoadNext={canLoadNext}
+                  onRequestLoad={onRequestTimelineLoad}
                   onScrollAnchorChange={onScrollAnchorChange}
                   highlightedIds={highlightedMessageIds}
                 />
