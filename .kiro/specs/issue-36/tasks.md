@@ -24,7 +24,13 @@
   - `TimelineLoadController.test.ts` と `SessionDetailPage.integration.test.tsx` を拡張し、スクリーンが空になる回帰を防止する。
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 5. ドキュメントと E2E/UX テストを更新する
+- [x] 5. ドキュメントと E2E/UX テストを更新する
   - README の「セッション詳細」セクションに会話ファースト UI と drawer 操作の説明、`npm run test:storybook` / `npm run test:visual` の手順を追記する。必要に応じて `docs/styleguide.md` にレイアウト指針を追加。
   - Storybook へ `SessionDetail` シナリオを追加し、xs/md/xl × ライト/ダークで動作確認する。Playwright / Storybook テストを CI に組み込む（既存スクリプト参照）。
   - _Requirements: 1.2, 3.4, 5.1-5.3_
+
+- [ ] 6. IDE コンテキストブロックの表示制御を追加する
+  - `mapResponseToViewModel` でユーザー入力メッセージの Markdown セクション（`# Context from my IDE setup`, `## Active file`, `## Open tabs`, `## My request for Codex` 等）をパースし、`SessionMessageViewModel.metadata.ideContext` に heading / content を格納する。
+  - `MessageCard`（特に user role）に「IDE コンテキストを表示/隠す」トグルを追加し、デフォルトでは `My request for Codex` セクションのみ展開、その他セクションは折りたたむ。セクションごとにチェックボックス/アクセシブルな `<details>` を実装し、ユーザーが常時表示するセクションを選べるプリファレンスを localStorage に保存する。
+  - `TimelineFilterBar` か `SessionSummaryRail` にコンテキスト表示設定を集約し、前回の選択を維持できるよう `useConversationEvents` に hook を追加。Vitest（`MessageCard.ideContext.test.tsx`）と Storybook Interaction（`SessionDetailPage`）で `My request for Codex` は常に可視化されること、その他セクションが折りたためることを検証する。
+  - _Requirements: 2.1, 2.2, 2.4_

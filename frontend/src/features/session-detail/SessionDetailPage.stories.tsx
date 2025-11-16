@@ -1,6 +1,6 @@
 
 import { expect } from '@storybook/jest'
-import { userEvent, within } from '@storybook/testing-library'
+import { userEvent, waitFor, within } from '@storybook/testing-library'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 import { storybookSessionDetailHandlers, storybookSessionHandlers } from '@/mocks/storybookHandlers'
@@ -43,6 +43,94 @@ const assertDetailRender = async (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement)
   await canvas.findByText('Session Detail')
   await canvas.findByText(/session-2025-03-14-001/i)
+}
+
+type ConversationBreakpoint = 'xl' | 'md' | 'xs'
+type ConversationTheme = 'light' | 'dark'
+
+interface ConversationStoryOptions {
+  breakpoint: ConversationBreakpoint
+  theme: ConversationTheme
+  expectAccordion: boolean
+  filterPlacement: 'timeline' | 'rail'
+  drawerPlacement: 'side' | 'bottom'
+  ensureSanitized?: boolean
+}
+
+const assertConversationFirstLayout = async (canvasElement: HTMLElement, options: ConversationStoryOptions) => {
+  const { breakpoint, theme, expectAccordion, filterPlacement, drawerPlacement, ensureSanitized = theme === 'dark' } = options
+  const canvas = within(canvasElement)
+  await assertDetailRender(canvasElement)
+
+  const summaryRail = await canvas.findByTestId('session-summary-rail')
+  const accordion = summaryRail.querySelector<HTMLElement>('[data-testid="session-summary-accordion"]')
+
+  if (expectAccordion) {
+    await expect(accordion).not.toBeNull()
+    await expect(accordion!).not.toHaveAttribute('open')
+    if (ensureSanitized && accordion && !accordion.hasAttribute('open')) {
+      const summaryToggle = accordion.querySelector<HTMLElement>('summary')
+      if (summaryToggle) {
+        await userEvent.click(summaryToggle)
+        await expect(accordion).toHaveAttribute('open')
+      }
+    }
+  } else {
+    await expect(accordion).toBeNull()
+    await expect(summaryRail.tagName).toBe('ASIDE')
+  }
+
+  if (ensureSanitized) {
+    const sanitizedButton = await canvas.findByRole('button', { name: 'サニタイズ済み' })
+    await userEvent.click(sanitizedButton)
+    await expect(sanitizedButton).toHaveAttribute('aria-pressed', 'true')
+  }
+
+  const filterBar = await canvas.findByTestId('timeline-filter-bar')
+  await expect(filterBar).toHaveAttribute('data-placement', filterPlacement)
+
+  const metaButton = await canvas.findByRole('button', { name: /メタイベント/ })
+  await userEvent.click(metaButton)
+
+  const drawer = await canvas.findByTestId('meta-event-drawer')
+  const drawerHost = drawer.closest('[data-placement]')
+  await expect(drawerHost).not.toBeNull()
+  await expect(drawerHost).toHaveAttribute('data-placement', drawerPlacement)
+
+  if (ensureSanitized) {
+    await expect(canvas.getByText('サニタイズ版のイベントを表示中')).toBeInTheDocument()
+  } else {
+    await expect(canvas.queryByText('サニタイズ版のイベントを表示中')).not.toBeInTheDocument()
+  }
+
+  await userEvent.click(canvas.getByRole('button', { name: '詳細を閉じる' }))
+  await waitFor(() => expect(canvas.queryByTestId('meta-event-drawer')).not.toBeInTheDocument())
+  await expect(document.body).toHaveAttribute('data-theme', theme)
+
+  // Breakpoint トグル（Storybook グローバル）が効いているかを data 属性で確認
+  const root = await canvas.findByTestId('session-detail-root')
+  await expect(root).toHaveAttribute('data-breakpoint', breakpoint)
+}
+
+const createConversationFirstStory = (options: ConversationStoryOptions): Story => {
+  const { breakpoint, theme } = options
+  const viewportName = breakpoint
+  const nameSuffix = `${breakpoint.toUpperCase()} (${theme === 'dark' ? 'Dark' : 'Light'})`
+  return {
+    name: `ConversationFirst${nameSuffix}`,
+    parameters: {
+      viewport: {
+        defaultViewport: viewportName,
+      },
+    },
+    globals: {
+      breakpoint,
+      theme,
+    },
+    play: async ({ canvasElement }) => {
+      await assertConversationFirstLayout(canvasElement, options)
+    },
+  }
 }
 
 export const Default: Story = {
@@ -113,3 +201,54 @@ export const DrawerInteraction: Story = {
     await expect(canvas.getByText('サニタイズ版のイベントを表示中')).toBeInTheDocument()
   },
 }
+
+export const ConversationFirstXLLight = createConversationFirstStory({
+  breakpoint: 'xl',
+  theme: 'light',
+  expectAccordion: false,
+  filterPlacement: 'rail',
+  drawerPlacement: 'side',
+  ensureSanitized: false,
+})
+
+export const ConversationFirstXLDark = createConversationFirstStory({
+  breakpoint: 'xl',
+  theme: 'dark',
+  expectAccordion: false,
+  filterPlacement: 'rail',
+  drawerPlacement: 'side',
+})
+
+export const ConversationFirstMDLight = createConversationFirstStory({
+  breakpoint: 'md',
+  theme: 'light',
+  expectAccordion: true,
+  filterPlacement: 'timeline',
+  drawerPlacement: 'bottom',
+  ensureSanitized: false,
+})
+
+export const ConversationFirstMDDark = createConversationFirstStory({
+  breakpoint: 'md',
+  theme: 'dark',
+  expectAccordion: true,
+  filterPlacement: 'timeline',
+  drawerPlacement: 'bottom',
+})
+
+export const ConversationFirstXSLight = createConversationFirstStory({
+  breakpoint: 'xs',
+  theme: 'light',
+  expectAccordion: true,
+  filterPlacement: 'timeline',
+  drawerPlacement: 'bottom',
+  ensureSanitized: false,
+})
+
+export const ConversationFirstXSDark = createConversationFirstStory({
+  breakpoint: 'xs',
+  theme: 'dark',
+  expectAccordion: true,
+  filterPlacement: 'timeline',
+  drawerPlacement: 'bottom',
+})

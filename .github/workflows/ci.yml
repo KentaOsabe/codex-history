@@ -69,3 +69,31 @@ jobs:
           -e CODEX_SESSIONS_ROOT=/app/spec/fixtures/sessions/source
           -e SIMPLECOV=true
           backend bundle exec rspec
+
+  frontend_storybook:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Storybook DOM tests
+        run: npm run test:storybook
+
+      - name: Run Storybook visual tests
+        run: npm run test:visual

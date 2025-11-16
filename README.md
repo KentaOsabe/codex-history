@@ -58,6 +58,21 @@ npm run test
 npm run format
 ```
 
+### セッション詳細（Conversation First UI）
+- `SessionSummaryRail` は xs〜md では `<details>` アコーディオンとして折りたたまれ、lg 以上では `ConversationRegion` の右側に常設されます。初期表示で常にタイムラインの先頭メッセージがファーストビューへ入るよう、サマリーカード・Hero・Variant Switch はこのレール内に収めています。
+- `TimelineFilterBar` は user/assistant の往復のみを表示する「conversation」モードをデフォルトにし、メタ/ツールバンドルは pill でサマライズしています。サマリーをクリックすると `MetaEventDrawer` / `ToolBundlePanel` が開き、関連メッセージ（`data-highlighted="true"`）が同時にハイライトされます。
+- ドロワーは lg+ でサイドシート、xs〜md でボトムシートとして出現し、サニタイズ variant の際は「サニタイズ版のイベントを表示中」バナーと redacted JSON ビューアを強制します。Variant 切替は `SessionVariantSwitch` から行い、タブ再訪問時も会話タブが優先されます。
+
+#### Storybook / Playwright での検証
+1. `npm run storybook` を起動し、`Sessions/SessionDetailPage` 内の `ConversationFirstXL (Light/Dark)`、`ConversationFirstMD (Light/Dark)`、`ConversationFirstXS (Light/Dark)` ストーリーで Breakpoint × テーマ組み合わせを手動確認します。アコーディオンの初期状態と drawer の ARIA 属性を合わせてチェックしてください。
+2. 自動化は Playwright に集約しています。以下のコマンドで Storybook ビルド → DOM アサーション（`SessionDetailPage layout telemetry` と drawer 操作）を行い、必要なら `--grep` で SessionDetail のみ抜き出せます。
+
+```bash
+cd frontend
+npm run test:storybook -- --grep "SessionDetail"
+npm run test:visual -- --grep "SessionDetail"
+```
+
 ### npm スクリプト一覧
 - `npm run dev`: Vite 開発サーバー（`http://localhost:5173`）
 - `npm run build`: TypeScript ビルド + Vite 本番ビルド
