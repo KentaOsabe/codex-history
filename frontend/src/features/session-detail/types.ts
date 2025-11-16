@@ -106,3 +106,35 @@ export interface SessionDetailInsights {
   toolInvocations: ToolInvocationGroup[]
   metaEvents: MetaEventGroup[]
 }
+
+export type ConversationEvent =
+  | {
+      kind: 'message'
+      role: 'user' | 'assistant'
+      message: SessionMessageViewModel
+      relatedIds: string[]
+      isSanitizedVariant: boolean
+      sensitiveFields: string[]
+    }
+  | {
+      kind: 'bundle'
+      bundleType: 'meta' | 'tool'
+      anchorMessageId?: string
+      label: string
+      count: number
+      events: MetaEventGroup[] | ToolInvocationGroup[]
+      isSanitizedVariant: boolean
+      sensitiveFields: string[]
+    }
+
+export interface TimelineBundleSummary {
+  id: string
+  bundleType: 'meta' | 'tool'
+  label: string
+  count: number
+  preview?: string
+  anchorMessageId?: string
+  isSanitizedVariant: boolean
+}
+
+export type TimelineDisplayMode = 'conversation' | 'full'

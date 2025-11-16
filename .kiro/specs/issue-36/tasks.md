@@ -6,7 +6,7 @@
   - タブ状態・スクリーンリーダー告知を維持したまま、初回表示でタイムライン先頭がファーストビューに入ることを Storybook + Playwright スナップショットで確認する。
   - _Requirements: 1.1, 1.3, 1.4_
 
-- [ ] 2. `useConversationEvents` と `ConversationEventLinker` を実装し、タイムライン表示モードを拡張する
+- [x] 2. `useConversationEvents` と `ConversationEventLinker` を実装し、タイムライン表示モードを拡張する
   - `detail.messages` から user/assistant メッセージと meta/tool/system を分類し、`ConversationEvent` モデル（`relatedIds`, `isSanitizedVariant`, `sensitiveFields` 含む）を生成するフックを追加する。
   - `TimelineFilterBar` を作成し、`mode=conversation/full` 切り替え・meta/tool サマリーピル・drawer トリガーを提供。xs–md では sticky, lg+ では summary rail に統合する。
   - `useConversationEvents.test.ts` で role フィルタ、bundle 集計、関連メッセージハイライト、サニタイズ時の伏字置換を Red→Green→Refactor で網羅する。

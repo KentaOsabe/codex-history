@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -224,5 +224,52 @@ describe('SessionDetailPage', () => {
     expect(screen.queryByTestId('session-summary-accordion')).toBeNull()
     const summaryRail = screen.getByRole('complementary', { name: 'セッション概要' })
     expect(summaryRail).toHaveAttribute('data-testid', 'session-summary-rail')
+  })
+
+  it('タイムラインフィルターで meta イベントの表示モードを切り替えられる', () => {
+    const detail = buildDetail()
+    detail.messages = [
+      ...detail.messages,
+      {
+        id: 'meta-1',
+        timestampLabel: '2025/3/14 09:07',
+        role: 'meta' as const,
+        sourceType: 'meta' as const,
+        channel: 'meta' as const,
+        segments: [
+          {
+            id: 'meta-1-seg-1',
+            channel: 'meta' as const,
+            text: 'CI 環境: production',
+          },
+        ],
+        toolCall: undefined,
+        isEncryptedReasoning: false,
+      },
+    ]
+
+    useSessionDetailViewModelMock.mockReturnValue({
+      status: 'success',
+      detail,
+      error: undefined,
+      variant: 'original',
+      hasSanitizedVariant: true,
+      setVariant: vi.fn(),
+      refetch: vi.fn(),
+      preserveScrollAnchor: vi.fn(),
+      consumeScrollAnchor: vi.fn(),
+    })
+
+    renderPage()
+
+    const conversationPanel = screen.getByTestId('conversation-tab-panel')
+    expect(screen.getByText('非表示 1 件')).toBeInTheDocument()
+    expect(within(conversationPanel).queryByText('CI 環境: production')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'すべて表示' }))
+    expect(within(conversationPanel).getByText('CI 環境: production')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '会話のみ' }))
+    expect(within(conversationPanel).queryByText('CI 環境: production')).not.toBeInTheDocument()
   })
 })

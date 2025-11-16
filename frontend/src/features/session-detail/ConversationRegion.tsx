@@ -3,8 +3,14 @@ import styles from './ConversationRegion.module.css'
 import DetailInsightsPanel from './DetailInsightsPanel'
 import MessageTimeline from './MessageTimeline'
 import SessionDetailTabs, { type SessionDetailTab } from './SessionDetailTabs'
+import TimelineFilterBar, { type TimelineFilterControls } from './TimelineFilterBar'
 
-import type { ScrollAnchorSnapshot, SessionDetailStatus, SessionDetailViewModel } from './types'
+import type {
+  ScrollAnchorSnapshot,
+  SessionDetailStatus,
+  SessionDetailViewModel,
+  SessionMessageViewModel,
+} from './types'
 import type { RefObject } from 'react'
 
 interface ConversationRegionProps {
@@ -23,6 +29,8 @@ interface ConversationRegionProps {
   onScrollAnchorChange: (anchor: ScrollAnchorSnapshot | null) => void
   errorMessage?: string
   onRetry: () => void
+  timelineMessages?: SessionMessageViewModel[]
+  timelineFilterControls?: TimelineFilterControls
 }
 
 const ConversationRegion = ({
@@ -41,6 +49,8 @@ const ConversationRegion = ({
   onScrollAnchorChange,
   errorMessage,
   onRetry,
+  timelineMessages,
+  timelineFilterControls,
 }: ConversationRegionProps) => {
   const showTabLayout = status === 'loading' || Boolean(detail)
 
@@ -76,11 +86,14 @@ const ConversationRegion = ({
               className={`${styles.panelCard} layout-panel layout-panel--padded ${styles.tabPanel} ${styles.timelineSection}`}
             >
               <h2 className={styles.timelineHeading}>メッセージタイムライン</h2>
+              {timelineFilterControls ? (
+                <TimelineFilterBar placement="timeline" {...timelineFilterControls} />
+              ) : null}
               {detail ? (
                 <MessageTimeline
                   ref={timelineRef}
                   className={styles.timelineContainer}
-                  messages={detail.messages}
+                  messages={timelineMessages ?? detail.messages}
                   onReachStart={onReachTop}
                   onReachEnd={onReachBottom}
                   onScrollAnchorChange={onScrollAnchorChange}

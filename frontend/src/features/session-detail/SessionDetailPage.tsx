@@ -8,10 +8,11 @@ import useResponsiveLayout from '@/features/layout/useResponsiveLayout'
 import ConversationRegion from './ConversationRegion'
 import styles from './SessionDetailPage.module.css'
 import SessionSummaryRail from './SessionSummaryRail'
+import { useConversationEvents } from './useConversationEvents'
 import { useSessionDetailViewModel } from './useSessionDetailViewModel'
 
 import type { SessionDetailTab } from './SessionDetailTabs'
-import type { ScrollAnchorSnapshot } from './types'
+import type { ScrollAnchorSnapshot, TimelineDisplayMode } from './types'
 
 const TAB_IDS = {
   conversation: 'session-detail-tab-conversation',
@@ -46,11 +47,14 @@ const SessionDetailPage = () => {
   const timelineRef = useRef<HTMLDivElement | null>(null)
   const boundaryTriggerRef = useRef<{ direction: 'start' | 'end'; timestamp: number } | null>(null)
   const [activeTab, setActiveTab] = useState<SessionDetailTab>('conversation')
+  const [timelineMode, setTimelineMode] = useState<TimelineDisplayMode>('conversation')
   const [tabAnnouncement, setTabAnnouncement] = useState<string>(TAB_ANNOUNCEMENTS.conversation)
   const conversationPanelRef = useRef<HTMLElement | null>(null)
   const detailPanelRef = useRef<HTMLElement | null>(null)
   const tabStateRef = useRef<Record<string, SessionDetailTab>>({})
+  const filterModeStateRef = useRef<Record<string, TimelineDisplayMode>>({})
   const sessionKey = resolvedSessionId
+  const conversationData = useConversationEvents({ detail, variant })
 
   const captureScrollAnchor = useCallback(() => {
     const container = timelineRef.current
@@ -97,6 +101,15 @@ const SessionDetailPage = () => {
     },
     [preserveScrollAnchor],
   )
+
+  const handleTimelineModeChange = useCallback((nextMode: TimelineDisplayMode) => {
+    setTimelineMode((prev) => {
+      if (prev === nextMode) {
+        return prev
+      }
+      return nextMode
+    })
+  }, [])
 
   const handleRetry = useCallback(() => {
     void refetch()
@@ -156,6 +169,36 @@ const SessionDetailPage = () => {
     tabStateRef.current[sessionKey] = activeTab
   }, [activeTab, sessionKey])
 
+  useEffect(() => {
+    setTimelineMode(() => {
+      const stored = filterModeStateRef.current[sessionKey]
+      if (stored) {
+        return stored
+      }
+      filterModeStateRef.current[sessionKey] = 'conversation'
+      return 'conversation'
+    })
+  }, [sessionKey])
+
+  useEffect(() => {
+    filterModeStateRef.current[sessionKey] = timelineMode
+  }, [sessionKey, timelineMode])
+
+  const timelineMessages = detail
+    ? timelineMode === 'conversation'
+      ? conversationData.conversationMessages
+      : detail.messages
+    : undefined
+
+  const timelineFilterControls = detail
+    ? {
+        mode: timelineMode,
+        hiddenCount: conversationData.hiddenCount,
+        bundleSummaries: conversationData.bundleSummaries,
+        onModeChange: handleTimelineModeChange,
+      }
+    : undefined
+
   return (
     <article
       className={styles.container}
@@ -181,6 +224,8 @@ const SessionDetailPage = () => {
           onScrollAnchorChange={handleScrollAnchorChange}
           errorMessage={status === 'error' && error ? error.message : undefined}
           onRetry={handleRetry}
+          timelineMessages={timelineMessages}
+          timelineFilterControls={layout.columns === 1 ? timelineFilterControls : undefined}
         />
 
         <SessionSummaryRail
@@ -190,6 +235,7 @@ const SessionDetailPage = () => {
           onVariantChange={handleVariantChange}
           layout={layout}
           resolvedSessionId={resolvedSessionId}
+          timelineFilterControls={layout.columns === 1 ? undefined : timelineFilterControls}
         />
       </ResponsiveGrid>
 

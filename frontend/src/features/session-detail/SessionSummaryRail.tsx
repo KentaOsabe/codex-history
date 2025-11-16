@@ -3,6 +3,7 @@ import type { ResponsiveLayoutState } from '@/features/layout/useResponsiveLayou
 
 import SessionDetailHeader from './SessionDetailHeader'
 import styles from './SessionSummaryRail.module.css'
+import TimelineFilterBar, { type TimelineFilterControls } from './TimelineFilterBar'
 
 import type { SessionDetailViewModel } from './types'
 
@@ -13,6 +14,7 @@ interface SessionSummaryRailProps {
   onVariantChange: (variant: SessionVariant) => void
   layout: ResponsiveLayoutState
   resolvedSessionId: string
+  timelineFilterControls?: TimelineFilterControls
 }
 
 const SessionSummaryRail = ({
@@ -22,6 +24,7 @@ const SessionSummaryRail = ({
   onVariantChange,
   layout,
   resolvedSessionId,
+  timelineFilterControls,
 }: SessionSummaryRailProps) => {
   const isAccordionLayout = layout.columns === 1
 
@@ -69,6 +72,9 @@ const SessionSummaryRail = ({
           onVariantChange={onVariantChange}
         />
         {renderInfoBar()}
+        {!isAccordionLayout && timelineFilterControls ? (
+          <TimelineFilterBar placement="rail" {...timelineFilterControls} />
+        ) : null}
       </div>
     )
   }
