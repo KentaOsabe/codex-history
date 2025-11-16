@@ -1,9 +1,14 @@
 .switch {
   display: inline-flex;
-  border: 1px solid #cbd5f5;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 22%,
+      var(--theme-border-muted)
+    );
   border-radius: 9999px;
   overflow: hidden;
-  background-color: #edf2f7;
+  background-color: var(--theme-surface-muted);
 }
 
 .button {
@@ -12,9 +17,10 @@
   font-size: 0.9rem;
   font-weight: 600;
   background: transparent;
-  color: #2d3748;
+  color: var(--theme-text-default);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color var(--theme-transition-fast),
+    color var(--theme-transition-fast);
 }
 
 .button:disabled {
@@ -23,10 +29,10 @@
 }
 
 .button:not(:disabled):hover {
-  background-color: #e2e8f0;
+  background-color: var(--theme-surface-muted);
 }
 
 .active {
-  background-color: #1a202c;
-  color: #fff;
+  background-color: var(--theme-color-dark-base);
+  color: var(--theme-text-inverse);
 }

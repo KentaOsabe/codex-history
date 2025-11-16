@@ -11,12 +11,17 @@
 }
 
 .empty {
-  border: 1px dashed #cbd5f5;
+  border: 1px dashed
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 30%,
+      var(--theme-border-muted)
+    );
   border-radius: 1rem;
   padding: 1.25rem;
   text-align: center;
-  color: #4a5568;
-  background-color: #f8fafc;
+  color: var(--theme-text-muted);
+  background-color: var(--theme-surface-muted);
 }
 
 .virtualizerInner {

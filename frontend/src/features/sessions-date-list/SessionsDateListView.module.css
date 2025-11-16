@@ -1,33 +1,48 @@
-.container {
+.page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  width: 100%;
+}
+
+.layout {
+  width: 100%;
+}
+
+.sidebarColumn,
+.contentColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }
 
 .section {
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  box-shadow: 0 12px 32px rgb(15 23 42 / 6%);
-  background: #fff;
-  padding: 1.75rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-md);
 }
 
 .listHeader {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-sm);
 }
 
 .metaInfo {
   margin: 0;
   font-size: 0.9rem;
-  color: #475569;
+  color: var(--theme-text-muted);
 }
 
 .pagination {
-  align-self: flex-end;
+  align-self: stretch;
+  width: 100%;
+  justify-content: center;
+}
+
+@media (min-width: 1200px) {
+  .pagination {
+    align-self: flex-end;
+    width: auto;
+  }
 }

@@ -6,15 +6,15 @@
 
 .placeholder {
   margin: 0;
-  color: #475569;
+  color: var(--theme-text-muted);
   font-style: italic;
 }
 
 .group {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--theme-border-muted);
   border-radius: 0.75rem;
-  background: #fff;
-  box-shadow: 0 6px 18px rgb(15 23 42 / 6%);
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-shadow-soft);
 }
 
 .groupToggle {
@@ -27,12 +27,17 @@
   justify-content: space-between;
   font-size: 1rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--theme-text-strong);
   cursor: pointer;
 }
 
 .groupToggle:focus-visible {
-  outline: 3px solid #818cf8;
+  outline: 3px solid
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 50%,
+      var(--theme-surface-base)
+    );
   outline-offset: 2px;
 }
 
@@ -48,8 +53,8 @@
 
 .groupCount {
   border-radius: 999px;
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--theme-color-primary-subtle);
+  color: var(--theme-color-primary-active);
   font-size: 0.85rem;
   font-weight: 600;
   padding: 0.15rem 0.7rem;
@@ -58,7 +63,7 @@
 .chevron {
   transition: transform 0.2s ease;
   font-size: 1.1rem;
-  color: #475569;
+  color: var(--theme-text-muted);
 }
 
 .chevron[data-state='expanded'] {
@@ -67,7 +72,7 @@
 
 .groupBody {
   padding: 0 1.1rem 1.1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--theme-border-muted);
 }
 
 .groupBody[hidden] {
@@ -83,7 +88,7 @@
 
 .eventCard + .eventCard {
   margin-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--theme-border-muted);
   padding-top: 1rem;
 }
 
@@ -95,13 +100,13 @@
 
 .eventTimestamp {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--theme-text-secondary);
 }
 
 .eventSummary {
   margin: 0;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--theme-text-strong);
 }
 
 .tokenTable {
@@ -112,14 +117,14 @@
 
 .tokenTable th {
   text-align: left;
-  color: #475569;
+  color: var(--theme-text-muted);
   font-weight: 600;
   padding: 0.2rem 0;
 }
 
 .tokenTable td {
   text-align: right;
-  color: #0f172a;
+  color: var(--theme-text-strong);
   font-weight: 700;
   padding: 0.2rem 0;
 }

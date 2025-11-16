@@ -1,9 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/api/testServer'
+import { setupViewportMatchMediaMock } from '@/test-utils/matchMediaMock'
 
 import SessionsDateListView from '../SessionsDateListView'
 
@@ -294,5 +295,26 @@ describe('SessionsDateListView (integration)', () => {
     const cards = await screen.findAllByText('session-99')
     expect(cards.length).toBeGreaterThan(0)
     expect(attempt).toBe(3)
+  })
+
+  it('ResponsiveGridがviewport幅に応じて列数を更新する', async () => {
+    const env = setupViewportMatchMediaMock(1400)
+
+    render(<SessionsDateListView />)
+
+    const grid = await screen.findByTestId('sessions-responsive-grid')
+    expect(grid).toHaveAttribute('data-columns', '2')
+    expect(grid).toHaveAttribute('data-breakpoint', 'xl')
+
+    act(() => {
+      env.setViewportWidth(720)
+    })
+
+    await waitFor(() => {
+      expect(grid).toHaveAttribute('data-breakpoint', 'sm')
+    })
+    expect(grid).toHaveAttribute('data-columns', '1')
+
+    env.cleanup()
   })
 })

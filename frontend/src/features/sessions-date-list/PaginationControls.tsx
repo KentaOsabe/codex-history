@@ -41,7 +41,10 @@ const PaginationControls = ({
     onPageChange(normalizedPage + 1)
   }
 
-  const containerClass = className ? `${styles.container} ${className}` : styles.container
+  const needsPillClass = !className?.split(/\s+/).includes('layout-pill')
+  const containerClass = className
+    ? `${styles.container} ${className}${needsPillClass ? ' layout-pill' : ''}`
+    : `${styles.container} layout-pill`
 
   return (
     <div className={containerClass} role="navigation" aria-label={`${label}のページ切替`}>

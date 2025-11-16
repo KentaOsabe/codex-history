@@ -1,21 +1,23 @@
 .card {
   width: 100%;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
+  border: 1px solid var(--theme-border-muted);
+  border-radius: var(--theme-radius-md);
   padding: 1.1rem;
-  background: #fff;
+  background: var(--theme-surface-raised);
   text-align: left;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   cursor: pointer;
-  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+  transition: border-color var(--theme-transition-fast),
+    box-shadow var(--theme-transition-fast),
+    transform var(--theme-transition-fast);
 }
 
 .card:hover,
 .card:focus-visible {
-  border-color: #1d4ed8;
-  box-shadow: 0 12px 32px rgb(15 23 42 / 10%);
+  border-color: var(--theme-color-primary-base);
+  box-shadow: var(--theme-shadow-medium);
   transform: translateY(-1px);
   outline: none;
 }
@@ -30,18 +32,18 @@
 .sessionId {
   margin: 0;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--theme-text-strong);
 }
 
 .path {
   margin: 0.1rem 0 0;
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--theme-text-muted);
 }
 
 .badge {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--theme-color-primary-subtle);
+  color: var(--theme-color-primary-active);
   border-radius: 9999px;
   padding: 0.2rem 0.65rem;
   font-size: 0.8rem;
@@ -52,7 +54,7 @@
   display: flex;
   gap: 0.75rem;
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--theme-text-muted);
 }
 
 .meta {
@@ -62,11 +64,11 @@
 .highlight {
   margin: 0;
   font-size: 0.95rem;
-  color: #0f172a;
+  color: var(--theme-text-strong);
 }
 
 .highlight mark {
-  background: #fef3c7;
+  background: var(--theme-color-warning-subtle);
   padding: 0 0.15rem;
   border-radius: 4px;
 }

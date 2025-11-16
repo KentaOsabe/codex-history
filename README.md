@@ -66,7 +66,22 @@ npm run format
 - `npm run test:watch`: Vitest をウォッチモードで起動
 - `npm run format`: Prettier によるフォーマットチェック（`format:write` で自動整形）
 - `npm run lint:fix`: ESLint / Stylelint を自動修正モードで実行
+- `npm run storybook`: Storybook を `http://localhost:6006` で起動
+- `npm run build-storybook`: Storybook を静的ビルド
+- `npm run test:storybook`: Storybook を静的ビルドした上で Playwright で DOM アサーション（xs/md/xl の 3 幅）を実行
+- `npm run test:visual`: `storybook-artifacts/` にスクリーンショットを保存しながら Playwright を実行（CI で差分比較用）
 - `npm run test -- httpClient.test.ts errors.test.ts sessions.test.ts sessions.msw.test.ts`: API クライアント層のユニット / 統合テストのみを実行（MSW モック込み）
+
+### UI テーマとトークン運用
+- `frontend/src/styles/theme/` に CSS 変数を集約し、`main.tsx` で `tokens.css` / `typography.css` / `dark.css` をグローバル適用しています。React 側では `src/app/App.tsx` が `ThemeProvider` でアプリ全体をラップし、`prefers-color-scheme` + `localStorage (codex:theme-preference)` を基に `<body data-theme>` と `color-scheme` を 50ms 以内に切り替えます。
+- ライト/ダーク双方のプレビューやフォントスケール、アクセシビリティ要件は `docs/theme-tokens.md` を参照してください。ライト/ダーク採否の記録、再検討条件、トグル仕様は `docs/theme_toggle.md` にまとめています。
+- `AppLayout` の右上には `ThemeToggle` があり、クリックでライト/ダークをトグル、`SYS` ボタンでシステム既定（mode=system）へ戻せます。テストを書く際は `data-testid="theme-toggle"` と `aria-pressed` をアサートするとテーマ状態を把握できます。
+- Stylelint を `color-no-hex` + カスタム禁止リストで拡張し、ESLint では `theme-guard/no-literal-colors` ルールで inline style のカラー直書きを検出しています。必ず `var(--theme-*)` を利用してください。
+
+### レスポンシブ / ビジュアル検証
+- Storybook では `Breakpoint` グローバルツールバー（xs〜xl）を用意し、選択した幅に合わせて `matchMedia` / `grid-template` をモックしています。旧 `@storybook/addon-viewport` 依存は撤廃し、より軽量なカスタム実装に置き換えました。
+- `npm run test:storybook` は Storybook を静的ビルド → Playwright で `SessionsDateListView` / `SearchAndFilterPanel` / `SessionDetailPage` の `data-breakpoint` と列数を検証します。TDD の Red→Green チェックに利用してください。
+- `npm run test:visual` は同じストーリーをスクリーンショット化し、`frontend/storybook-artifacts/*.png` に保存します。CI では失敗時にこのディレクトリをアーティファクト化すると視覚差分を簡単にレビューできます。
 
 ## テスト実行
 ```bash

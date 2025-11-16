@@ -4,8 +4,8 @@
   gap: 0.5rem;
   padding: 0.5rem;
   border-radius: 1rem;
-  border: 1px solid #e2e8f0;
-  background-color: #f8fafc;
+  border: 1px solid var(--theme-border-muted);
+  background-color: var(--theme-surface-muted);
 }
 
 .tabButton {
@@ -16,28 +16,45 @@
   min-width: 120px;
   text-align: left;
   background-color: transparent;
-  color: #4a5568;
+  color: var(--theme-text-muted);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.95rem;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color var(--theme-transition-medium),
+    color var(--theme-transition-medium),
+    border-color var(--theme-transition-medium),
+    box-shadow var(--theme-transition-medium);
 }
 
 .tabButton:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgb(66 153 225 / 80%);
+  box-shadow: 0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 55%,
+      var(--theme-surface-base)
+    );
 }
 
 .tabButton:hover:not(.tabButtonActive) {
-  border-color: #cbd5f5;
-  background-color: #fff;
+  border-color: color-mix(
+    in srgb,
+    var(--theme-color-primary-base) 20%,
+    var(--theme-border-muted)
+  );
+  background-color: var(--theme-surface-raised);
 }
 
 .tabButtonActive {
-  background-color: #2b6cb0;
-  color: #fff;
-  border-color: #2b6cb0;
-  box-shadow: 0 10px 25px rgb(43 108 176 / 35%);
+  background-color: var(--theme-color-primary-base);
+  color: var(--theme-text-inverse);
+  border-color: var(--theme-color-primary-base);
+  box-shadow: 0 10px 25px
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 45%,
+      transparent
+    );
 }
 
 .tabLabel {
@@ -48,10 +65,14 @@
   display: block;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #718096;
+  color: var(--theme-text-secondary);
   margin-top: 0.15rem;
 }
 
 .tabButtonActive .tabDescription {
-  color: rgb(255 255 255 / 80%);
+  color: color-mix(
+    in srgb,
+    var(--theme-text-inverse) 80%,
+    transparent
+  );
 }

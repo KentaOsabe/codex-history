@@ -1,8 +1,8 @@
 .header {
-  background-color: #fff;
+  background-color: var(--theme-surface-raised);
   border-radius: 1.25rem;
   padding: 1.75rem 2rem;
-  box-shadow: 0 20px 45px rgb(15 23 42 / 8%);
+  box-shadow: var(--theme-shadow-medium);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -24,14 +24,14 @@
 .sessionIdLabel {
   margin: 0;
   font-size: 0.85rem;
-  color: #4a5568;
+  color: var(--theme-text-muted);
 }
 
 .title {
   margin: 0.35rem 0 0;
   font-size: 2rem;
   font-weight: 700;
-  color: #1a202c;
+  color: var(--theme-text-strong);
 }
 
 .actions {
@@ -45,15 +45,22 @@
   align-items: center;
   gap: 0.35rem;
   border-radius: 9999px;
-  border: 1px solid #cbd5f5;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 20%,
+      var(--theme-border-muted)
+    );
   padding: 0.4rem 1rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--theme-text-strong);
   text-decoration: none;
+  transition: border-color var(--theme-transition-fast),
+    color var(--theme-transition-fast);
 }
 
 .downloadButton:hover {
-  border-color: #2b6cb0;
+  border-color: var(--theme-color-primary-base);
 }
 
 .stats {
@@ -64,23 +71,23 @@
 }
 
 .statItem {
-  background-color: #f8fafc;
+  background-color: var(--theme-surface-muted);
   border-radius: 0.85rem;
   padding: 0.85rem 1rem;
-  border: 1px solid #edf2f7;
+  border: 1px solid var(--theme-border-muted);
 }
 
 .statItem > dt {
   margin: 0;
   font-size: 0.85rem;
-  color: #607088;
+  color: var(--theme-text-secondary);
 }
 
 .statItem > dd {
   margin: 0.25rem 0 0;
   font-size: 1.35rem;
   font-weight: 700;
-  color: #1a202c;
+  color: var(--theme-text-strong);
 }
 
 .metaData {
@@ -89,11 +96,10 @@
   gap: 1rem;
   margin: 0;
   font-size: 0.95rem;
-  color: #4a5568;
+  color: var(--theme-text-muted);
 }
 
 .metaData code {
-  font-family: 'JetBrains Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+  font-family: var(--theme-font-mono);
   font-size: 0.85rem;
 }

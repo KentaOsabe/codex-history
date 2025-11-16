@@ -16,6 +16,7 @@ export interface SearchAndFilterPanelProps {
   dateRangeError?: string
   onDateRangeChange: (next: Partial<DateRange>) => void
   onClearFilters: () => void
+  className?: string
 }
 
 const SearchAndFilterPanel = ({
@@ -28,6 +29,7 @@ const SearchAndFilterPanel = ({
   dateRangeError,
   onDateRangeChange,
   onClearFilters,
+  className,
 }: SearchAndFilterPanelProps) => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -38,8 +40,14 @@ const SearchAndFilterPanel = ({
   const errorId = errorMessage ? 'sessions-search-error' : undefined
   const describedBy = errorMessage ? `${errorId} sessions-date-list-search-help` : 'sessions-date-list-search-help'
 
+  const containerClass = className ? `${styles.container} ${className}` : styles.container
+
   return (
-    <section className={styles.container} aria-labelledby="sessions-search-panel">
+    <section
+      className={containerClass}
+      aria-labelledby="sessions-search-panel"
+      data-testid="search-and-filter-panel"
+    >
       <header className={styles.header}>
         <h2 id="sessions-search-panel">検索とフィルタ</h2>
         <p className={styles.helper}>キーワードと日付範囲でセッションを絞り込みます。</p>

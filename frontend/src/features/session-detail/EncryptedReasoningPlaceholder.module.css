@@ -1,9 +1,14 @@
 .placeholder {
   border-radius: 1rem;
-  border: 1px dashed #cbd5f5;
-  background-color: #f8fafc;
+  border: 1px dashed
+    color-mix(
+      in srgb,
+      var(--theme-color-primary-base) 30%,
+      var(--theme-border-muted)
+    );
+  background-color: var(--theme-surface-muted);
   padding: 1rem 1.25rem;
-  color: #1a202c;
+  color: var(--theme-text-strong);
 }
 
 .title {
@@ -16,7 +21,7 @@
   margin: 0;
   padding-left: 1rem;
   font-size: 0.9rem;
-  color: #4a5568;
+  color: var(--theme-text-muted);
 }
 
 .metaList li {
@@ -27,4 +32,3 @@
   margin: 0.75rem 0 0;
   font-size: 0.9rem;
 }
-

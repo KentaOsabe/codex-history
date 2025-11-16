@@ -5,11 +5,11 @@
 }
 
 .section {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--theme-border-muted);
   border-radius: 1rem;
   padding: 1rem;
-  background: #fff;
-  box-shadow: 0 10px 25px rgb(15 23 42 / 8%);
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-shadow-soft);
 }
 
 .sectionHeader {
@@ -24,13 +24,13 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #1a202c;
+  color: var(--theme-text-strong);
 }
 
 .sectionBadge {
   border-radius: 999px;
-  background: #edf2ff;
-  color: #3730a3;
+  background: var(--theme-color-primary-subtle);
+  color: var(--theme-color-primary-active);
   font-weight: 600;
   padding: 0.2rem 0.8rem;
   font-size: 0.85rem;
@@ -44,13 +44,18 @@
 .skeletonBar {
   height: 14px;
   border-radius: 9999px;
-  background: linear-gradient(90deg, #edf2f7, #f7fafc 45%, #edf2f7);
+  background: linear-gradient(
+    90deg,
+    var(--theme-surface-muted),
+    var(--theme-surface-base) 45%,
+    var(--theme-surface-muted)
+  );
   animation: shimmer 1.6s infinite;
 }
 
 .skeletonMessage {
   margin: 0;
-  color: #4a5568;
+  color: var(--theme-text-muted);
   font-size: 0.9rem;
 }
 

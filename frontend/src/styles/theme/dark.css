@@ -1,0 +1,27 @@
+/* stylelint-disable color-no-hex, color-hex-length, declaration-property-value-disallowed-list, order/order, custom-property-empty-line-before */
+[data-theme='dark'],
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --theme-surface-base: #050914;
+  --theme-surface-muted: #0f172a;
+  --theme-surface-raised: #111827;
+  --theme-surface-accent: color-mix(in srgb, var(--theme-color-primary-base) 10%, #111827);
+  --theme-surface-danger: color-mix(in srgb, var(--theme-color-danger-base) 12%, #111827);
+
+  --theme-text-default: #e2e8f0;
+  --theme-text-strong: #f8fafc;
+  --theme-text-muted: #94a3b8;
+  --theme-text-secondary: #cbd5f5;
+  --theme-text-inverse: #050914;
+  --theme-text-success: color-mix(in srgb, var(--theme-color-success-base) 75%, #f8fafc);
+  --theme-text-danger: color-mix(in srgb, var(--theme-color-danger-base) 80%, #f8fafc);
+
+  --theme-border-default: #1e293b;
+  --theme-border-strong: #334155;
+  --theme-border-muted: #142033;
+  --theme-border-inverse: #f8fafc;
+
+  --theme-shadow-soft: 0 16px 40px color-mix(in srgb, #000 60%, transparent);
+  --theme-shadow-medium: 0 24px 48px color-mix(in srgb, #000 70%, transparent);
+}
