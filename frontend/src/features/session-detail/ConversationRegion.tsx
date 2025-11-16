@@ -31,6 +31,7 @@ interface ConversationRegionProps {
   onRetry: () => void
   timelineMessages?: SessionMessageViewModel[]
   timelineFilterControls?: TimelineFilterControls
+  highlightedMessageIds?: string[]
 }
 
 const ConversationRegion = ({
@@ -51,6 +52,7 @@ const ConversationRegion = ({
   onRetry,
   timelineMessages,
   timelineFilterControls,
+  highlightedMessageIds,
 }: ConversationRegionProps) => {
   const showTabLayout = status === 'loading' || Boolean(detail)
 
@@ -97,6 +99,7 @@ const ConversationRegion = ({
                   onReachStart={onReachTop}
                   onReachEnd={onReachBottom}
                   onScrollAnchorChange={onScrollAnchorChange}
+                  highlightedIds={highlightedMessageIds}
                 />
               ) : (
                 <div className={styles.skeleton} role="status" aria-live="polite">

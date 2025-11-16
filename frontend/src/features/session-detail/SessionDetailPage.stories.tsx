@@ -1,6 +1,6 @@
 
 import { expect } from '@storybook/jest'
-import { within } from '@storybook/testing-library'
+import { userEvent, within } from '@storybook/testing-library'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 import { storybookSessionDetailHandlers, storybookSessionHandlers } from '@/mocks/storybookHandlers'
@@ -79,5 +79,37 @@ export const Mobile: Story = {
   play: async ({ canvasElement }) => {
     await assertDetailRender(canvasElement)
     await expect(window.innerWidth).toBeLessThan(576)
+  },
+}
+
+export const DrawerInteraction: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: 'md',
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await assertDetailRender(canvasElement)
+
+    const metaButton = await canvas.findByRole('button', { name: /メタイベント/ })
+    await userEvent.click(metaButton)
+
+    const drawer = await canvas.findByTestId('meta-event-drawer')
+    await expect(drawer).toBeInTheDocument()
+
+    const highlightedCard = canvas.getAllByRole('article').find((node) => node.getAttribute('data-highlighted') === 'true')
+    await expect(highlightedCard).toBeDefined()
+
+    await userEvent.click(canvas.getByRole('button', { name: '詳細を閉じる' }))
+
+    const sanitizedToggle = await canvas.findByRole('button', { name: 'サニタイズ済み' })
+    await userEvent.click(sanitizedToggle)
+    await expect(sanitizedToggle).toHaveAttribute('aria-pressed', 'true')
+
+    const sanitizedMetaButton = await canvas.findByRole('button', { name: /メタイベント/ })
+    await userEvent.click(sanitizedMetaButton)
+
+    await expect(canvas.getByText('サニタイズ版のイベントを表示中')).toBeInTheDocument()
   },
 }

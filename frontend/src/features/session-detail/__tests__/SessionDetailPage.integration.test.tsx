@@ -13,10 +13,11 @@ interface MockTimelineProps {
   messages: SessionDetailResponse['data']['attributes']['messages']
   virtualizationThreshold?: number
   onScrollAnchorChange?: (snapshot: { offsetRatio: number; absoluteOffset: number }) => void
+  highlightedIds?: string[]
 }
 
 vi.mock('../MessageTimeline', () => {
-  const MockTimeline = forwardRef<HTMLDivElement, MockTimelineProps>(({ messages, onScrollAnchorChange }, ref) => {
+  const MockTimeline = forwardRef<HTMLDivElement, MockTimelineProps>(({ messages, onScrollAnchorChange, highlightedIds }, ref) => {
     useEffect(() => {
       onScrollAnchorChange?.({ offsetRatio: 0, absoluteOffset: 0 })
     }, [onScrollAnchorChange])
@@ -26,10 +27,16 @@ vi.mock('../MessageTimeline', () => {
         ref={ref}
         data-testid="message-timeline"
         data-virtualized={messages.length > 120 ? 'true' : 'false'}
+        data-highlighted-count={highlightedIds?.length ?? 0}
       >
-        {messages.map((message) => (
-          <article key={message.id}>{message.segments[0]?.text ?? '本文なし。'}</article>
-        ))}
+        {messages.map((message) => {
+          const highlighted = highlightedIds?.includes(message.id)
+          return (
+            <article key={message.id} data-message-id={message.id} data-highlighted={highlighted ? 'true' : 'false'}>
+              {message.segments[0]?.text ?? '本文なし。'}
+            </article>
+          )
+        })}
       </div>
     )
   })
@@ -375,6 +382,42 @@ describe('SessionDetailPage (integration)', () => {
     const warningsAfter = screen.getAllByText('安全のため一部の内容をマスクしました')
     expect(warningsAfter.length).toBeGreaterThanOrEqual(2)
     expect(variantRequests).toEqual([ 'original', 'sanitized' ])
+  })
+
+  it('meta / tool サマリーピルから drawer を開きタイムラインの関連メッセージをハイライトする (R2.2/R2.3)', async () => {
+    server.use(
+      http.get('*/api/sessions/:sessionId', () => {
+        return HttpResponse.json(
+          buildSessionDetailResponse({
+            attributes: {
+              session_id: 'session-highlight',
+              tool_call_count: 2,
+              tool_result_count: 1,
+              meta_event_count: 1,
+            },
+            messages: buildDetailMessagesForVariant('original'),
+          }),
+        )
+      }),
+    )
+
+    renderDetailPage()
+
+    const bundleButton = await screen.findByRole('button', { name: /メタイベント/ })
+    fireEvent.click(bundleButton)
+
+    const drawer = await screen.findByRole('dialog', { name: /メタイベント/ })
+    expect(drawer).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('message-timeline').getAttribute('data-highlighted-count')).toBe('1')
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: '詳細を閉じる' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('message-timeline').getAttribute('data-highlighted-count')).toBe('0')
+    })
   })
 
   it('API 404 を受け取った場合にエラーバナーとリトライ導線を表示する', async () => {

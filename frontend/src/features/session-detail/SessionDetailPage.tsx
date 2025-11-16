@@ -6,13 +6,14 @@ import ResponsiveGrid from '@/features/layout/ResponsiveGrid'
 import useResponsiveLayout from '@/features/layout/useResponsiveLayout'
 
 import ConversationRegion from './ConversationRegion'
+import MetaEventDrawer from './MetaEventDrawer'
 import styles from './SessionDetailPage.module.css'
 import SessionSummaryRail from './SessionSummaryRail'
 import { useConversationEvents } from './useConversationEvents'
 import { useSessionDetailViewModel } from './useSessionDetailViewModel'
 
 import type { SessionDetailTab } from './SessionDetailTabs'
-import type { ScrollAnchorSnapshot, TimelineDisplayMode } from './types'
+import type { ScrollAnchorSnapshot, TimelineBundleSummary, TimelineDisplayMode } from './types'
 
 const TAB_IDS = {
   conversation: 'session-detail-tab-conversation',
@@ -48,6 +49,8 @@ const SessionDetailPage = () => {
   const boundaryTriggerRef = useRef<{ direction: 'start' | 'end'; timestamp: number } | null>(null)
   const [activeTab, setActiveTab] = useState<SessionDetailTab>('conversation')
   const [timelineMode, setTimelineMode] = useState<TimelineDisplayMode>('conversation')
+  const [drawerSummary, setDrawerSummary] = useState<TimelineBundleSummary | null>(null)
+  const [highlightedIds, setHighlightedIds] = useState<string[]>([])
   const [tabAnnouncement, setTabAnnouncement] = useState<string>(TAB_ANNOUNCEMENTS.conversation)
   const conversationPanelRef = useRef<HTMLElement | null>(null)
   const detailPanelRef = useRef<HTMLElement | null>(null)
@@ -109,6 +112,27 @@ const SessionDetailPage = () => {
       }
       return nextMode
     })
+  }, [])
+
+  const applyHighlightForSummary = useCallback((summary: TimelineBundleSummary | null) => {
+    if (summary?.anchorMessageId) {
+      setHighlightedIds([ summary.anchorMessageId ])
+    } else {
+      setHighlightedIds([])
+    }
+  }, [])
+
+  const handleBundleSelect = useCallback((summary: TimelineBundleSummary) => {
+    setDrawerSummary(summary)
+    applyHighlightForSummary(summary)
+    if (activeTab !== 'conversation') {
+      handleTabChange('conversation')
+    }
+  }, [activeTab, applyHighlightForSummary, handleTabChange])
+
+  const handleDrawerClose = useCallback(() => {
+    setDrawerSummary(null)
+    setHighlightedIds([])
   }, [])
 
   const handleRetry = useCallback(() => {
@@ -184,6 +208,21 @@ const SessionDetailPage = () => {
     filterModeStateRef.current[sessionKey] = timelineMode
   }, [sessionKey, timelineMode])
 
+  useEffect(() => {
+    applyHighlightForSummary(drawerSummary)
+  }, [drawerSummary, applyHighlightForSummary])
+
+  useEffect(() => {
+    if (!drawerSummary) {
+      return
+    }
+    const exists = conversationData.bundleSummaries.some((summary) => summary.id === drawerSummary.id)
+    if (!exists) {
+      setDrawerSummary(null)
+      setHighlightedIds([])
+    }
+  }, [conversationData.bundleSummaries, drawerSummary])
+
   const timelineMessages = detail
     ? timelineMode === 'conversation'
       ? conversationData.conversationMessages
@@ -196,8 +235,11 @@ const SessionDetailPage = () => {
         hiddenCount: conversationData.hiddenCount,
         bundleSummaries: conversationData.bundleSummaries,
         onModeChange: handleTimelineModeChange,
+        onBundleSelect: handleBundleSelect,
       }
     : undefined
+
+  const drawerPlacement = layout.columns === 1 ? 'bottom' : 'side'
 
   return (
     <article
@@ -226,6 +268,7 @@ const SessionDetailPage = () => {
           onRetry={handleRetry}
           timelineMessages={timelineMessages}
           timelineFilterControls={layout.columns === 1 ? timelineFilterControls : undefined}
+          highlightedMessageIds={highlightedIds}
         />
 
         <SessionSummaryRail
@@ -244,6 +287,17 @@ const SessionDetailPage = () => {
           セッション一覧へ戻る
         </Link>
       </div>
+
+      <MetaEventDrawer
+        open={Boolean(drawerSummary)}
+        onClose={handleDrawerClose}
+        variant={variant}
+        placement={drawerPlacement}
+        summary={drawerSummary}
+        metaEvents={conversationData.metaEvents}
+        toolInvocations={conversationData.toolInvocations}
+        sessionId={detail?.sessionId}
+      />
     </article>
   )
 }

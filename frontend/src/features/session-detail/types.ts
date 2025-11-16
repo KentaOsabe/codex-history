@@ -11,6 +11,8 @@ export interface RenderedSegment {
   format?: string | null
 }
 
+export type SanitizedViewerMode = 'default' | 'redacted'
+
 export interface ToolCallViewModel {
   callId?: string
   name?: string

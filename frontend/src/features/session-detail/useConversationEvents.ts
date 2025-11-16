@@ -7,9 +7,11 @@ import { useDetailInsights } from './useDetailInsights'
 
 import type {
   ConversationEvent,
+  MetaEventGroup,
   SessionDetailViewModel,
   SessionMessageViewModel,
   TimelineBundleSummary,
+  ToolInvocationGroup,
 } from './types'
 
 interface UseConversationEventsParams {
@@ -22,6 +24,8 @@ export interface UseConversationEventsResult {
   events: ConversationEvent[]
   bundleSummaries: TimelineBundleSummary[]
   hiddenCount: number
+  metaEvents: MetaEventGroup[]
+  toolInvocations: ToolInvocationGroup[]
 }
 
 const SANITIZED_PLACEHOLDER = '※サニタイズ済み'
@@ -101,6 +105,28 @@ export const useConversationEvents = ({ detail, variant }: UseConversationEvents
   const sanitized = variant === 'sanitized'
   const hiddenCount = categorized.meta.length + categorized.tool.length
 
+  const findConversationAnchorId = useMemo(() => {
+    if (!detail) {
+      return () => undefined
+    }
+    return (targetId?: string) => {
+      if (!targetId) {
+        return categorized.conversation[0]?.id
+      }
+      const targetIndex = detail.messages.findIndex((message) => message.id === targetId)
+      if (targetIndex <= 0) {
+        return categorized.conversation[0]?.id
+      }
+      for (let index = targetIndex - 1; index >= 0; index -= 1) {
+        const candidate = detail.messages[index]
+        if (candidate && isConversationRole(candidate.role)) {
+          return candidate.id
+        }
+      }
+      return categorized.conversation[0]?.id
+    }
+  }, [categorized.conversation, detail])
+
   const relatedMap = useMemo(() => {
     if (!detail) {
       return {}
@@ -123,10 +149,11 @@ export const useConversationEvents = ({ detail, variant }: UseConversationEvents
   const bundleEvents = useMemo<ConversationEvent[]>(() => {
     const bundles: ConversationEvent[] = []
     if (categorized.meta.length) {
+      const anchorMessageId = findConversationAnchorId(categorized.meta[0]?.id)
       bundles.push({
         kind: 'bundle',
         bundleType: 'meta',
-        anchorMessageId: categorized.meta[0]?.id,
+        anchorMessageId,
         label: 'メタイベント',
         count: categorized.meta.length,
         events: metaEvents,
@@ -135,10 +162,11 @@ export const useConversationEvents = ({ detail, variant }: UseConversationEvents
       })
     }
     if (categorized.tool.length) {
+      const anchorMessageId = findConversationAnchorId(categorized.tool[0]?.id)
       bundles.push({
         kind: 'bundle',
         bundleType: 'tool',
-        anchorMessageId: categorized.tool[0]?.id,
+        anchorMessageId,
         label: 'ツールイベント',
         count: categorized.tool.length,
         events: toolInvocations,
@@ -147,7 +175,7 @@ export const useConversationEvents = ({ detail, variant }: UseConversationEvents
       })
     }
     return bundles
-  }, [categorized.meta, categorized.tool, metaEvents, toolInvocations, sanitized])
+  }, [categorized.meta, categorized.tool, metaEvents, toolInvocations, sanitized, findConversationAnchorId])
 
   const events = useMemo(() => [...conversationEvents, ...bundleEvents], [bundleEvents, conversationEvents])
 
@@ -157,34 +185,38 @@ export const useConversationEvents = ({ detail, variant }: UseConversationEvents
     }
     const entries: TimelineBundleSummary[] = []
     if (categorized.meta.length) {
+      const anchorMessageId = findConversationAnchorId(categorized.meta[0]?.id)
       entries.push({
         id: `${detail.sessionId}-meta-bundle`,
         bundleType: 'meta',
         label: 'メタイベント',
         count: categorized.meta.length,
         preview: sanitized ? SANITIZED_PLACEHOLDER : deriveFirstText(categorized.meta),
-        anchorMessageId: categorized.meta[0]?.id,
+        anchorMessageId,
         isSanitizedVariant: sanitized,
       })
     }
     if (categorized.tool.length) {
+      const anchorMessageId = findConversationAnchorId(categorized.tool[0]?.id)
       entries.push({
         id: `${detail.sessionId}-tool-bundle`,
         bundleType: 'tool',
         label: 'ツールイベント',
         count: categorized.tool.length,
         preview: sanitized ? SANITIZED_PLACEHOLDER : deriveToolPreview(categorized.tool),
-        anchorMessageId: categorized.tool[0]?.id,
+        anchorMessageId,
         isSanitizedVariant: sanitized,
       })
     }
     return entries
-  }, [categorized.meta, categorized.tool, detail, sanitized])
+  }, [categorized.meta, categorized.tool, detail, sanitized, findConversationAnchorId])
 
   return {
     conversationMessages: categorized.conversation,
     events,
     bundleSummaries,
     hiddenCount,
+    metaEvents,
+    toolInvocations,
   }
 }

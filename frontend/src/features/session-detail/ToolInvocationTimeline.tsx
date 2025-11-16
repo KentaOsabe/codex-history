@@ -3,11 +3,12 @@ import { useEffect, useRef, useState } from 'react'
 import SanitizedJsonViewer from './SanitizedJsonViewer'
 import styles from './ToolInvocationTimeline.module.css'
 
-import type { ToolInvocationGroup } from './types'
+import type { SanitizedViewerMode, ToolInvocationGroup } from './types'
 
 interface ToolInvocationTimelineProps {
   toolInvocations: ToolInvocationGroup[]
   sessionId?: string
+  viewerMode?: SanitizedViewerMode
 }
 
 const STATUS_LABELS: Record<ToolInvocationGroup['status'], string> = {
@@ -28,7 +29,7 @@ const formatDuration = (durationMs?: number): string | null => {
 
 type InvocationCollapseState = Record<string, { argumentsExpanded: boolean; resultExpanded: boolean }>
 
-const ToolInvocationTimeline = ({ toolInvocations, sessionId }: ToolInvocationTimelineProps) => {
+const ToolInvocationTimeline = ({ toolInvocations, sessionId, viewerMode = 'default' }: ToolInvocationTimelineProps) => {
   const collapseStateRef = useRef<InvocationCollapseState>({})
   const [, setVersion] = useState(0)
 
@@ -103,6 +104,7 @@ const ToolInvocationTimeline = ({ toolInvocations, sessionId }: ToolInvocationTi
                 value={invocation.argumentsValue}
                 expanded={invocationState.argumentsExpanded}
                 onExpandedChange={(nextExpanded) => handleExpandedChange(invocation.id, 'argumentsExpanded', nextExpanded)}
+                mode={viewerMode}
               />
 
               {invocation.resultValue !== undefined ? (
@@ -112,6 +114,7 @@ const ToolInvocationTimeline = ({ toolInvocations, sessionId }: ToolInvocationTi
                   value={invocation.resultValue}
                   expanded={invocationState.resultExpanded}
                   onExpandedChange={(nextExpanded) => handleExpandedChange(invocation.id, 'resultExpanded', nextExpanded)}
+                  mode={viewerMode}
                 />
               ) : (
                 <div className={styles.emptyPayload} aria-live="polite">

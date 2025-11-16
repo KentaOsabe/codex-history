@@ -71,6 +71,12 @@
   font-style: italic;
 }
 
+.redacted {
+  margin: 0;
+  color: var(--theme-color-warning-active);
+  font-weight: 600;
+}
+
 .warning {
   margin: 0;
   color: var(--theme-color-warning-active);

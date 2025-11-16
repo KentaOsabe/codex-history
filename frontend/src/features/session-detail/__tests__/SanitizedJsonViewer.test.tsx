@@ -63,4 +63,12 @@ describe('SanitizedJsonViewer', () => {
     expect(screen.getByText('安全のため一部の内容をマスクしました')).toBeInTheDocument()
     expect(screen.getByText('{"baz":1}')).toBeInTheDocument()
   })
+
+  it('redacted モードでは伏字プレースホルダーを表示しトグルを無効化する (R2.4)', () => {
+    render(<SanitizedJsonViewer id="call-4" label="システム" value={{ secret: true }} mode="redacted" />)
+
+    const toggle = screen.getByRole('button', { name: 'システムを展開' })
+    expect(toggle).toBeDisabled()
+    expect(screen.getByText('サニタイズされたため表示できません')).toBeInTheDocument()
+  })
 })

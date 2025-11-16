@@ -12,7 +12,7 @@
   - `useConversationEvents.test.ts` で role フィルタ、bundle 集計、関連メッセージハイライト、サニタイズ時の伏字置換を Red→Green→Refactor で網羅する。
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 3. Meta/Tool drawer 体験とサニタイズガードレールを実装する
+- [x] 3. Meta/Tool drawer 体験とサニタイズガードレールを実装する
   - `MetaEventDrawer` / `ToolBundlePanel` を追加し、`MetaEventsPanel` と `ToolInvocationTimeline` を再利用して bundle 詳細を表示する。drawer ヘッダーに「サニタイズ版」バナーを表示し、`SanitizedJsonViewer` の redacted モードで伏字を強制する。
   - Drawer オープン時に該当メッセージを `highlightedIds` で強調し、閉じたら解除する。VP 切替（side sheet / bottom sheet）もレスポンシブで検証する。
   - `MetaEventDrawer.sanitized.test.tsx` と Storybook Interaction Test を追加し、伏字・ハイライト・ARIA 属性を確認する。

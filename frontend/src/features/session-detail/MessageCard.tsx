@@ -7,6 +7,7 @@ import type { SessionMessageViewModel } from './types'
 
 interface MessageCardProps {
   message: SessionMessageViewModel
+  isHighlighted?: boolean
 }
 
 const ROLE_LABELS: Record<SessionMessageViewModel['role'], string> = {
@@ -31,7 +32,7 @@ const SOURCE_LABELS: Record<SessionMessageViewModel['sourceType'], string> = {
   session: 'Session',
 }
 
-const MessageCard = ({ message }: MessageCardProps) => {
+const MessageCard = ({ message, isHighlighted = false }: MessageCardProps) => {
   const roleClassName = {
     user: styles.roleUser,
     assistant: styles.roleAssistant,
@@ -39,9 +40,10 @@ const MessageCard = ({ message }: MessageCardProps) => {
     system: styles.roleAssistant,
     meta: styles.roleMeta,
   }[message.role]
+  const highlightedClass = isHighlighted ? styles.highlighted : ''
 
   return (
-    <article className={`${styles.card} ${roleClassName ?? ''}`}>
+    <article className={`${styles.card} ${roleClassName ?? ''} ${highlightedClass}`.trim()} data-highlighted={isHighlighted ? 'true' : 'false'}>
       <header className={styles.header}>
         <span className={styles.role}>{ROLE_LABELS[message.role]}</span>
         <div className={styles.metaGroup}>

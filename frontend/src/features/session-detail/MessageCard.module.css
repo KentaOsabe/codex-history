@@ -111,3 +111,9 @@
   border-top: 1px solid var(--theme-border-muted);
   padding-top: 0.75rem;
 }
+
+.highlighted {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--theme-color-primary-base) 40%, transparent),
+    var(--theme-shadow-strong);
+}

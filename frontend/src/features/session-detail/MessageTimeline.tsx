@@ -14,6 +14,7 @@ interface MessageTimelineProps {
   onReachStart?: () => void
   onReachEnd?: () => void
   onScrollAnchorChange?: (snapshot: ScrollAnchorSnapshot) => void
+  highlightedIds?: string[]
 }
 
 const VIRTUALIZATION_THRESHOLD = 120
@@ -54,6 +55,7 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
       onReachStart,
       onReachEnd,
       onScrollAnchorChange,
+      highlightedIds,
     },
     forwardedRef,
   ) => {
@@ -65,6 +67,7 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
     }, [className])
 
     const shouldVirtualize = messages.length > virtualizationThreshold
+    const highlightedSet = useMemo(() => new Set(highlightedIds ?? []), [highlightedIds])
 
     const estimateSize = useCallback((index: number) => estimateMessageHeight(messages[index]), [messages])
     const getItemKey = useCallback(
@@ -200,7 +203,7 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
         >
           <div className={styles.list}>
             {messages.map((message) => (
-              <MessageCard key={message.id} message={message} />
+              <MessageCard key={message.id} message={message} isHighlighted={highlightedSet.has(message.id)} />
             ))}
           </div>
         </div>
@@ -217,6 +220,7 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
         <div className={styles.virtualizerInner} style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualItems.map((virtualRow) => {
             const message = messages[virtualRow.index]
+            const isHighlighted = highlightedSet.has(message.id)
             return (
               <div
                 key={(virtualRow.key ?? messages[virtualRow.index]?.id ?? virtualRow.index).toString()}
@@ -229,7 +233,7 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
                 style={{ transform: `translateY(${virtualRow.start}px)` }}
                 data-index={virtualRow.index}
               >
-                <MessageCard message={message} />
+                <MessageCard message={message} isHighlighted={isHighlighted} />
               </div>
             )
           })}
