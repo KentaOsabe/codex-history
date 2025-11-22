@@ -31,7 +31,7 @@ const DetailInsightsPanel = ({ detail, status }: DetailInsightsPanelProps) => {
   }
 
   return (
-    <div className={styles.panel} role="status" aria-live="polite" aria-busy={status === 'loading'}>
+    <div className={styles.panel} role="status" aria-live="polite" aria-busy={status === 'loading' || status === 'refetching'}>
       <section className={styles.section} aria-label="ツール呼び出し詳細">
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>ツール呼び出しタイムライン</h3>

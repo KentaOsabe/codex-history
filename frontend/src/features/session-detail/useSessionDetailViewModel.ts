@@ -55,11 +55,14 @@ export const useSessionDetailViewModel = ({
   const runFetch = useCallback(
     async (targetSessionId: string, targetVariant: SessionVariant, preservePrevious: boolean) => {
       const requestId = ++requestIdRef.current
-      setState((prev) => ({
-        status: 'loading',
-        detail: preservePrevious ? prev.detail : undefined,
-        error: undefined,
-      }))
+      setState((prev) => {
+        const keepDetail = preservePrevious && Boolean(prev.detail)
+        return {
+          status: keepDetail ? 'refetching' : 'loading',
+          detail: keepDetail ? prev.detail : undefined,
+          error: undefined,
+        }
+      })
 
       try {
         const response = await sessionsApi.getSessionDetail({ id: targetSessionId, variant: targetVariant })

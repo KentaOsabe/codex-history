@@ -126,6 +126,30 @@ const sampleSessionDetailResponse: SessionDetailResponse = {
             output: 'index=codex_history refreshed successfully',
           },
         },
+        {
+          id: 'meta-token-usage',
+          timestamp: '2025-03-14T08:13:30Z',
+          source_type: 'meta',
+          role: 'meta',
+          segments: [
+            {
+              channel: 'meta',
+              type: 'text',
+              text: 'token usage report',
+            },
+          ],
+          raw: {
+            payload_type: 'token_count',
+            payload: {
+              kind: 'token_count',
+              info: {
+                prompt_tokens: 120,
+                completion_tokens: 35,
+                total_tokens: 155,
+              },
+            },
+          },
+        },
       ],
     },
   },

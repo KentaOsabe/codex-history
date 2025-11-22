@@ -10,9 +10,11 @@ interface SanitizedJsonViewerProps {
   maxBytesBeforeLazy?: number
   expanded?: boolean
   onExpandedChange?: (next: boolean) => void
+  mode?: 'default' | 'redacted'
 }
 
 const DEFAULT_LAZY_THRESHOLD = 10 * 1024
+const REDACTED_PLACEHOLDER = 'サニタイズされたため表示できません'
 
 const serializeValue = (value?: unknown): string | null => {
   if (value === null || value === undefined) return null
@@ -41,23 +43,26 @@ const SanitizedJsonViewer = ({
   maxBytesBeforeLazy = DEFAULT_LAZY_THRESHOLD,
   expanded,
   onExpandedChange,
+  mode = 'default',
 }: SanitizedJsonViewerProps) => {
   const serialized = useMemo(() => serializeValue(value), [value])
   const byteLength = useMemo(() => {
     if (!serialized) return 0
     return new TextEncoder().encode(serialized).length
   }, [serialized])
-  const shouldLazyRender = Boolean(serialized && byteLength > maxBytesBeforeLazy)
+
+  const isRedactedMode = mode === 'redacted'
+  const shouldLazyRender = isRedactedMode ? false : Boolean(serialized && byteLength > maxBytesBeforeLazy)
   const preview = useMemo(() => {
-    if (!serialized || shouldLazyRender) return null
+    if (!serialized || shouldLazyRender || isRedactedMode) return null
     return buildPreview(serialized)
-  }, [serialized, shouldLazyRender])
+  }, [serialized, shouldLazyRender, isRedactedMode])
 
   const isControlled = typeof expanded === 'boolean'
   const [internalExpanded, setInternalExpanded] = useState(false)
-  const resolvedExpanded = isControlled ? Boolean(expanded) : internalExpanded
+  const resolvedExpanded = isRedactedMode ? false : isControlled ? Boolean(expanded) : internalExpanded
   const contentId = `${id}-content`
-  const canExpand = Boolean(serialized)
+  const canExpand = isRedactedMode ? false : Boolean(serialized)
 
   useEffect(() => {
     if (!isControlled) {
@@ -66,7 +71,7 @@ const SanitizedJsonViewer = ({
   }, [serialized, isControlled])
 
   const sanitizedState = useMemo(() => {
-    if (!resolvedExpanded || !serialized) {
+    if (!resolvedExpanded || !serialized || isRedactedMode) {
       return { html: null, removed: false, error: null }
     }
 
@@ -79,14 +84,14 @@ const SanitizedJsonViewer = ({
       }
       return { html: null, removed: false, error: 'JSONの整形に失敗しました' }
     }
-  }, [resolvedExpanded, serialized])
+  }, [resolvedExpanded, serialized, isRedactedMode])
 
   const sanitizedContent = sanitizedState.html
   const removedDangerousContent = sanitizedState.removed
   const errorMessage = sanitizedState.error
 
   const toggleExpanded = () => {
-    if (!canExpand) {
+    if (!canExpand || isRedactedMode) {
       return
     }
     if (isControlled) {
@@ -112,7 +117,9 @@ const SanitizedJsonViewer = ({
         </button>
       </header>
       <div id={contentId} className={styles.viewerBody} data-state={resolvedExpanded ? 'expanded' : 'collapsed'}>
-        {!canExpand ? (
+        {isRedactedMode ? (
+          <p className={styles.redacted}>{REDACTED_PLACEHOLDER}</p>
+        ) : !canExpand ? (
           <p className={styles.placeholder}>データなし</p>
         ) : !resolvedExpanded ? (
           shouldLazyRender ? (

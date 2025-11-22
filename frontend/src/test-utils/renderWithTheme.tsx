@@ -1,8 +1,11 @@
 import { render, type RenderOptions } from '@testing-library/react'
-import type { ReactElement } from 'react'
 
-import ThemeProvider, { type ThemeMode } from '@/features/ui-theme/ThemeProvider'
+
+import type { ThemeMode } from '@/features/ui-theme/ThemeContext'
+import ThemeProvider from '@/features/ui-theme/ThemeProvider'
 import type { ColorSchemePreference } from '@/test-utils/matchMediaMock'
+
+import type { ReactElement } from 'react'
 
 const STORAGE_KEY = 'codex:theme-preference'
 
@@ -15,7 +18,7 @@ export const renderWithTheme = (ui: ReactElement, options: RenderWithThemeOption
   const { initialMode, systemResolvedTheme, ...renderOptions } = options
 
   if (initialMode) {
-    const resolved = initialMode === 'system' ? systemResolvedTheme ?? 'light' : (initialMode as Exclude<ThemeMode, 'system'>)
+    const resolved = initialMode === 'system' ? systemResolvedTheme ?? 'light' : (initialMode)
     window.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ mode: initialMode, resolved, updatedAt: new Date().toISOString() }),

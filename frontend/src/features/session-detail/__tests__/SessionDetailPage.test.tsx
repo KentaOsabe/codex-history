@@ -1,16 +1,27 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
+
+import type { ResponsiveLayoutState } from '@/features/layout/useResponsiveLayout'
 
 import SessionDetailPage from '../SessionDetailPage'
 
 import type { SessionDetailHookResult } from '../useSessionDetailViewModel'
 
 const useSessionDetailViewModelMock = vi.fn<SessionDetailHookResult, []>()
+const responsiveLayoutMock = vi.fn<[], ResponsiveLayoutState>()
 
 vi.mock('../useSessionDetailViewModel', () => ({
   useSessionDetailViewModel: (): SessionDetailHookResult => useSessionDetailViewModelMock(),
 }))
+
+vi.mock('@/features/layout/useResponsiveLayout', () => {
+  const mockResponsiveLayout = () => responsiveLayoutMock()
+  return {
+    __esModule: true,
+    default: mockResponsiveLayout,
+  }
+})
 
 const buildDetail = () => ({
   sessionId: 'session-123',
@@ -70,6 +81,12 @@ const buildDetail = () => ({
   ],
 })
 
+const defaultLayout: ResponsiveLayoutState = {
+  breakpoint: 'lg',
+  columns: 2,
+  isStackedPanels: false,
+}
+
 const renderPage = () => {
   return render(
     <MemoryRouter initialEntries={[ '/sessions/session-123' ]}>
@@ -81,6 +98,12 @@ const renderPage = () => {
 }
 
 describe('SessionDetailPage', () => {
+  beforeEach(() => {
+    useSessionDetailViewModelMock.mockReset()
+    responsiveLayoutMock.mockReset()
+    responsiveLayoutMock.mockReturnValue(defaultLayout)
+  })
+
   it('詳細情報のヘッダー・統計・ダウンロードリンクを表示する', () => {
     const setVariantMock = vi.fn()
     const preserveAnchorMock = vi.fn()
@@ -106,6 +129,12 @@ describe('SessionDetailPage', () => {
       '/downloads/session-123.jsonl',
     )
     expect(screen.getByText('ユーザーの質問')).toBeInTheDocument()
+
+    // 初期状態 (会話モード) ではツール結果は非表示
+    expect(screen.queryByText('検索ツールからの回答です。')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '詳細表示に切り替え' }))
+    fireEvent.click(screen.getByRole('button', { name: 'すべて表示' }))
     expect(screen.getByText('検索ツールからの回答です。')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'サニタイズ済み' }))
@@ -156,5 +185,101 @@ describe('SessionDetailPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('取得に失敗しました')
     fireEvent.click(screen.getByRole('button', { name: '再読み込み' }))
     expect(refetchMock).toHaveBeenCalled()
+  })
+
+  it('xsレイアウトでは会話領域が先頭に描画され、サマリーは折りたたみに格納される', () => {
+    responsiveLayoutMock.mockReturnValue({ breakpoint: 'xs', columns: 1, isStackedPanels: true })
+    useSessionDetailViewModelMock.mockReturnValue({
+      status: 'success',
+      detail: buildDetail(),
+      error: undefined,
+      variant: 'original',
+      hasSanitizedVariant: true,
+      setVariant: vi.fn(),
+      refetch: vi.fn(),
+      preserveScrollAnchor: vi.fn(),
+      consumeScrollAnchor: vi.fn(),
+    })
+
+    renderPage()
+
+    const grid = screen.getByTestId('session-detail-grid')
+    const conversationRegion = screen.getByTestId('conversation-region')
+    expect(grid.firstElementChild).toBe(conversationRegion)
+
+    const accordion = screen.getByTestId('session-summary-accordion')
+    expect(accordion).not.toHaveAttribute('open')
+  })
+
+  it('lgレイアウトではサマリーが補助ランドマークとして常時表示される', () => {
+    responsiveLayoutMock.mockReturnValue({ breakpoint: 'lg', columns: 2, isStackedPanels: false })
+    useSessionDetailViewModelMock.mockReturnValue({
+      status: 'success',
+      detail: buildDetail(),
+      error: undefined,
+      variant: 'original',
+      hasSanitizedVariant: true,
+      setVariant: vi.fn(),
+      refetch: vi.fn(),
+      preserveScrollAnchor: vi.fn(),
+      consumeScrollAnchor: vi.fn(),
+    })
+
+    renderPage()
+
+    expect(screen.queryByTestId('session-summary-accordion')).toBeNull()
+    const summaryRail = screen.getByRole('complementary', { name: 'セッション概要' })
+    expect(summaryRail).toHaveAttribute('data-testid', 'session-summary-rail')
+  })
+
+  it('タイムラインフィルターで meta イベントの表示モードを切り替えられる', () => {
+    const detail = buildDetail()
+    detail.messages = [
+      ...detail.messages,
+      {
+        id: 'meta-1',
+        timestampLabel: '2025/3/14 09:07',
+        role: 'meta' as const,
+        sourceType: 'meta' as const,
+        channel: 'meta' as const,
+        segments: [
+          {
+            id: 'meta-1-seg-1',
+            channel: 'meta' as const,
+            text: 'CI 環境: production',
+          },
+        ],
+        toolCall: undefined,
+        isEncryptedReasoning: false,
+      },
+    ]
+
+    useSessionDetailViewModelMock.mockReturnValue({
+      status: 'success',
+      detail,
+      error: undefined,
+      variant: 'original',
+      hasSanitizedVariant: true,
+      setVariant: vi.fn(),
+      refetch: vi.fn(),
+      preserveScrollAnchor: vi.fn(),
+      consumeScrollAnchor: vi.fn(),
+    })
+
+    renderPage()
+
+    const conversationPanel = screen.getByTestId('conversation-tab-panel')
+    // デフォルトは会話モードのため非表示カウントは UI に出ず、meta は見えない
+    expect(screen.queryByText(/非表示 \d+ 件/)).not.toBeInTheDocument()
+    expect(within(conversationPanel).queryByText('CI 環境: production')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '詳細表示に切り替え' }))
+    expect(screen.getByText('非表示 2 件')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'すべて表示' }))
+    expect(within(conversationPanel).getByText('CI 環境: production')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '会話のみ' }))
+    expect(within(conversationPanel).queryByText('CI 環境: production')).not.toBeInTheDocument()
   })
 })

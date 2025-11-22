@@ -1,13 +1,14 @@
-import type { ButtonHTMLAttributes } from 'react'
 
-import { useTheme, type ThemeMode } from './ThemeProvider'
+import { useTheme, type ThemeMode } from './ThemeContext'
 import styles from './ThemeToggle.module.css'
+
+import type { ButtonHTMLAttributes } from 'react'
 
 type ThemeToggleProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'onClick'> & {
   'aria-label': string
 }
 
-const joinClassNames = (...classes: Array<string | undefined>) => classes.filter(Boolean).join(' ')
+const joinClassNames = (...classes: (string | undefined)[]) => classes.filter(Boolean).join(' ')
 
 const supportsRaf = typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
 

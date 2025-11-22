@@ -1,7 +1,8 @@
-import SessionCard, { type SessionListItem } from './SessionCard'
 
 import { expect } from '@storybook/jest'
 import { within } from '@storybook/testing-library'
+
+import SessionCard, { type SessionListItem } from './SessionCard'
 
 import type { Meta, StoryObj } from '@storybook/react'
 

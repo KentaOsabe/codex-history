@@ -6,11 +6,19 @@
 
 | Breakpoint | min-width | SessionsDateListView | SessionDetail | 備考 |
 | --- | --- | --- | --- | --- |
-| `xs` | `< 576px` | すべて単一カラム。`ResponsiveGrid` は `data-columns="1"` でヒーローヘッダがスタック。 | タブ／アクションを縦積み、`infoBar` は 1 列化。 | 横スクロール禁止。ハンバーガーメニューの代わりに AppShell が縦並びで収まります。 |
-| `sm` | `>= 576px` | フィルターパネル + コンテンツを縦積み。検索／セッション両方のページネーションは `width:100%`。 | `infoBar` が 2 列まで展開、タブボタンは折り返し可。 | テキスト幅が 600px を超えないようカード幅は CSS Grid で 1 列固定。 |
-| `md` | `>= 768px` | `ResponsiveGrid` はまだスタック。セッションリストは 1 列。 | タイムラインと詳細パネルはタブ切替。 | ページャが 100% 幅で中央寄せになるよう `.layout-pill` を併用。 |
-| `lg` | `>= 992px` | レイアウトは `md` と同一 (スタック) だが余白が広がる。 | Timeline の `max-height` を 70vh に固定。 | Storybook では viewport `lg` を用意しておく想定。 |
-| `xl` | `>= 1200px` | `ResponsiveGrid` が 8:16 の 2 カラムへ分割。検索パネルは左固定、SessionCard グリッドは 2 列。 | タイムライン／詳細パネルとも `layout-panel` の左右余白を保ったまま並列表示。 | `renderHook(useResponsiveLayout)` で `breakpoint: 'xl', columns: 2` を検証。 |
+| `xs` | `< 576px` | すべて単一カラム。`ResponsiveGrid` は `data-columns="1"` でヒーローヘッダがスタック。 | `SessionSummaryRail` は `<details>` アコーディオンでデフォルト閉じ、`TimelineFilterBar` を `ConversationRegion` 上部に sticky 配置。Meta/Tool drawer はボトムシートとして全幅に広がります。 | 横スクロール禁止。ハンバーガーメニューの代わりに AppShell が縦並びで収まります。 |
+| `sm` | `>= 576px` | フィルターパネル + コンテンツを縦積み。検索／セッション両方のページネーションは `width:100%`。 | アコーディオンは sm でも閉じたまま開始し、Variant Switch は `summary` 要素の上に折り返されます。drawer は依然 bottom sheet で、`data-breakpoint="sm"` を Playwright で検証します。 | テキスト幅が 600px を超えないようカード幅は CSS Grid で 1 列固定。 |
+| `md` | `>= 768px` | `ResponsiveGrid` はまだスタック。セッションリストは 1 列。 | 会話タブと詳細タブは縦スタックし、`TimelineFilterBar` は sticky pill。`SessionSummaryRail` はタブ下に展開し、drawer はボトムシートから 80% ビューポート高でせり上がります。 | ページャが 100% 幅で中央寄せになるよう `.layout-pill` を併用。 |
+| `lg` | `>= 992px` | レイアウトは 2 カラム化し、`ResponsiveGrid` の `data-columns="2"` を Storybook で保証します。 | `ConversationRegion` が左、`SessionSummaryRail` が右に固定され、drawer はサイドシートへ自動的に切り替わります。タイムラインの `max-height: 70vh` とスクロール独立を Visual Test で確認します。 | Storybook では viewport `lg` を用意しておく想定。 |
+| `xl` | `>= 1200px` | `ResponsiveGrid` が 8:16 の 2 カラムへ分割。検索パネルは左固定、SessionCard グリッドは 2 列。 | SessionDetail でも `SessionSummaryRail` の幅が 8 グリッドに収まり、Hero/Stats/Variant Switch はここに集約。会話領域は 16 グリッドで常にファーストビューを確保します。 | `renderHook(useResponsiveLayout)` で `breakpoint: 'xl', columns: 2` を検証。 |
+
+## セッション詳細レイアウト指針
+
+- **ConversationRegion**: `data-testid="conversation-region"` をタイムライン landmark に付与し、`aria-live="polite"` のタブアナウンス (`data-testid="session-tab-announcement"`) でアクセシビリティを担保します。`TimelineFilterBar` は `layout.columns === 1` の時だけ内部に描画し、user/assistant フィルタと bundle pill を sticky にします。
+- **SessionSummaryRail**: xs〜md では `<details>` を利用した折りたたみコンポーネント、lg 以上では `<aside aria-label="セッション概要">` として常設します。Hero、Stats、Variant Switch、Meta/Tool ピルをすべてここに寄せることで会話本文のファーストビューを保証します。
+- **MetaEventDrawer / ToolBundlePanel**: `useResponsiveLayout` が 1 カラムの場合は `placement="bottom"` で bottom sheet、2 カラムなら `placement="side"` でサイドシートを描画します。Drawer ヘッダーには `data-testid="meta-event-drawer"` とサニタイズバナーを必ず表示し、`highlightedIds` で会話カードに `data-highlighted="true"` を付与してください。
+- **Storybook シナリオ**: `Sessions/SessionDetailPage` 配下の `ConversationFirst*` ストーリーでは Breakpoint × Theme を明示的に指定し、Playwright (`tests/storybook/responsive.spec.ts`) から `globals=breakpoint:xl;theme:dark` のように参照できるようにします。drawer 操作とサニタイズバナーの可視性を `@storybook/testing-library` の play function で担保してください。
+- **ビジュアルテスト**: `npm run test:storybook` / `npm run test:visual` を CI から実行すると、`session-detail-*.png` のスクリーンショットと `trace.zip` が生成されます。`PLAYWRIGHT_VISUAL=1` のときのみ `storybook-artifacts/` へ保存し、ローカル開発では任意で無効化できます。
 
 ## ResponsiveGrid の使い方
 

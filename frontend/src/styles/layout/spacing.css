@@ -13,7 +13,7 @@
   padding: var(--space-xl) var(--space-lg) var(--space-xl);
 }
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   .layout-container {
     padding: var(--space-lg) var(--space-md) var(--space-lg);
   }
@@ -30,7 +30,7 @@
   padding: var(--space-xl);
 }
 
-@media (max-width: 640px) {
+@media (width <= 640px) {
   .layout-panel--padded {
     padding: var(--space-lg);
   }

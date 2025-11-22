@@ -1,9 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import { setupViewportMatchMediaMock } from '@/test-utils/matchMediaMock'
+
 import useResponsiveLayout from '../useResponsiveLayout'
 
-import { setupViewportMatchMediaMock } from '@/test-utils/matchMediaMock'
 
 describe('useResponsiveLayout', () => {
   it('matchMediaが無い環境ではxsのフォールバックを返す', () => {
@@ -73,6 +74,8 @@ describe('useResponsiveLayout', () => {
       env.setViewportWidth(1000)
     })
     expect(result.current.breakpoint).toBe('lg')
+    expect(result.current.columns).toBe(2)
+    expect(result.current.isStackedPanels).toBe(false)
 
     act(() => {
       env.setViewportWidth(1280)
