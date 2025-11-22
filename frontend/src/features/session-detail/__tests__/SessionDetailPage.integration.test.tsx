@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { forwardRef, useEffect } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -17,6 +17,7 @@ interface MockTimelineProps {
   canLoadPrev?: boolean
   canLoadNext?: boolean
   onRequestLoad?: (direction: 'prev' | 'next') => void
+  displayMode?: 'conversation' | 'full'
 }
 
 vi.mock('../MessageTimeline', () => {
@@ -43,15 +44,19 @@ vi.mock('../MessageTimeline', () => {
         data-can-load-prev={canLoadPrev ? 'true' : 'false'}
         data-can-load-next={canLoadNext ? 'true' : 'false'}
         data-has-request={onRequestLoad ? 'true' : 'false'}
+        data-display-mode={props.displayMode ?? 'full'}
       >
         <button type="button" data-testid="mock-timeline-request-load" onClick={handleRequestLoad}>
           load-more
         </button>
         {messages.map((message) => {
           const highlighted = highlightedIds?.includes(message.id)
+          const hasIdeContext = Boolean((message as { metadata?: { ideContext?: { sections?: unknown[] } } }).metadata?.ideContext?.sections?.length)
+          const primaryText = message.segments[0]?.text
+          const bodyText = typeof primaryText === 'string' ? primaryText : hasIdeContext ? '' : '本文なし。'
           return (
             <article key={message.id} data-message-id={message.id} data-highlighted={highlighted ? 'true' : 'false'}>
-              {message.segments[0]?.text ?? '本文なし。'}
+              {bodyText}
             </article>
           )
         })}
@@ -270,6 +275,76 @@ describe('SessionDetailPage (integration)', () => {
     expect(announcement).toHaveTextContent('詳細タブを表示しています')
   })
 
+  it('初期表示は会話のみでフィルタ UI を畳み、詳細表示ボタンでメタイベントを露出する', async () => {
+    const messages: SessionDetailResponse['data']['attributes']['messages'] = [
+      {
+        id: 'user-1',
+        timestamp: '2025-03-14T09:00:00Z',
+        source_type: 'message',
+        role: 'user',
+        segments: [
+          {
+            channel: 'input',
+            type: 'text',
+            format: 'plain',
+            text: 'ユーザーの質問',
+          },
+        ],
+        raw: { payload_type: 'default' },
+      },
+      {
+        id: 'assistant-1',
+        timestamp: '2025-03-14T09:01:00Z',
+        source_type: 'message',
+        role: 'assistant',
+        segments: [
+          {
+            channel: 'output',
+            type: 'text',
+            format: 'plain',
+            text: '回答',
+          },
+        ],
+        raw: { payload_type: 'default' },
+      },
+      ...buildDetailMessagesForVariant('original'),
+    ]
+
+    server.use(
+      http.get('*/api/sessions/:sessionId', () => {
+        return HttpResponse.json(
+          buildSessionDetailResponse({
+            attributes: {
+              message_count: messages.length,
+              tool_call_count: 1,
+              tool_result_count: 1,
+              meta_event_count: 1,
+            },
+            messages,
+          }),
+        )
+      }),
+    )
+
+    renderDetailPage()
+
+    const filterBar = await screen.findByTestId('timeline-filter-bar')
+    expect(filterBar).toHaveAttribute('data-collapsed', 'true')
+    expect(screen.queryByText(/非表示/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /メタイベント/ })).not.toBeInTheDocument()
+
+    const timeline = await screen.findByTestId('message-timeline')
+    const idsBefore = within(timeline).getAllByRole('article').map((node) => node.getAttribute('data-message-id'))
+    expect(idsBefore).toHaveLength(2)
+
+    fireEvent.click(screen.getByRole('button', { name: '詳細表示に切り替え' }))
+
+    await waitFor(() => expect(filterBar).toHaveAttribute('data-collapsed', 'false'))
+    await waitFor(() => expect(within(timeline).getAllByRole('article')).toHaveLength(messages.length))
+    expect(screen.getByText('非表示 3 件')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /メタイベント/ })).toBeInTheDocument()
+  })
+
   it('詳細を取得しサニタイズ切替時もスクロール位置と仮想スクロール状態を維持する', async () => {
     // 大量メッセージで仮想スクロールが有効な環境でも、variant 切替後にアンカーが再現されることを保証する
     const requestLog: string[] = []
@@ -420,6 +495,8 @@ describe('SessionDetailPage (integration)', () => {
     )
 
     renderDetailPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: '詳細表示に切り替え' }))
 
     const bundleButton = await screen.findByRole('button', { name: /メタイベント/ })
     fireEvent.click(bundleButton)
@@ -584,5 +661,54 @@ describe('SessionDetailPage (integration)', () => {
       expect(screen.getByRole('heading', { name: 'Recovered Session' })).toBeInTheDocument()
     }, { timeout: 3000 })
     expect(attempt).toBe(3)
+  })
+
+  it('ユーザー入力が IDE コンテキストのみの場合でも本文プレースホルダーと environment_context を表示しない', async () => {
+    server.use(
+      http.get('*/api/sessions/:sessionId', () => {
+        return HttpResponse.json(
+          buildSessionDetailResponse({
+            attributes: {
+              message_count: 1,
+              meta_event_count: 0,
+              tool_call_count: 0,
+              tool_result_count: 0,
+            },
+            messages: [
+              {
+                id: 'user-ide-only',
+                timestamp: '2025-03-14T09:00:00Z',
+                source_type: 'message',
+                role: 'user',
+                segments: [
+                  {
+                    channel: 'input',
+                    type: 'text',
+                    format: 'markdown',
+                    text: `<environment_context>
+OS: macOS
+</environment_context>
+
+# Context from my IDE setup
+
+## My request for Codex
+/kiro:spec-impl issue-36 10`,
+                  },
+                ],
+              },
+            ],
+          }),
+        )
+      }),
+    )
+
+    renderDetailPage()
+
+    const timeline = await screen.findByTestId('message-timeline')
+    const articles = within(timeline).getAllByRole('article')
+    expect(articles).toHaveLength(1)
+    expect(articles[0]?.textContent?.trim()).toBe('')
+    expect(timeline.textContent).not.toMatch(/本文なし。/)
+    expect(timeline.textContent).not.toMatch(/environment_context/i)
   })
 })

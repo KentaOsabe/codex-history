@@ -117,4 +117,97 @@ describe('useConversationEvents', () => {
     expect(bundleEvent?.isSanitizedVariant).toBe(true)
     expect(bundleEvent?.sensitiveFields).toContain('events')
   })
+
+  it('IDE コンテキストセクションを集約する', () => {
+    const detail = buildDetail([
+      makeMessage({
+        id: 'user-1',
+        role: 'user',
+        metadata: {
+          ideContext: {
+            sections: [
+              { heading: 'My request for Codex', content: 'タスク', defaultExpanded: true },
+            ],
+          },
+        } as Record<string, unknown>,
+      }),
+      makeMessage({
+        id: 'user-2',
+        role: 'assistant',
+      }),
+      makeMessage({
+        id: 'user-3',
+        role: 'user',
+        metadata: {
+          ideContext: {
+            sections: [
+              { heading: 'Active file', content: 'frontend/src/App.tsx', defaultExpanded: false },
+            ],
+          },
+        } as Record<string, unknown>,
+      }),
+    ])
+
+    const { result } = renderHook(() => useConversationEvents({ detail, variant: 'original' }))
+
+    expect(result.current.ideContextSections).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ heading: 'My request for Codex' }),
+        expect.objectContaining({ heading: 'Active file' }),
+      ]),
+    )
+  })
+
+  it('AGENTS.md セクションは ideContextSections に含めない', () => {
+    const detail = buildDetail([
+      makeMessage({
+        id: 'user-1',
+        role: 'user',
+        metadata: {
+          ideContext: {
+            sections: [
+              { heading: 'AGENTS.md', content: 'ノイズ', defaultExpanded: true },
+              { heading: 'Active file', content: 'frontend/src/App.tsx', defaultExpanded: false },
+            ],
+          },
+        } as Record<string, unknown>,
+      }),
+    ])
+
+    const { result } = renderHook(() => useConversationEvents({ detail, variant: 'original' }))
+
+    expect(result.current.ideContextSections).toEqual(
+      expect.not.arrayContaining([expect.objectContaining({ heading: 'AGENTS.md' })]),
+    )
+    expect(result.current.ideContextSections).toEqual(
+      expect.arrayContaining([expect.objectContaining({ heading: 'Active file' })]),
+    )
+  })
+
+  it('本文も IDE コンテキストもない user メッセージは会話表示から除外する', () => {
+    const detail = buildDetail([
+      makeMessage({
+        id: 'user-empty',
+        role: 'user',
+        segments: [],
+        metadata: {},
+      }),
+      makeMessage({
+        id: 'user-ide',
+        role: 'user',
+        segments: [],
+        metadata: {
+          ideContext: { sections: [ { heading: 'My request for Codex', content: 'do it', defaultExpanded: true } ] },
+        } as Record<string, unknown>,
+      }),
+      makeMessage({
+        id: 'assistant-1',
+        role: 'assistant',
+      }),
+    ])
+
+    const { result } = renderHook(() => useConversationEvents({ detail, variant: 'original' }))
+
+    expect(result.current.conversationMessages.map((msg) => msg.id)).toEqual(['user-ide', 'assistant-1'])
+  })
 })

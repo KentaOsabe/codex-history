@@ -40,18 +40,46 @@
 }
 
 .infoBar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-sm) var(--space-lg);
-  background-color: var(--theme-surface-muted);
-  border-radius: var(--theme-radius-lg);
-  padding: var(--space-sm) var(--space-md);
   border: 1px solid var(--theme-border-muted);
+  border-radius: var(--theme-radius-lg);
+  background-color: var(--theme-surface-muted);
+  padding: 0.5rem var(--space-md) var(--space-md);
 }
 
 .infoBar code {
   font-family: var(--theme-font-mono);
+}
+
+.infoSummary {
+  list-style: none;
+  font-weight: 700;
+  color: var(--theme-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.infoSummary::-webkit-details-marker {
+  display: none;
+}
+
+.infoSummary::after {
+  content: '\\25BE';
+  font-size: 0.75rem;
+}
+
+.infoBar[open] .infoSummary::after {
+  transform: rotate(180deg);
+}
+
+.infoBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: var(--space-sm);
+  font-size: 0.95rem;
+  color: var(--theme-text-default);
 }
 
 .railCard {

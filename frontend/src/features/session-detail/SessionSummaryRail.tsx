@@ -43,12 +43,15 @@ const SessionSummaryRail = ({
     }
 
     return (
-      <section className={`${styles.infoBar} layout-full-width`} aria-label="メタ情報">
-        <span>
-          データソース: <code>{detail.meta.relativePath}</code>
-        </span>
-        {detail.meta.lastUpdatedLabel ? <span>最終更新: {detail.meta.lastUpdatedLabel}</span> : null}
-      </section>
+      <details className={`${styles.infoBar} layout-full-width`} aria-label="メタ情報" data-testid="session-info-bar">
+        <summary className={styles.infoSummary}>データソースと更新情報</summary>
+        <div className={styles.infoBody}>
+          <span>
+            データソース: <code>{detail.meta.relativePath}</code>
+          </span>
+          {detail.meta.lastUpdatedLabel ? <span>最終更新: {detail.meta.lastUpdatedLabel}</span> : null}
+        </div>
+      </details>
     )
   }
 

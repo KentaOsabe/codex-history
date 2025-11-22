@@ -129,6 +129,12 @@ describe('SessionDetailPage', () => {
       '/downloads/session-123.jsonl',
     )
     expect(screen.getByText('ユーザーの質問')).toBeInTheDocument()
+
+    // 初期状態 (会話モード) ではツール結果は非表示
+    expect(screen.queryByText('検索ツールからの回答です。')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '詳細表示に切り替え' }))
+    fireEvent.click(screen.getByRole('button', { name: 'すべて表示' }))
     expect(screen.getByText('検索ツールからの回答です。')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'サニタイズ済み' }))
@@ -263,8 +269,12 @@ describe('SessionDetailPage', () => {
     renderPage()
 
     const conversationPanel = screen.getByTestId('conversation-tab-panel')
-    expect(screen.getByText('非表示 1 件')).toBeInTheDocument()
+    // デフォルトは会話モードのため非表示カウントは UI に出ず、meta は見えない
+    expect(screen.queryByText(/非表示 \d+ 件/)).not.toBeInTheDocument()
     expect(within(conversationPanel).queryByText('CI 環境: production')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '詳細表示に切り替え' }))
+    expect(screen.getByText('非表示 2 件')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'すべて表示' }))
     expect(within(conversationPanel).getByText('CI 環境: production')).toBeInTheDocument()

@@ -29,7 +29,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'SessionDetailPage は会話タイムラインと詳細パネルを統合したページです。Viewport で xs/md/xl を切り替えても hero パネルと infoBar が折り返しなく収まるかを確認します。',
+          'SessionDetailPage は会話タイムラインと詳細パネルを統合したページです。デフォルトは会話のみを強調したシンプルビューで表示し、必要に応じて詳細モードへ切り替えてメタイベントを確認します。',
       },
     },
   },
@@ -88,6 +88,12 @@ const assertConversationFirstLayout = async (canvasElement: HTMLElement, options
 
   const filterBar = await canvas.findByTestId('timeline-filter-bar')
   await expect(filterBar).toHaveAttribute('data-placement', filterPlacement)
+  await expect(filterBar).toHaveAttribute('data-collapsed', 'true')
+  await expect(canvas.queryByText(/非表示/)).toBeNull()
+
+  const detailToggle = await canvas.findByRole('button', { name: '詳細表示に切り替え' })
+  await userEvent.click(detailToggle)
+  await waitFor(() => expect(filterBar).toHaveAttribute('data-collapsed', 'false'))
 
   const metaButton = await canvas.findByRole('button', { name: /メタイベント/ })
   await userEvent.click(metaButton)
@@ -179,6 +185,8 @@ export const DrawerInteraction: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await assertDetailRender(canvasElement)
+
+    await userEvent.click(await canvas.findByRole('button', { name: '詳細表示に切り替え' }))
 
     const metaButton = await canvas.findByRole('button', { name: /メタイベント/ })
     await userEvent.click(metaButton)

@@ -11,6 +11,18 @@ export interface RenderedSegment {
   format?: string | null
 }
 
+export interface IdeContextSection {
+  heading: string
+  content: string
+  defaultExpanded: boolean
+}
+
+export interface SessionMessageMetadata extends Record<string, unknown> {
+  ideContext?: {
+    sections: IdeContextSection[]
+  }
+}
+
 export type SanitizedViewerMode = 'default' | 'redacted'
 
 export interface ToolCallViewModel {
@@ -36,7 +48,7 @@ export interface SessionMessageViewModel {
   encryptedChecksum?: string
   encryptedLength?: number
   raw?: Record<string, unknown>
-  metadata?: Record<string, unknown>
+  metadata?: SessionMessageMetadata
 }
 
 export interface ScrollAnchorSnapshot {
@@ -140,3 +152,21 @@ export interface TimelineBundleSummary {
 }
 
 export type TimelineDisplayMode = 'conversation' | 'full'
+
+export interface IdeContextSectionPreference {
+  key: string
+  heading: string
+  defaultExpanded: boolean
+  alwaysVisible: boolean
+}
+
+export interface IdeContextPreferenceState {
+  sections: IdeContextSectionPreference[]
+  setAlwaysVisible: (key: string, alwaysVisible: boolean) => void
+}
+
+export interface IdeContextSectionDefinition {
+  key: string
+  heading: string
+  defaultExpanded: boolean
+}

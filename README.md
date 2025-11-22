@@ -55,6 +55,7 @@ npm install
 # コード品質チェック
 npm run lint
 npm run test
+docker compose run --rm frontend sh -c "NODE_OPTIONS=--max-old-space-size=4096 npm run test"
 npm run format
 ```
 

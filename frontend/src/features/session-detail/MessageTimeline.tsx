@@ -4,7 +4,12 @@ import { forwardRef, type ForwardedRef, useCallback, useEffect, useMemo, useRef 
 import MessageCard from './MessageCard'
 import styles from './MessageTimeline.module.css'
 
-import type { ScrollAnchorSnapshot, SessionMessageViewModel } from './types'
+import type {
+  IdeContextPreferenceState,
+  ScrollAnchorSnapshot,
+  SessionMessageViewModel,
+  TimelineDisplayMode,
+} from './types'
 import type { TimelineLoadDirection } from './useTimelineLoadController'
 
 
@@ -17,6 +22,8 @@ interface MessageTimelineProps {
   onRequestLoad?: (direction: TimelineLoadDirection) => void
   onScrollAnchorChange?: (snapshot: ScrollAnchorSnapshot) => void
   highlightedIds?: string[]
+  ideContextPreference?: IdeContextPreferenceState
+  displayMode?: TimelineDisplayMode
 }
 
 const VIRTUALIZATION_THRESHOLD = 120
@@ -59,6 +66,8 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
       onRequestLoad,
       onScrollAnchorChange,
       highlightedIds,
+      ideContextPreference,
+      displayMode = 'full',
     },
     forwardedRef,
   ) => {
@@ -216,7 +225,13 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
         >
           <div className={styles.list}>
             {messages.map((message) => (
-              <MessageCard key={message.id} message={message} isHighlighted={highlightedSet.has(message.id)} />
+              <MessageCard
+                key={message.id}
+                message={message}
+                isHighlighted={highlightedSet.has(message.id)}
+                ideContextPreference={ideContextPreference}
+                displayMode={displayMode}
+              />
             ))}
           </div>
         </div>
@@ -246,7 +261,12 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
                 style={{ transform: `translateY(${virtualRow.start}px)` }}
                 data-index={virtualRow.index}
               >
-                <MessageCard message={message} isHighlighted={isHighlighted} />
+                <MessageCard
+                  message={message}
+                  isHighlighted={isHighlighted}
+                  ideContextPreference={ideContextPreference}
+                  displayMode={displayMode}
+                />
               </div>
             )
           })}

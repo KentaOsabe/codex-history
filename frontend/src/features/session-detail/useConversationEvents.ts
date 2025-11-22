@@ -3,10 +3,12 @@ import { useMemo } from 'react'
 import type { SessionVariant } from '@/api/types/sessions'
 
 import { ConversationEventLinker } from './ConversationEventLinker'
+import { AGENTS_HEADING_KEY, normalizeIdeContextHeading } from './ideContext'
 import { useDetailInsights } from './useDetailInsights'
 
 import type {
   ConversationEvent,
+  IdeContextSectionDefinition,
   MetaEventGroup,
   SessionDetailViewModel,
   SessionMessageViewModel,
@@ -26,6 +28,7 @@ export interface UseConversationEventsResult {
   hiddenCount: number
   metaEvents: MetaEventGroup[]
   toolInvocations: ToolInvocationGroup[]
+  ideContextSections: IdeContextSectionDefinition[]
 }
 
 const SANITIZED_PLACEHOLDER = '※サニタイズ済み'
@@ -70,6 +73,14 @@ const deriveToolPreview = (messages: SessionMessageViewModel[]): string | undefi
   return undefined
 }
 
+const hasDisplayableContent = (message: SessionMessageViewModel): boolean => {
+  const hasText = message.segments.some((segment) => (segment.text ?? '').trim().length > 0)
+  const hasIdeContext = Boolean(message.metadata?.ideContext?.sections?.length)
+  const hasEncrypted = Boolean(message.isEncryptedReasoning)
+  const hasToolCall = Boolean(message.toolCall)
+  return hasText || hasIdeContext || hasEncrypted || hasToolCall
+}
+
 export const useConversationEvents = ({ detail, variant }: UseConversationEventsParams): UseConversationEventsResult => {
   const { metaEvents, toolInvocations } = useDetailInsights(detail)
   const categorized = useMemo(() => {
@@ -86,16 +97,18 @@ export const useConversationEvents = ({ detail, variant }: UseConversationEvents
     const tool: SessionMessageViewModel[] = []
 
     detail.messages.forEach((message) => {
-      if (isConversationRole(message.role)) {
-        conversation.push(message as SessionMessageViewModel & { role: 'user' | 'assistant' })
-        return
-      }
       if (isToolCategory(message)) {
         tool.push(message)
         return
       }
       if (isMetaCategory(message)) {
         meta.push(message)
+        return
+      }
+      if (isConversationRole(message.role)) {
+        if (hasDisplayableContent(message)) {
+          conversation.push(message as SessionMessageViewModel & { role: 'user' | 'assistant' })
+        }
       }
     })
 
@@ -211,6 +224,28 @@ export const useConversationEvents = ({ detail, variant }: UseConversationEvents
     return entries
   }, [categorized.meta, categorized.tool, detail, sanitized, findConversationAnchorId])
 
+  const ideContextSections = useMemo<IdeContextSectionDefinition[]>(() => {
+    if (!detail) {
+      return []
+    }
+    const unique = new Map<string, IdeContextSectionDefinition>()
+    detail.messages.forEach((message) => {
+      const sections = message.metadata?.ideContext?.sections ?? []
+      sections.forEach((section) => {
+        const key = normalizeIdeContextHeading(section.heading)
+        if (!key || key === AGENTS_HEADING_KEY || unique.has(key)) {
+          return
+        }
+        unique.set(key, {
+          key,
+          heading: section.heading,
+          defaultExpanded: section.defaultExpanded ?? false,
+        })
+      })
+    })
+    return Array.from(unique.values())
+  }, [detail])
+
   return {
     conversationMessages: categorized.conversation,
     events,
@@ -218,5 +253,6 @@ export const useConversationEvents = ({ detail, variant }: UseConversationEvents
     hiddenCount,
     metaEvents,
     toolInvocations,
+    ideContextSections,
   }
 }

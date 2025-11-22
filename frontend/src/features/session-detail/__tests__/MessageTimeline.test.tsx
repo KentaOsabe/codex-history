@@ -109,6 +109,13 @@ describe('MessageTimeline', () => {
     expect(screen.getAllByText('Output')).toHaveLength(1)
   })
 
+  it('会話モードでは Source/Channel バッジを非表示にする', () => {
+    render(<MessageTimeline messages={buildMessages()} displayMode="conversation" />)
+
+    expect(screen.queryByText('Input')).not.toBeInTheDocument()
+    expect(screen.queryByText('Output')).not.toBeInTheDocument()
+  })
+
   it('暗号化 reasoning のプレースホルダーを表示する', () => {
     render(<MessageTimeline messages={buildMessages()} />)
 

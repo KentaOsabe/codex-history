@@ -10,6 +10,7 @@ import MetaEventDrawer from './MetaEventDrawer'
 import styles from './SessionDetailPage.module.css'
 import SessionSummaryRail from './SessionSummaryRail'
 import { useConversationEvents } from './useConversationEvents'
+import { useIdeContextPreference } from './useIdeContextPreference'
 import { useSessionDetailViewModel } from './useSessionDetailViewModel'
 import { useTimelineLoadController, type TimelineLoadDirection } from './useTimelineLoadController'
 
@@ -58,6 +59,7 @@ const SessionDetailPage = () => {
   const filterModeStateRef = useRef<Record<string, TimelineDisplayMode>>({})
   const sessionKey = resolvedSessionId
   const conversationData = useConversationEvents({ detail, variant })
+  const ideContextPreference = useIdeContextPreference(conversationData.ideContextSections)
 
   const captureScrollAnchor = useCallback(() => {
     const container = timelineRef.current
@@ -228,6 +230,7 @@ const SessionDetailPage = () => {
         bundleSummaries: conversationData.bundleSummaries,
         onModeChange: handleTimelineModeChange,
         onBundleSelect: handleBundleSelect,
+        ideContextPreference: ideContextPreference.sections.length ? ideContextPreference : undefined,
       }
     : undefined
 
@@ -262,6 +265,8 @@ const SessionDetailPage = () => {
           canLoadPrev={canLoadPrev}
           canLoadNext={canLoadNext}
           onRequestTimelineLoad={requestTimelineLoad}
+          ideContextPreference={ideContextPreference}
+          timelineDisplayMode={timelineMode}
         />
 
         <SessionSummaryRail

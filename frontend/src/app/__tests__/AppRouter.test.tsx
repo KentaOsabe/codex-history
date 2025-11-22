@@ -10,6 +10,10 @@ vi.mock('@/features/sessions-date-list/SessionsDateListView', () => ({
   default: () => <div data-testid="sessions-date-list-stub">SessionsDateListView Stub</div>,
 }))
 
+vi.mock('@/features/session-detail/SessionDetailPage', () => ({
+  default: () => <div data-testid="session-detail-stub">SessionDetailPage Stub</div>,
+}))
+
 vi.mock('@/features/session-detail/useSessionDetailViewModel', () => ({
   useSessionDetailViewModel: () => ({
     status: 'success',
@@ -59,6 +63,6 @@ describe('AppRouter', () => {
 
   it('セッション詳細ルートで詳細ビューを表示する', () => {
     renderWithPath('/sessions/demo-session')
-    expect(screen.getByRole('heading', { name: 'Mock Session' })).toBeInTheDocument()
+    expect(screen.getByTestId('session-detail-stub')).toBeInTheDocument()
   })
 })
