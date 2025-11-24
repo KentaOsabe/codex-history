@@ -14,7 +14,7 @@ export default defineConfig({
     video: 'off',
   },
   webServer: {
-    command: `bash -lc "npm run build-storybook -- --quiet && npx http-server storybook-static -p ${PORT} --silent"`,
+    command: `sh -c "npm run build-storybook -- --quiet && npx http-server storybook-static -p ${PORT} --silent"`,
     url: BASE_URL,
     reuseExistingServer: false,
     stdout: 'pipe',

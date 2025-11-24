@@ -30,5 +30,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", ".storybook/**/*.ts", ".storybook/**/*.tsx"]
+  "include": ["src", ".storybook/**/*.ts", ".storybook/**/*.tsx"],
+  "exclude": ["src/**/*.stories.disabled.tsx"]
 }

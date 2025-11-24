@@ -37,7 +37,10 @@ const ensureCryptoHash = () => {
 ensureCryptoHash()
 
 const config: StorybookConfig = {
-  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(ts|tsx)'],
+  stories: [
+    '../src/features/session-detail/**/*.mdx',
+    '../src/features/session-detail/**/*.stories.@(ts|tsx)',
+  ],
   addons: ['@storybook/addon-docs', '@storybook/addon-a11y'],
   framework: {
     name: '@storybook/react-vite',

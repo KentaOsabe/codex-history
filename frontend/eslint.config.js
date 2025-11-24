@@ -21,6 +21,7 @@ export default defineConfig([
       '**/*.config.{js,ts,mjs,cjs}',
       'vite.config.ts',
       'vitest.config.ts',
+      '**/*.stories.disabled.tsx',
     ],
     plugins: {
       react: reactPlugin,

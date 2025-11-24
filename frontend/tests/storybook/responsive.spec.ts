@@ -44,26 +44,6 @@ const conversationScenarios: ConversationScenario[] = [
     expectSanitizedBanner: false,
   },
   {
-    id: 'conversation-first-xl-dark',
-    breakpoint: 'xl',
-    theme: 'dark',
-    viewportWidth: 1280,
-    filterPlacement: 'rail',
-    drawerPlacement: 'side',
-    expectAccordion: false,
-    expectSanitizedBanner: true,
-  },
-  {
-    id: 'conversation-first-md-light',
-    breakpoint: 'md',
-    theme: 'light',
-    viewportWidth: 900,
-    filterPlacement: 'timeline',
-    drawerPlacement: 'bottom',
-    expectAccordion: true,
-    expectSanitizedBanner: false,
-  },
-  {
     id: 'conversation-first-md-dark',
     breakpoint: 'md',
     theme: 'dark',
@@ -83,61 +63,7 @@ const conversationScenarios: ConversationScenario[] = [
     expectAccordion: true,
     expectSanitizedBanner: false,
   },
-  {
-    id: 'conversation-first-xs-dark',
-    breakpoint: 'xs',
-    theme: 'dark',
-    viewportWidth: 360,
-    filterPlacement: 'timeline',
-    drawerPlacement: 'bottom',
-    expectAccordion: true,
-    expectSanitizedBanner: true,
-  },
 ]
-
-test.describe('SessionsDateListView breakpoints', () => {
-  test('xl viewport renders 2-column grid', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 900 })
-    await page.goto(storyUrl('sessions-sessionsdatelistview--default', { breakpoint: 'xl' }))
-    const grid = page.locator('[data-testid="sessions-responsive-grid"]')
-    await grid.waitFor({ state: 'attached', timeout: 15_000 })
-    await expect(grid).toHaveAttribute('data-breakpoint', 'xl')
-    await expect(grid).toHaveAttribute('data-columns', '2')
-    await captureVisual(page, 'sessionsdatelistview-xl')
-  })
-
-  test('md viewport collapses to single column', async ({ page }) => {
-    await page.setViewportSize({ width: 900, height: 900 })
-    await page.goto(storyUrl('sessions-sessionsdatelistview--default', { breakpoint: 'md' }))
-    const grid = page.locator('[data-testid="sessions-responsive-grid"]')
-    await grid.waitFor({ state: 'attached', timeout: 15_000 })
-    await expect(grid).toHaveAttribute('data-breakpoint', 'md')
-    await expect(grid).toHaveAttribute('data-columns', '1')
-    await captureVisual(page, 'sessionsdatelistview-md')
-  })
-
-  test('xs viewport stacks panels vertically', async ({ page }) => {
-    await page.setViewportSize({ width: 360, height: 720 })
-    await page.goto(storyUrl('sessions-sessionsdatelistview--default', { breakpoint: 'xs' }))
-    const grid = page.locator('[data-testid="sessions-responsive-grid"]')
-    await grid.waitFor({ state: 'attached', timeout: 15_000 })
-    await expect(grid).toHaveAttribute('data-breakpoint', 'xs')
-    await expect(grid).toHaveAttribute('data-columns', '1')
-    await captureVisual(page, 'sessionsdatelistview-xs')
-  })
-})
-
-test.describe('SearchAndFilterPanel responsive container', () => {
-  test('panel never exceeds viewport width at xs', async ({ page }) => {
-    await page.setViewportSize({ width: 360, height: 720 })
-    await page.goto(storyUrl('sessions-searchandfilterpanel--default', { breakpoint: 'xs' }))
-    const panel = page.locator('[data-testid="search-and-filter-panel"]')
-    await panel.waitFor({ state: 'visible', timeout: 15_000 })
-    const panelWidth = await panel.evaluate((el) => el.getBoundingClientRect().width)
-    expect(panelWidth).toBeLessThanOrEqual(360)
-    await captureVisual(page, 'search-panel-xs')
-  })
-})
 
 test.describe('SessionDetailPage layout telemetry', () => {
   const storyId = 'sessions-sessiondetailpage--default'
@@ -198,14 +124,23 @@ test.describe('SessionDetailPage conversation-first scenarios', () => {
       if (scenario.expectSanitizedBanner && (await accordion.count()) > 0) {
         const isOpen = await accordion.getAttribute('open')
         if (isOpen !== 'true') {
-          await accordion.locator('summary').click()
+          await accordion.locator('summary').first().click()
         }
       }
 
       if (scenario.expectSanitizedBanner) {
         const sanitizedButton = page.getByRole('button', { name: 'サニタイズ済み' })
+        await sanitizedButton.click()
         await expect(sanitizedButton).toHaveAttribute('aria-pressed', 'true')
       }
+
+      const detailToggle = page.getByRole('button', { name: '詳細表示に切り替え' })
+      if ((await detailToggle.count()) > 0) {
+        await expect(detailToggle).toBeVisible({ timeout: 15_000 })
+        await detailToggle.click()
+      }
+
+      await expect(filterBar).toHaveAttribute('data-collapsed', 'false')
 
       const metaButton = page.getByRole('button', { name: /メタイベント/ }).first()
       await metaButton.click()

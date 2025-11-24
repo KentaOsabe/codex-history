@@ -57,3 +57,8 @@
   - 表示抑制後もアンカーや関連付けが崩れないよう `useConversationEvents` / `ConversationEventLinker` の依存を確認・調整する。
   - TDD: `mapResponseToViewModel.test.tsx` に environment_context 混入ケースと「本文はありません」が出ないケースを追加し、`MessageCard.ideContext.test.tsx` で本文なしプレースホルダー抑制を検証、`SessionDetailPage.integration.test.tsx` で UI ノイズが出ないことを Red→Green→Refactor で担保する。
   - ✅ 初回表示で IDE コンテキスト以外に本文を持たない user メッセージを conversation 表示から除外し、ダブル「本文はありません」を解消した。
+
+- [x] 11. Storybook をコア画面のみ維持し、スコープと CI 実行を縮小する
+  - セッション詳細などコア機能の Story を残し、それ以外の Story を削除または `stories.disabled` に移動する。
+  - Playwright × Storybook の実行対象を残存 Story のみになるよう設定を更新し、CI では必要最低限のスイートだけ走るようにする。
+  - README または docs に Storybook 利用範囲の方針を追記し、不要になったスナップショット/アーティファクトをクリーンアップする。
