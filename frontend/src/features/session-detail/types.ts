@@ -1,6 +1,6 @@
 import type { SessionVariant } from '@/api/types/sessions'
 
-export type SessionDetailStatus = 'idle' | 'loading' | 'success' | 'error'
+export type SessionDetailStatus = 'idle' | 'loading' | 'refetching' | 'success' | 'error'
 
 export type MessageChannel = 'input' | 'output' | 'meta'
 
@@ -10,6 +10,20 @@ export interface RenderedSegment {
   text: string
   format?: string | null
 }
+
+export interface IdeContextSection {
+  heading: string
+  content: string
+  defaultExpanded: boolean
+}
+
+export interface SessionMessageMetadata extends Record<string, unknown> {
+  ideContext?: {
+    sections: IdeContextSection[]
+  }
+}
+
+export type SanitizedViewerMode = 'default' | 'redacted'
 
 export interface ToolCallViewModel {
   callId?: string
@@ -34,7 +48,7 @@ export interface SessionMessageViewModel {
   encryptedChecksum?: string
   encryptedLength?: number
   raw?: Record<string, unknown>
-  metadata?: Record<string, unknown>
+  metadata?: SessionMessageMetadata
 }
 
 export interface ScrollAnchorSnapshot {
@@ -105,4 +119,54 @@ export interface MetaEventGroup {
 export interface SessionDetailInsights {
   toolInvocations: ToolInvocationGroup[]
   metaEvents: MetaEventGroup[]
+}
+
+export type ConversationEvent =
+  | {
+      kind: 'message'
+      role: 'user' | 'assistant'
+      message: SessionMessageViewModel
+      relatedIds: string[]
+      isSanitizedVariant: boolean
+      sensitiveFields: string[]
+    }
+  | {
+      kind: 'bundle'
+      bundleType: 'meta' | 'tool'
+      anchorMessageId?: string
+      label: string
+      count: number
+      events: MetaEventGroup[] | ToolInvocationGroup[]
+      isSanitizedVariant: boolean
+      sensitiveFields: string[]
+    }
+
+export interface TimelineBundleSummary {
+  id: string
+  bundleType: 'meta' | 'tool'
+  label: string
+  count: number
+  preview?: string
+  anchorMessageId?: string
+  isSanitizedVariant: boolean
+}
+
+export type TimelineDisplayMode = 'conversation' | 'full'
+
+export interface IdeContextSectionPreference {
+  key: string
+  heading: string
+  defaultExpanded: boolean
+  alwaysVisible: boolean
+}
+
+export interface IdeContextPreferenceState {
+  sections: IdeContextSectionPreference[]
+  setAlwaysVisible: (key: string, alwaysVisible: boolean) => void
+}
+
+export interface IdeContextSectionDefinition {
+  key: string
+  heading: string
+  defaultExpanded: boolean
 }

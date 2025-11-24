@@ -30,6 +30,10 @@
   align-items: center;
 }
 
+.metaGroup[data-compact='true'] {
+  gap: 0.2rem;
+}
+
 .timestamp {
   font-size: 0.9rem;
   color: var(--theme-text-muted);
@@ -110,4 +114,81 @@
 .footer {
   border-top: 1px solid var(--theme-border-muted);
   padding-top: 0.75rem;
+}
+
+.highlighted {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--theme-color-primary-base) 40%, transparent),
+    var(--theme-shadow-strong);
+}
+
+.ideContext {
+  border-top: 1px dashed var(--theme-border-muted);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ideContextHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ideContextTitle {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.ideContextToggle {
+  border: 1px solid var(--theme-border-muted);
+  border-radius: 9999px;
+  padding: 0.2rem 0.8rem;
+  font-size: 0.8rem;
+  background-color: var(--theme-surface-muted);
+  cursor: pointer;
+  color: var(--theme-text-muted);
+}
+
+.ideContextSections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ideContextSection {
+  border: 1px solid var(--theme-border-muted);
+  border-radius: 0.75rem;
+  padding: 0.25rem 0.75rem 0.75rem;
+  background-color: color-mix(in srgb, var(--theme-surface-alt) 90%, transparent);
+}
+
+.ideContextSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+.ideContextPreference {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--theme-text-muted);
+}
+
+.ideContextBody {
+  margin: 0.5rem 0 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: var(--theme-font-mono, 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
 }

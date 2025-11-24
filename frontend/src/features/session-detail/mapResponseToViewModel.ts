@@ -11,8 +11,15 @@ import {
   deriveRelativePath,
   formatDateTimeLabel,
 } from './formatters'
+import { extractIdeContextFromSegments, stripAgentsMdFromSegments, stripEnvironmentContextFromSegments } from './ideContext'
 
-import type { RenderedSegment, SessionDetailViewModel, SessionMessageViewModel, ToolCallViewModel } from './types'
+import type {
+  RenderedSegment,
+  SessionDetailViewModel,
+  SessionMessageMetadata,
+  SessionMessageViewModel,
+  ToolCallViewModel,
+} from './types'
 
 const mapSegments = (message: SessionMessage): RenderedSegment[] => {
   if (!Array.isArray(message.segments) || message.segments.length === 0) {
@@ -73,9 +80,32 @@ const extractEncryptedReasoningContent = (message: SessionMessage): string | und
 }
 
 const mapMessage = (message: SessionMessage): SessionMessageViewModel => {
-  const segments = mapSegments(message)
-  const channel = segments[0]?.channel ?? 'meta'
+  let segments = mapSegments(message)
   const encryptedContent = extractEncryptedReasoningContent(message)
+  let metadata = ((message as { metadata?: Record<string, unknown> }).metadata ?? undefined) as
+    | SessionMessageMetadata
+    | undefined
+
+  if (message.role === 'user' && segments.length) {
+    const environmentSanitized = stripEnvironmentContextFromSegments(segments)
+    segments = environmentSanitized.sanitizedSegments
+
+    const sanitized = stripAgentsMdFromSegments(segments)
+    segments = sanitized.sanitizedSegments
+
+    const ideContextExtraction = extractIdeContextFromSegments(segments)
+    if (ideContextExtraction) {
+      segments = ideContextExtraction.sanitizedSegments
+      metadata = {
+        ...(metadata ?? {}),
+        ideContext: {
+          sections: ideContextExtraction.sections,
+        },
+      }
+    }
+  }
+
+  const channel = segments[0]?.channel ?? 'meta'
 
   return {
     id: message.id,
@@ -90,7 +120,7 @@ const mapMessage = (message: SessionMessage): SessionMessageViewModel => {
     encryptedChecksum: encryptedContent ? computeChecksum(encryptedContent) : undefined,
     encryptedLength: encryptedContent?.length,
     raw: message.raw ?? undefined,
-    metadata: (message as { metadata?: Record<string, unknown> }).metadata,
+    metadata,
   }
 }
 

@@ -55,7 +55,23 @@ npm install
 # コード品質チェック
 npm run lint
 npm run test
+docker compose run --rm frontend sh -c "NODE_OPTIONS=--max-old-space-size=4096 npm run test"
 npm run format
+```
+
+### セッション詳細（Conversation First UI）
+- `SessionSummaryRail` は xs〜md では `<details>` アコーディオンとして折りたたまれ、lg 以上では `ConversationRegion` の右側に常設されます。初期表示で常にタイムラインの先頭メッセージがファーストビューへ入るよう、サマリーカード・Hero・Variant Switch はこのレール内に収めています。
+- `TimelineFilterBar` は user/assistant の往復のみを表示する「conversation」モードをデフォルトにし、メタ/ツールバンドルは pill でサマライズしています。サマリーをクリックすると `MetaEventDrawer` / `ToolBundlePanel` が開き、関連メッセージ（`data-highlighted="true"`）が同時にハイライトされます。
+- ドロワーは lg+ でサイドシート、xs〜md でボトムシートとして出現し、サニタイズ variant の際は「サニタイズ版のイベントを表示中」バナーと redacted JSON ビューアを強制します。Variant 切替は `SessionVariantSwitch` から行い、タブ再訪問時も会話タブが優先されます。
+
+#### Storybook / Playwright での検証
+1. `npm run storybook` を起動し、コア画面として残した `Sessions/SessionDetailPage` の `ConversationFirst` 系ストーリーのみを確認します（XL Light / MD Dark / XS Light）。アコーディオンの初期状態と drawer の ARIA 属性を合わせてチェックしてください。
+2. 自動化は Playwright に集約しています。以下のコマンドで Storybook ビルド → DOM アサーション（`SessionDetailPage layout telemetry` と最小セットの `ConversationFirst` シナリオ）を行います。CI もこの最小スイートのみ実行します。
+
+```bash
+cd frontend
+npm run test:storybook -- --grep "SessionDetail"
+npm run test:visual -- --grep "SessionDetail"
 ```
 
 ### npm スクリプト一覧
@@ -68,8 +84,8 @@ npm run format
 - `npm run lint:fix`: ESLint / Stylelint を自動修正モードで実行
 - `npm run storybook`: Storybook を `http://localhost:6006` で起動
 - `npm run build-storybook`: Storybook を静的ビルド
-- `npm run test:storybook`: Storybook を静的ビルドした上で Playwright で DOM アサーション（xs/md/xl の 3 幅）を実行
-- `npm run test:visual`: `storybook-artifacts/` にスクリーンショットを保存しながら Playwright を実行（CI で差分比較用）
+- `npm run test:storybook`: Storybook を静的ビルドした上で Playwright で SessionDetailPage の最小シナリオ（XL Light / MD Dark / XS Light）を DOM アサーション
+- `npm run test:visual`: `storybook-artifacts/` に SessionDetailPage のスクリーンショットを保存しながら Playwright を実行（CI で差分比較用）
 - `npm run test -- httpClient.test.ts errors.test.ts sessions.test.ts sessions.msw.test.ts`: API クライアント層のユニット / 統合テストのみを実行（MSW モック込み）
 
 ### UI テーマとトークン運用
@@ -80,8 +96,8 @@ npm run format
 
 ### レスポンシブ / ビジュアル検証
 - Storybook では `Breakpoint` グローバルツールバー（xs〜xl）を用意し、選択した幅に合わせて `matchMedia` / `grid-template` をモックしています。旧 `@storybook/addon-viewport` 依存は撤廃し、より軽量なカスタム実装に置き換えました。
-- `npm run test:storybook` は Storybook を静的ビルド → Playwright で `SessionsDateListView` / `SearchAndFilterPanel` / `SessionDetailPage` の `data-breakpoint` と列数を検証します。TDD の Red→Green チェックに利用してください。
-- `npm run test:visual` は同じストーリーをスクリーンショット化し、`frontend/storybook-artifacts/*.png` に保存します。CI では失敗時にこのディレクトリをアーティファクト化すると視覚差分を簡単にレビューできます。
+- `npm run test:storybook` は Storybook を静的ビルド → Playwright で `SessionDetailPage` だけを xs/md/xl の 3 幅 + Light/Dark の最小組み合わせで検証します。TDD の Red→Green チェックに利用してください。
+- `npm run test:visual` は同じ `SessionDetailPage` ストーリーをスクリーンショット化し、`frontend/storybook-artifacts/*.png` に保存します。CI では失敗時にこのディレクトリをアーティファクト化すると視覚差分を簡単にレビューできます。
 
 ## テスト実行
 ```bash

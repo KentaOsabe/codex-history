@@ -2,16 +2,25 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import type { SessionVariant } from '@/api/types/sessions'
+import ResponsiveGrid from '@/features/layout/ResponsiveGrid'
 import useResponsiveLayout from '@/features/layout/useResponsiveLayout'
 
-import DetailInsightsPanel from './DetailInsightsPanel'
-import MessageTimeline from './MessageTimeline'
-import SessionDetailHeader from './SessionDetailHeader'
+import ConversationRegion from './ConversationRegion'
+import MetaEventDrawer from './MetaEventDrawer'
 import styles from './SessionDetailPage.module.css'
-import SessionDetailTabs, { type SessionDetailTab } from './SessionDetailTabs'
+import SessionSummaryRail from './SessionSummaryRail'
+import { useConversationEvents } from './useConversationEvents'
+import { useIdeContextPreference } from './useIdeContextPreference'
 import { useSessionDetailViewModel } from './useSessionDetailViewModel'
+import { useTimelineLoadController, type TimelineLoadDirection } from './useTimelineLoadController'
 
-import type { ScrollAnchorSnapshot } from './types'
+import type { SessionDetailTab } from './SessionDetailTabs'
+import type {
+  ScrollAnchorSnapshot,
+  SessionDetailViewModel,
+  TimelineBundleSummary,
+  TimelineDisplayMode,
+} from './types'
 
 const TAB_IDS = {
   conversation: 'session-detail-tab-conversation',
@@ -28,7 +37,11 @@ const TAB_ANNOUNCEMENTS: Record<SessionDetailTab, string> = {
   details: '詳細タブを表示しています',
 }
 
-const SessionDetailPage = () => {
+interface SessionDetailPageProps {
+  prefetchedDetail?: SessionDetailViewModel
+}
+
+const SessionDetailPage = ({ prefetchedDetail }: SessionDetailPageProps) => {
   const { sessionId } = useParams<{ sessionId: string }>()
   const layout = useResponsiveLayout()
   const resolvedSessionId = sessionId ?? '(未指定)'
@@ -42,15 +55,20 @@ const SessionDetailPage = () => {
     refetch,
     preserveScrollAnchor,
     consumeScrollAnchor,
-  } = useSessionDetailViewModel({ sessionId })
+  } = useSessionDetailViewModel({ sessionId, prefetchedDetail })
   const timelineRef = useRef<HTMLDivElement | null>(null)
-  const boundaryTriggerRef = useRef<{ direction: 'start' | 'end'; timestamp: number } | null>(null)
   const [activeTab, setActiveTab] = useState<SessionDetailTab>('conversation')
+  const [timelineMode, setTimelineMode] = useState<TimelineDisplayMode>('conversation')
+  const [drawerSummary, setDrawerSummary] = useState<TimelineBundleSummary | null>(null)
+  const [highlightedIds, setHighlightedIds] = useState<string[]>([])
   const [tabAnnouncement, setTabAnnouncement] = useState<string>(TAB_ANNOUNCEMENTS.conversation)
   const conversationPanelRef = useRef<HTMLElement | null>(null)
   const detailPanelRef = useRef<HTMLElement | null>(null)
   const tabStateRef = useRef<Record<string, SessionDetailTab>>({})
+  const filterModeStateRef = useRef<Record<string, TimelineDisplayMode>>({})
   const sessionKey = resolvedSessionId
+  const conversationData = useConversationEvents({ detail, variant })
+  const ideContextPreference = useIdeContextPreference(conversationData.ideContextSections)
 
   const captureScrollAnchor = useCallback(() => {
     const container = timelineRef.current
@@ -98,18 +116,43 @@ const SessionDetailPage = () => {
     [preserveScrollAnchor],
   )
 
+  const handleTimelineModeChange = useCallback((nextMode: TimelineDisplayMode) => {
+    setTimelineMode((prev) => {
+      if (prev === nextMode) {
+        return prev
+      }
+      return nextMode
+    })
+  }, [])
+
+  const applyHighlightForSummary = useCallback((summary: TimelineBundleSummary | null) => {
+    if (summary?.anchorMessageId) {
+      setHighlightedIds([ summary.anchorMessageId ])
+    } else {
+      setHighlightedIds([])
+    }
+  }, [])
+
+  const handleBundleSelect = useCallback((summary: TimelineBundleSummary) => {
+    setDrawerSummary(summary)
+    applyHighlightForSummary(summary)
+    if (activeTab !== 'conversation') {
+      handleTabChange('conversation')
+    }
+  }, [activeTab, applyHighlightForSummary, handleTabChange])
+
+  const handleDrawerClose = useCallback(() => {
+    setDrawerSummary(null)
+    setHighlightedIds([])
+  }, [])
+
   const handleRetry = useCallback(() => {
     void refetch()
   }, [refetch])
 
-  const triggerBoundaryLoad = useCallback(
-    (direction: 'start' | 'end') => {
-      const now = typeof performance !== 'undefined' ? performance.now() : Date.now()
-      const lastTrigger = boundaryTriggerRef.current
-      if (lastTrigger?.direction === direction && now - lastTrigger.timestamp < 1200) {
-        return
-      }
-      boundaryTriggerRef.current = { direction, timestamp: now }
+  const handleTimelineLoad = useCallback(
+    (direction: TimelineLoadDirection) => {
+      void direction
       const anchor = captureScrollAnchor()
       preserveScrollAnchor(anchor)
       void refetch()
@@ -117,13 +160,10 @@ const SessionDetailPage = () => {
     [captureScrollAnchor, preserveScrollAnchor, refetch],
   )
 
-  const handleReachTop = useCallback(() => {
-    triggerBoundaryLoad('start')
-  }, [triggerBoundaryLoad])
-
-  const handleReachBottom = useCallback(() => {
-    triggerBoundaryLoad('end')
-  }, [triggerBoundaryLoad])
+  const { canLoadPrev, canLoadNext, requestLoad: requestTimelineLoad } = useTimelineLoadController({
+    detail,
+    onLoad: handleTimelineLoad,
+  })
 
   useEffect(() => {
     setTabAnnouncement(TAB_ANNOUNCEMENTS[activeTab])
@@ -156,7 +196,54 @@ const SessionDetailPage = () => {
     tabStateRef.current[sessionKey] = activeTab
   }, [activeTab, sessionKey])
 
-  const showTabLayout = status === 'loading' || Boolean(detail)
+  useEffect(() => {
+    setTimelineMode(() => {
+      const stored = filterModeStateRef.current[sessionKey]
+      if (stored) {
+        return stored
+      }
+      filterModeStateRef.current[sessionKey] = 'conversation'
+      return 'conversation'
+    })
+  }, [sessionKey])
+
+  useEffect(() => {
+    filterModeStateRef.current[sessionKey] = timelineMode
+  }, [sessionKey, timelineMode])
+
+  useEffect(() => {
+    applyHighlightForSummary(drawerSummary)
+  }, [drawerSummary, applyHighlightForSummary])
+
+  useEffect(() => {
+    if (!drawerSummary) {
+      return
+    }
+    const exists = conversationData.bundleSummaries.some((summary) => summary.id === drawerSummary.id)
+    if (!exists) {
+      setDrawerSummary(null)
+      setHighlightedIds([])
+    }
+  }, [conversationData.bundleSummaries, drawerSummary])
+
+  const timelineMessages = detail
+    ? timelineMode === 'conversation'
+      ? conversationData.conversationMessages
+      : detail.messages
+    : undefined
+
+  const timelineFilterControls = detail
+    ? {
+        mode: timelineMode,
+        hiddenCount: conversationData.hiddenCount,
+        bundleSummaries: conversationData.bundleSummaries,
+        onModeChange: handleTimelineModeChange,
+        onBundleSelect: handleBundleSelect,
+        ideContextPreference: ideContextPreference.sections.length ? ideContextPreference : undefined,
+      }
+    : undefined
+
+  const drawerPlacement = layout.columns === 1 ? 'bottom' : 'side'
 
   return (
     <article
@@ -166,117 +253,58 @@ const SessionDetailPage = () => {
       data-breakpoint={layout.breakpoint}
       data-columns={layout.columns}
     >
-      <div className={styles.hero}>
-        <span className={styles.heroBadge}>Session Detail</span>
-        <p className={styles.heroMeta}>
-          現在のセッション: <code>{resolvedSessionId}</code>
-        </p>
-      </div>
+      <ResponsiveGrid className={styles.contentGrid} data-testid="session-detail-grid">
+        <ConversationRegion
+          status={status}
+          detail={detail}
+          activeTab={activeTab}
+          tabAnnouncement={tabAnnouncement}
+          tabIds={TAB_IDS}
+          panelIds={PANEL_IDS}
+          onTabChange={handleTabChange}
+          timelineRef={timelineRef}
+          conversationPanelRef={conversationPanelRef}
+          detailPanelRef={detailPanelRef}
+          onScrollAnchorChange={handleScrollAnchorChange}
+          errorMessage={status === 'error' && error ? error.message : undefined}
+          onRetry={handleRetry}
+          timelineMessages={timelineMessages}
+          timelineFilterControls={layout.columns === 1 ? timelineFilterControls : undefined}
+          highlightedMessageIds={highlightedIds}
+          canLoadPrev={canLoadPrev}
+          canLoadNext={canLoadNext}
+          onRequestTimelineLoad={requestTimelineLoad}
+          ideContextPreference={ideContextPreference}
+          timelineDisplayMode={timelineMode}
+        />
 
-      {status === 'error' && error ? (
-        <section className={styles.errorBanner} role="alert">
-          <div>
-            <p className={styles.errorTitle}>表示に失敗しました</p>
-            <p className={styles.errorMessage}>{error.message}</p>
-          </div>
-          <button type="button" className={styles.retryButton} onClick={handleRetry}>
-            再読み込み
-          </button>
-        </section>
-      ) : null}
-
-      {status === 'loading' ? (
-        <div className={styles.skeleton}>
-          <div className={styles.skeletonLine} />
-          <div className={styles.skeletonLine} />
-          <div className={styles.skeletonLine} />
-        </div>
-      ) : null}
-
-      {detail ? (
-        <>
-          <SessionDetailHeader
-            detail={detail}
-            variant={variant}
-            hasSanitizedVariant={hasSanitizedVariant}
-            onVariantChange={handleVariantChange}
-          />
-          <section className={`${styles.infoBar} layout-full-width`}>
-            <span>
-              データソース: <code>{detail.meta.relativePath}</code>
-            </span>
-            {detail.meta.lastUpdatedLabel ? <span>最終更新: {detail.meta.lastUpdatedLabel}</span> : null}
-          </section>
-        </>
-      ) : null}
-
-      {showTabLayout ? (
-        <section className={styles.tabHost} aria-label="セッション詳細ナビゲーション領域">
-          <SessionDetailTabs
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            tabIds={TAB_IDS}
-            panelIds={PANEL_IDS}
-          />
-          <p
-            className={styles.srOnly}
-            aria-live="polite"
-            role="status"
-            data-testid="session-tab-announcement"
-          >
-            {tabAnnouncement}
-          </p>
-          <div className={styles.tabPanels}>
-            <section
-              id={PANEL_IDS.conversation}
-              role="tabpanel"
-              aria-labelledby={TAB_IDS.conversation}
-              hidden={activeTab !== 'conversation'}
-              tabIndex={-1}
-              ref={conversationPanelRef}
-              data-testid="conversation-tab-panel"
-              className={`${styles.timelinePlaceholder} layout-panel layout-panel--padded ${styles.timelineSection} ${styles.tabPanel}`}
-            >
-              <h2 className={styles.timelineHeading}>メッセージタイムライン</h2>
-              {detail ? (
-                <MessageTimeline
-                  ref={timelineRef}
-                  className={styles.timelineContainer}
-                  messages={detail.messages}
-                  onReachStart={handleReachTop}
-                  onReachEnd={handleReachBottom}
-                  onScrollAnchorChange={handleScrollAnchorChange}
-                />
-              ) : (
-                <div className={styles.skeleton} role="status" aria-live="polite">
-                  <div className={styles.skeletonLine} />
-                  <div className={styles.skeletonLine} />
-                  <div className={styles.skeletonLine} />
-                </div>
-              )}
-            </section>
-            <section
-              id={PANEL_IDS.details}
-              role="tabpanel"
-              aria-labelledby={TAB_IDS.details}
-              hidden={activeTab !== 'details'}
-              tabIndex={-1}
-              ref={detailPanelRef}
-              data-testid="details-tab-panel"
-              className={`${styles.timelinePlaceholder} layout-panel layout-panel--padded ${styles.tabPanel}`}
-            >
-              <h2 className={styles.timelineHeading}>技術的詳細</h2>
-              <DetailInsightsPanel detail={detail} status={status} />
-            </section>
-          </div>
-        </section>
-      ) : null}
+        <SessionSummaryRail
+          detail={detail}
+          variant={variant}
+          hasSanitizedVariant={hasSanitizedVariant}
+          onVariantChange={handleVariantChange}
+          layout={layout}
+          resolvedSessionId={resolvedSessionId}
+          timelineFilterControls={layout.columns === 1 ? undefined : timelineFilterControls}
+        />
+      </ResponsiveGrid>
 
       <div className={styles.actions}>
         <Link to="/" className={styles.backLink}>
           セッション一覧へ戻る
         </Link>
       </div>
+
+      <MetaEventDrawer
+        open={Boolean(drawerSummary)}
+        onClose={handleDrawerClose}
+        variant={variant}
+        placement={drawerPlacement}
+        summary={drawerSummary}
+        metaEvents={conversationData.metaEvents}
+        toolInvocations={conversationData.toolInvocations}
+        sessionId={detail?.sessionId}
+      />
     </article>
   )
 }

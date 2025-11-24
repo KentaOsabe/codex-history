@@ -1,7 +1,8 @@
-import SearchAndFilterPanel from './SearchAndFilterPanel'
 
 import { expect } from '@storybook/jest'
 import { within } from '@storybook/testing-library'
+
+import SearchAndFilterPanel from './SearchAndFilterPanel'
 
 import type { Meta, StoryObj } from '@storybook/react'
 

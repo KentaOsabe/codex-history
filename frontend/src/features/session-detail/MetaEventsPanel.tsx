@@ -4,14 +4,15 @@ import EncryptedReasoningPlaceholder from './EncryptedReasoningPlaceholder'
 import styles from './MetaEventsPanel.module.css'
 import SanitizedJsonViewer from './SanitizedJsonViewer'
 
-import type { MetaEventGroup } from './types'
+import type { MetaEventGroup, SanitizedViewerMode } from './types'
 
 interface MetaEventsPanelProps {
   metaEvents: MetaEventGroup[]
   sessionId?: string
+  payloadMode?: SanitizedViewerMode
 }
 
-const MetaEventsPanel = ({ metaEvents, sessionId }: MetaEventsPanelProps) => {
+const MetaEventsPanel = ({ metaEvents, sessionId, payloadMode = 'default' }: MetaEventsPanelProps) => {
   const [expandedState, setExpandedState] = useState<Record<string, boolean>>({})
   const payloadExpandedRef = useRef<Record<string, boolean>>({})
   const [, setPayloadVersion] = useState(0)
@@ -133,6 +134,7 @@ const MetaEventsPanel = ({ metaEvents, sessionId }: MetaEventsPanelProps) => {
                       value={event.payloadJson}
                       expanded={getPayloadExpanded(event.id)}
                       onExpandedChange={(next) => handlePayloadExpandedChange(event.id, next)}
+                      mode={payloadMode}
                     />
                   )}
                 </article>

@@ -4,16 +4,26 @@ import { forwardRef, type ForwardedRef, useCallback, useEffect, useMemo, useRef 
 import MessageCard from './MessageCard'
 import styles from './MessageTimeline.module.css'
 
-import type { ScrollAnchorSnapshot, SessionMessageViewModel } from './types'
+import type {
+  IdeContextPreferenceState,
+  ScrollAnchorSnapshot,
+  SessionMessageViewModel,
+  TimelineDisplayMode,
+} from './types'
+import type { TimelineLoadDirection } from './useTimelineLoadController'
 
 
 interface MessageTimelineProps {
   messages: SessionMessageViewModel[]
   className?: string
   virtualizationThreshold?: number
-  onReachStart?: () => void
-  onReachEnd?: () => void
+  canLoadPrev?: boolean
+  canLoadNext?: boolean
+  onRequestLoad?: (direction: TimelineLoadDirection) => void
   onScrollAnchorChange?: (snapshot: ScrollAnchorSnapshot) => void
+  highlightedIds?: string[]
+  ideContextPreference?: IdeContextPreferenceState
+  displayMode?: TimelineDisplayMode
 }
 
 const VIRTUALIZATION_THRESHOLD = 120
@@ -51,9 +61,13 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
       messages,
       className,
       virtualizationThreshold = VIRTUALIZATION_THRESHOLD,
-      onReachStart,
-      onReachEnd,
+      canLoadPrev = false,
+      canLoadNext = false,
+      onRequestLoad,
       onScrollAnchorChange,
+      highlightedIds,
+      ideContextPreference,
+      displayMode = 'full',
     },
     forwardedRef,
   ) => {
@@ -65,6 +79,7 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
     }, [className])
 
     const shouldVirtualize = messages.length > virtualizationThreshold
+    const highlightedSet = useMemo(() => new Set(highlightedIds ?? []), [highlightedIds])
 
     const estimateSize = useCallback((index: number) => estimateMessageHeight(messages[index]), [messages])
     const getItemKey = useCallback(
@@ -85,25 +100,32 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
       return shouldVirtualize ? virtualizer.getVirtualItems() : []
     }, [shouldVirtualize, virtualizer])
 
+    const canTriggerLoad = useCallback(
+      (edge: 'top' | 'bottom') => {
+        return edge === 'top' ? canLoadPrev : canLoadNext
+      },
+      [canLoadNext, canLoadPrev],
+    )
+
     const updateEdgeState = useCallback(
       (edge: 'top' | 'bottom', active: boolean) => {
-        if (!((edge === 'top' && onReachStart) || (edge === 'bottom' && onReachEnd))) {
+        if (!onRequestLoad) {
           edgeStateRef.current[edge] = active
+          return
+        }
+        if (!canTriggerLoad(edge)) {
+          edgeStateRef.current[edge] = false
           return
         }
         const previous = edgeStateRef.current[edge]
         if (active && !previous) {
           edgeStateRef.current[edge] = true
-          if (edge === 'top') {
-            onReachStart?.()
-          } else {
-            onReachEnd?.()
-          }
+          onRequestLoad(edge === 'top' ? 'prev' : 'next')
         } else if (!active && previous) {
           edgeStateRef.current[edge] = false
         }
       },
-      [onReachEnd, onReachStart],
+      [canTriggerLoad, onRequestLoad],
     )
 
     const emitAnchorSnapshot = useCallback(() => {
@@ -200,7 +222,13 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
         >
           <div className={styles.list}>
             {messages.map((message) => (
-              <MessageCard key={message.id} message={message} />
+              <MessageCard
+                key={message.id}
+                message={message}
+                isHighlighted={highlightedSet.has(message.id)}
+                ideContextPreference={ideContextPreference}
+                displayMode={displayMode}
+              />
             ))}
           </div>
         </div>
@@ -217,6 +245,7 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
         <div className={styles.virtualizerInner} style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualItems.map((virtualRow) => {
             const message = messages[virtualRow.index]
+            const isHighlighted = highlightedSet.has(message.id)
             return (
               <div
                 key={(virtualRow.key ?? messages[virtualRow.index]?.id ?? virtualRow.index).toString()}
@@ -229,7 +258,12 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
                 style={{ transform: `translateY(${virtualRow.start}px)` }}
                 data-index={virtualRow.index}
               >
-                <MessageCard message={message} />
+                <MessageCard
+                  message={message}
+                  isHighlighted={isHighlighted}
+                  ideContextPreference={ideContextPreference}
+                  displayMode={displayMode}
+                />
               </div>
             )
           })}

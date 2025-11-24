@@ -13,7 +13,7 @@ import themeGuard from './eslint-rules/no-literal-colors.js'
 const project = ['./tsconfig.app.json']
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage', '.vite']),
+  globalIgnores(['dist', 'coverage', '.vite', 'storybook-static', 'tests/storybook']),
   {
     files: ['**/*.{ts,tsx}'],
     ignores: [
@@ -21,6 +21,7 @@ export default defineConfig([
       '**/*.config.{js,ts,mjs,cjs}',
       'vite.config.ts',
       'vitest.config.ts',
+      '**/*.stories.disabled.tsx',
     ],
     plugins: {
       react: reactPlugin,

@@ -2,10 +2,16 @@ import { render, screen } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
+import ThemeProvider from '@/features/ui-theme/ThemeProvider'
+
 import { appRoutes } from '../AppRouter'
 
 vi.mock('@/features/sessions-date-list/SessionsDateListView', () => ({
   default: () => <div data-testid="sessions-date-list-stub">SessionsDateListView Stub</div>,
+}))
+
+vi.mock('@/features/session-detail/SessionDetailPage', () => ({
+  default: () => <div data-testid="session-detail-stub">SessionDetailPage Stub</div>,
 }))
 
 vi.mock('@/features/session-detail/useSessionDetailViewModel', () => ({
@@ -42,7 +48,11 @@ vi.mock('@/features/session-detail/useSessionDetailViewModel', () => ({
 
 const renderWithPath = (path: string) => {
   const router = createMemoryRouter(appRoutes, { initialEntries: [path] })
-  return render(<RouterProvider router={router} />)
+  return render(
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>,
+  )
 }
 
 describe('AppRouter', () => {
@@ -53,6 +63,6 @@ describe('AppRouter', () => {
 
   it('セッション詳細ルートで詳細ビューを表示する', () => {
     renderWithPath('/sessions/demo-session')
-    expect(screen.getByRole('heading', { name: 'Mock Session' })).toBeInTheDocument()
+    expect(screen.getByTestId('session-detail-stub')).toBeInTheDocument()
   })
 })

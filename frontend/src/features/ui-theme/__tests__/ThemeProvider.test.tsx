@@ -2,7 +2,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import ThemeProvider, { useTheme } from '@/features/ui-theme/ThemeProvider'
+import { useTheme } from '@/features/ui-theme/ThemeContext'
 import ThemeToggle from '@/features/ui-theme/ThemeToggle'
 import { setupPrefersColorSchemeMock } from '@/test-utils/matchMediaMock'
 import { renderWithTheme } from '@/test-utils/renderWithTheme'
@@ -80,14 +80,14 @@ describe('ThemeProvider', () => {
     env.cleanup()
   })
 
-  it('reacts to system color scheme changes while mode=system', async () => {
+  it('reacts to system color scheme changes while mode=system', () => {
     const env = setupPrefersColorSchemeMock('light')
 
     renderWithTheme(<ThemeViewer />)
 
     expect(document.body.dataset.theme).toBe('light')
 
-    await act(async () => {
+    act(() => {
       env.setColorScheme('dark')
     })
 
@@ -119,7 +119,7 @@ describe('ThemeProvider', () => {
     env.cleanup()
   })
 
-  it('requestAnimationFrame経由で50ms以内にbody属性を更新する', async () => {
+  it('requestAnimationFrame経由で50ms以内にbody属性を更新する', () => {
     const env = setupPrefersColorSchemeMock('light')
     vi.useFakeTimers()
     const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
@@ -130,7 +130,7 @@ describe('ThemeProvider', () => {
 
     fireEvent.click(screen.getByTestId('theme-toggle'))
 
-    await act(async () => {
+    act(() => {
       vi.advanceTimersByTime(16)
     })
 

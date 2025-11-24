@@ -12,6 +12,7 @@ import type { ScrollAnchorSnapshot, SessionDetailStatus, SessionDetailViewModel 
 interface UseSessionDetailParams {
   sessionId?: string
   initialVariant?: SessionVariant
+  prefetchedDetail?: SessionDetailViewModel
 }
 
 interface DetailState {
@@ -34,14 +35,26 @@ const deriveInitialStatus = (sessionId?: string): SessionDetailStatus => (sessio
 export const useSessionDetailViewModel = ({
   sessionId,
   initialVariant = 'original',
+  prefetchedDetail,
 }: UseSessionDetailParams = {}): SessionDetailHookResult => {
-  const [variant, setVariant] = useState<SessionVariant>(initialVariant)
-  const [hasSanitizedVariant, setHasSanitizedVariant] = useState<boolean>(true)
-  const [state, setState] = useState<DetailState>(() => ({
-    status: deriveInitialStatus(sessionId),
-    detail: undefined,
-    error: undefined,
-  }))
+  const [variant, setVariant] = useState<SessionVariant>(prefetchedDetail?.variant ?? initialVariant)
+  const [hasSanitizedVariant, setHasSanitizedVariant] = useState<boolean>(
+    prefetchedDetail?.sanitizedAvailable ?? true,
+  )
+  const [state, setState] = useState<DetailState>(() => {
+    if (prefetchedDetail) {
+      return {
+        status: 'success',
+        detail: prefetchedDetail,
+        error: undefined,
+      }
+    }
+    return {
+      status: deriveInitialStatus(sessionId),
+      detail: undefined,
+      error: undefined,
+    }
+  })
 
   const detailRef = useRef<SessionDetailViewModel | undefined>(undefined)
   const requestIdRef = useRef(0)
@@ -55,11 +68,14 @@ export const useSessionDetailViewModel = ({
   const runFetch = useCallback(
     async (targetSessionId: string, targetVariant: SessionVariant, preservePrevious: boolean) => {
       const requestId = ++requestIdRef.current
-      setState((prev) => ({
-        status: 'loading',
-        detail: preservePrevious ? prev.detail : undefined,
-        error: undefined,
-      }))
+      setState((prev) => {
+        const keepDetail = preservePrevious && Boolean(prev.detail)
+        return {
+          status: keepDetail ? 'refetching' : 'loading',
+          detail: keepDetail ? prev.detail : undefined,
+          error: undefined,
+        }
+      })
 
       try {
         const response = await sessionsApi.getSessionDetail({ id: targetSessionId, variant: targetVariant })
@@ -92,6 +108,11 @@ export const useSessionDetailViewModel = ({
   )
 
   useEffect(() => {
+    if (prefetchedDetail?.variant === variant) {
+      // Storybook など事前フェッチ済みの場合は追加リクエストを行わない
+      return
+    }
+
     if (!sessionId) {
       sanitizedAvailableRef.current = true
       setHasSanitizedVariant(true)
@@ -105,7 +126,7 @@ export const useSessionDetailViewModel = ({
       scrollAnchorRef.current = null
     }
     runFetch(sessionId, variant, preserve).catch(() => undefined)
-  }, [sessionId, variant, runFetch])
+  }, [sessionId, variant, runFetch, prefetchedDetail])
 
   const handleSetVariant = useCallback((next: SessionVariant) => {
     setVariant((prev) => {
@@ -120,12 +141,15 @@ export const useSessionDetailViewModel = ({
   }, [])
 
   const refetch = useCallback(async () => {
+    if (prefetchedDetail?.variant === variant) {
+      return prefetchedDetail
+    }
     if (!sessionId) {
       return undefined
     }
     const preserve = detailRef.current?.sessionId === sessionId
     return runFetch(sessionId, variant, preserve)
-  }, [runFetch, sessionId, variant])
+  }, [prefetchedDetail, runFetch, sessionId, variant])
 
   const preserveScrollAnchor = useCallback((snapshot: ScrollAnchorSnapshot | null) => {
     scrollAnchorRef.current = snapshot

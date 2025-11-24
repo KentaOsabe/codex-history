@@ -21,7 +21,7 @@ const DEFAULT_LAYOUT_STATE: ResponsiveLayoutState = {
 
 const BREAKPOINT_CONFIGS: BreakpointConfig[] = [
   { breakpoint: 'xl', query: '(min-width: 1200px)', columns: 2, isStackedPanels: false },
-  { breakpoint: 'lg', query: '(min-width: 992px)', columns: 1, isStackedPanels: true },
+  { breakpoint: 'lg', query: '(min-width: 992px)', columns: 2, isStackedPanels: false },
   { breakpoint: 'md', query: '(min-width: 768px)', columns: 1, isStackedPanels: true },
   { breakpoint: 'sm', query: '(min-width: 576px)', columns: 1, isStackedPanels: true },
 ]
