@@ -120,7 +120,11 @@ const TimelineFilterBar = ({
                     <input
                       type="checkbox"
                       checked={section.alwaysVisible}
-                      onChange={(event) => ideContextPreference.setAlwaysVisible(section.key, event.currentTarget.checked)}
+                      onChange={(event) => {
+                        const nextState = event.currentTarget?.checked
+                        if (typeof nextState !== 'boolean') return
+                        ideContextPreference.setAlwaysVisible(section.key, nextState)
+                      }}
                     />
                     <span>{section.heading}</span>
                   </label>

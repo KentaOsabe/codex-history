@@ -5,7 +5,6 @@ import MessageCard from './MessageCard'
 import styles from './MessageTimeline.module.css'
 
 import type {
-  IdeContextPreferenceState,
   ScrollAnchorSnapshot,
   SessionMessageViewModel,
   TimelineDisplayMode,
@@ -22,7 +21,6 @@ interface MessageTimelineProps {
   onRequestLoad?: (direction: TimelineLoadDirection) => void
   onScrollAnchorChange?: (snapshot: ScrollAnchorSnapshot) => void
   highlightedIds?: string[]
-  ideContextPreference?: IdeContextPreferenceState
   displayMode?: TimelineDisplayMode
 }
 
@@ -66,7 +64,6 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
       onRequestLoad,
       onScrollAnchorChange,
       highlightedIds,
-      ideContextPreference,
       displayMode = 'full',
     },
     forwardedRef,
@@ -226,7 +223,6 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
                 key={message.id}
                 message={message}
                 isHighlighted={highlightedSet.has(message.id)}
-                ideContextPreference={ideContextPreference}
                 displayMode={displayMode}
               />
             ))}
@@ -261,7 +257,6 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
                 <MessageCard
                   message={message}
                   isHighlighted={isHighlighted}
-                  ideContextPreference={ideContextPreference}
                   displayMode={displayMode}
                 />
               </div>

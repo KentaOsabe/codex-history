@@ -69,6 +69,7 @@ const SessionDetailPage = ({ prefetchedDetail }: SessionDetailPageProps) => {
   const sessionKey = resolvedSessionId
   const conversationData = useConversationEvents({ detail, variant })
   const ideContextPreference = useIdeContextPreference(conversationData.ideContextSections)
+  const effectiveIdeContextPreference = ideContextPreference.sections.length ? ideContextPreference : undefined
 
   const captureScrollAnchor = useCallback(() => {
     const container = timelineRef.current
@@ -239,7 +240,7 @@ const SessionDetailPage = ({ prefetchedDetail }: SessionDetailPageProps) => {
         bundleSummaries: conversationData.bundleSummaries,
         onModeChange: handleTimelineModeChange,
         onBundleSelect: handleBundleSelect,
-        ideContextPreference: ideContextPreference.sections.length ? ideContextPreference : undefined,
+        ideContextPreference: effectiveIdeContextPreference,
       }
     : undefined
 
@@ -253,7 +254,11 @@ const SessionDetailPage = ({ prefetchedDetail }: SessionDetailPageProps) => {
       data-breakpoint={layout.breakpoint}
       data-columns={layout.columns}
     >
-      <ResponsiveGrid className={styles.contentGrid} data-testid="session-detail-grid">
+      <ResponsiveGrid
+        className={styles.contentGrid}
+        data-testid="session-detail-grid"
+        splitRatio={[7, 3]}
+      >
         <ConversationRegion
           status={status}
           detail={detail}
@@ -274,7 +279,6 @@ const SessionDetailPage = ({ prefetchedDetail }: SessionDetailPageProps) => {
           canLoadPrev={canLoadPrev}
           canLoadNext={canLoadNext}
           onRequestTimelineLoad={requestTimelineLoad}
-          ideContextPreference={ideContextPreference}
           timelineDisplayMode={timelineMode}
         />
 

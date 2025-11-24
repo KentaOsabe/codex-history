@@ -4,7 +4,7 @@ import type { SessionDetailResponse } from '@/api/types/sessions'
 
 import { mapResponseToViewModel } from '../mapResponseToViewModel'
 
-describe('mapResponseToViewModel – IDE コンテキスト抽出', () => {
+describe('mapResponseToViewModel – ユーザーメッセージ整形', () => {
   const buildResponse = (messageText: string): SessionDetailResponse => ({
     data: {
       id: 'session-123',
@@ -52,7 +52,7 @@ describe('mapResponseToViewModel – IDE コンテキスト抽出', () => {
     errors: [],
   })
 
-  it('セクションの見出しと本文を metadata.ideContext.sections に格納する', () => {
+  it('My request を本文セグメントの先頭へ昇格し、残りはオプション化する', () => {
     const response = buildResponse(`# Context from my IDE setup
 
 ## Active file: frontend/src/App.tsx
@@ -68,16 +68,18 @@ describe('mapResponseToViewModel – IDE コンテキスト抽出', () => {
 
     const viewModel = mapResponseToViewModel(response, 'original')
     const message = viewModel.messages[0]
-    const sections = message.metadata?.ideContext?.sections ?? []
 
-    expect(sections).toHaveLength(3)
-    expect(sections[0]).toMatchObject({ heading: 'Active file', content: 'frontend/src/App.tsx\n行 1' })
-    const requestSection = sections.find((section) => section.heading === 'My request for Codex')
-    expect(requestSection?.content).toContain('/kiro:spec-impl issue-36 6')
-    expect(requestSection?.defaultExpanded).toBe(true)
+    expect(message.segments[0]?.text).toContain('/kiro:spec-impl issue-36 6')
+    expect(message.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Active file', value: 'frontend/src/App.tsx\n行 1' }),
+        expect.objectContaining({ label: 'Open tabs', value: '- README.md\n- SessionDetailPage.tsx' }),
+      ]),
+    )
+    expect(message.metadata?.ideContext).toBeUndefined()
   })
 
-  it('ユーザー本文内の IDE コンテキストブロックをタイムライン本文から取り除く', () => {
+  it('本文に残したい文章と My request を分離し、本文から IDE コンテキストを除去する', () => {
     const response = buildResponse(`Hotfix をお願いします。
 
 追加要件はありません。
@@ -93,13 +95,17 @@ L10
     const viewModel = mapResponseToViewModel(response, 'original')
     const message = viewModel.messages[0]
 
-    expect(message.metadata?.ideContext?.sections).toHaveLength(2)
-    expect(message.segments).toHaveLength(1)
-    expect(message.segments[0]?.text).toContain('Hotfix をお願いします。')
-    expect(message.segments[0]?.text).not.toMatch(/#\s+Context from my IDE setup/i)
+    expect(message.segments[0]?.text).toContain('/kiro:spec-impl issue-36 7')
+    expect(message.segments[1]?.text).toContain('Hotfix をお願いします。')
+    expect(JSON.stringify(message.segments)).not.toMatch(/Context from my IDE setup/i)
+    expect(message.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Active file', value: 'frontend/src/main.tsx\nL10' }),
+      ]),
+    )
   })
 
-  it('本文が IDE コンテキストのみの場合は segments を空にする', () => {
+  it('IDE コンテキストのみの入力はオプションとして保持し、本文は空にする', () => {
     const response = buildResponse(`# Context from my IDE setup
 
 ## Active file: backend/app.rb
@@ -108,11 +114,11 @@ L10
     const viewModel = mapResponseToViewModel(response, 'original')
     const message = viewModel.messages[0]
 
-    expect(message.metadata?.ideContext?.sections).not.toHaveLength(0)
     expect(message.segments).toHaveLength(0)
+    expect(message.options?.length).toBeGreaterThan(0)
   })
 
-  it('AGENTS.md セクションをタイムラインにも IDE コンテキストにも含めない', () => {
+  it('AGENTS.md セクションを本文やオプションから除外する', () => {
     const response = buildResponse(`# AGENTS.md instructions for /path
 
 <INSTRUCTIONS>
@@ -131,15 +137,15 @@ L10
 
     const viewModel = mapResponseToViewModel(response, 'original')
     const message = viewModel.messages[0]
-    const headings = (message.metadata?.ideContext?.sections ?? []).map((section) => section.heading)
+    const optionLabels = (message.options ?? []).map((option) => option.label)
 
-    expect(headings).toEqual(expect.arrayContaining(['Active file', 'My request for Codex']))
-    expect(headings).not.toEqual(expect.arrayContaining([expect.stringMatching(/AGENTS/i)]))
-    expect(message.segments).toHaveLength(0)
+    expect(message.segments[0]?.text).toContain('/kiro:spec-impl issue-36 9')
+    expect(optionLabels).toEqual(expect.arrayContaining(['Active file']))
+    expect(optionLabels).not.toEqual(expect.arrayContaining([expect.stringMatching(/AGENTS/i)]))
     expect(JSON.stringify(message)).not.toMatch(/AGENTS\.md/i)
   })
 
-  it('複数のユーザーメッセージを連続で処理しても IDE コンテキストを検出できる', () => {
+  it('複数のユーザーメッセージでも My request を本文へ昇格させる', () => {
     const response: SessionDetailResponse = {
       data: {
         id: 'session-456',
@@ -212,11 +218,12 @@ second message`,
 
     const viewModel = mapResponseToViewModel(response, 'original')
 
-    expect(viewModel.messages[0]?.metadata?.ideContext?.sections).not.toHaveLength(0)
-    expect(viewModel.messages[1]?.metadata?.ideContext?.sections).not.toHaveLength(0)
+    expect(viewModel.messages[0]?.segments[0]?.text).toBe('first message')
+    expect(viewModel.messages[1]?.segments[0]?.text).toBe('second message')
+    expect(viewModel.messages[0]?.metadata?.ideContext).toBeUndefined()
   })
 
-  it('environment_context ブロックをサニタイズし、本文や IDE コンテキストに含めない', () => {
+  it('environment_context ブロックを除去し、My request だけを本文に残す', () => {
     const response = buildResponse(`<environment_context>
 OS: macOS
 Node: 22
@@ -230,10 +237,9 @@ Node: 22
 
     const viewModel = mapResponseToViewModel(response, 'original')
     const message = viewModel.messages[0]
-    const headings = (message.metadata?.ideContext?.sections ?? []).map((section) => section.heading)
 
-    expect(headings).toEqual([ 'My request for Codex' ])
-    expect(message.segments).toHaveLength(0)
+    expect(message.segments[0]?.text).toContain('/kiro:spec-impl issue-36 10')
+    expect(message.options ?? []).toHaveLength(0)
     expect(JSON.stringify(message)).not.toMatch(/environment_context/i)
   })
 })
