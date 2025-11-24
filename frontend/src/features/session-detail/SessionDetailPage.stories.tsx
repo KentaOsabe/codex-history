@@ -3,11 +3,14 @@ import { expect } from '@storybook/jest'
 import { userEvent, waitFor, within } from '@storybook/testing-library'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
-import { storybookSessionDetailHandlers, storybookSessionHandlers } from '@/mocks/storybookHandlers'
+import { storybookData, storybookSessionDetailHandlers, storybookSessionHandlers } from '@/mocks/storybookHandlers'
 
+import { mapResponseToViewModel } from './mapResponseToViewModel'
 import SessionDetailPage from './SessionDetailPage'
 
 import type { Meta, StoryObj } from '@storybook/react'
+
+const prefetchedDetail = mapResponseToViewModel(storybookData.sessionDetail, 'original')
 
 const withRouter = (Story: () => JSX.Element) => (
   <MemoryRouter initialEntries={['/sessions/session-2025-03-14-001']}>
@@ -22,6 +25,7 @@ const meta = {
   component: SessionDetailPage,
   decorators: [withRouter],
   tags: ['autodocs'],
+  render: () => <SessionDetailPage prefetchedDetail={prefetchedDetail} />,
   parameters: {
     msw: {
       handlers: [...storybookSessionHandlers(), ...storybookSessionDetailHandlers()],

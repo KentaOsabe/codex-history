@@ -111,6 +111,13 @@ test.describe('SessionDetailPage conversation-first scenarios', () => {
       await expect(root).toHaveAttribute('data-breakpoint', scenario.breakpoint)
 
       const filterBar = page.locator('[data-testid="timeline-filter-bar"]')
+
+      const detailToggle = page.getByRole('button', { name: '詳細表示に切り替え' })
+      if ((await detailToggle.count()) > 0) {
+        await expect(detailToggle).toBeVisible({ timeout: 15_000 })
+        await detailToggle.click()
+      }
+
       await filterBar.waitFor({ state: 'visible', timeout: 15_000 })
       await expect(filterBar).toHaveAttribute('data-placement', scenario.filterPlacement)
 
@@ -129,15 +136,11 @@ test.describe('SessionDetailPage conversation-first scenarios', () => {
       }
 
       if (scenario.expectSanitizedBanner) {
-        const sanitizedButton = page.getByRole('button', { name: 'サニタイズ済み' })
+        const sanitizedButton = page
+          .getByTestId('session-summary-accordion')
+          .getByRole('button', { name: 'サニタイズ済み', exact: true })
         await sanitizedButton.click()
         await expect(sanitizedButton).toHaveAttribute('aria-pressed', 'true')
-      }
-
-      const detailToggle = page.getByRole('button', { name: '詳細表示に切り替え' })
-      if ((await detailToggle.count()) > 0) {
-        await expect(detailToggle).toBeVisible({ timeout: 15_000 })
-        await detailToggle.click()
       }
 
       await expect(filterBar).toHaveAttribute('data-collapsed', 'false')

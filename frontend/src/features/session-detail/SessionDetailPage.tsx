@@ -15,7 +15,12 @@ import { useSessionDetailViewModel } from './useSessionDetailViewModel'
 import { useTimelineLoadController, type TimelineLoadDirection } from './useTimelineLoadController'
 
 import type { SessionDetailTab } from './SessionDetailTabs'
-import type { ScrollAnchorSnapshot, TimelineBundleSummary, TimelineDisplayMode } from './types'
+import type {
+  ScrollAnchorSnapshot,
+  SessionDetailViewModel,
+  TimelineBundleSummary,
+  TimelineDisplayMode,
+} from './types'
 
 const TAB_IDS = {
   conversation: 'session-detail-tab-conversation',
@@ -32,7 +37,11 @@ const TAB_ANNOUNCEMENTS: Record<SessionDetailTab, string> = {
   details: '詳細タブを表示しています',
 }
 
-const SessionDetailPage = () => {
+interface SessionDetailPageProps {
+  prefetchedDetail?: SessionDetailViewModel
+}
+
+const SessionDetailPage = ({ prefetchedDetail }: SessionDetailPageProps) => {
   const { sessionId } = useParams<{ sessionId: string }>()
   const layout = useResponsiveLayout()
   const resolvedSessionId = sessionId ?? '(未指定)'
@@ -46,7 +55,7 @@ const SessionDetailPage = () => {
     refetch,
     preserveScrollAnchor,
     consumeScrollAnchor,
-  } = useSessionDetailViewModel({ sessionId })
+  } = useSessionDetailViewModel({ sessionId, prefetchedDetail })
   const timelineRef = useRef<HTMLDivElement | null>(null)
   const [activeTab, setActiveTab] = useState<SessionDetailTab>('conversation')
   const [timelineMode, setTimelineMode] = useState<TimelineDisplayMode>('conversation')
