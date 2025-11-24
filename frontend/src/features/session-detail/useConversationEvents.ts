@@ -76,9 +76,10 @@ const deriveToolPreview = (messages: SessionMessageViewModel[]): string | undefi
 const hasDisplayableContent = (message: SessionMessageViewModel): boolean => {
   const hasText = message.segments.some((segment) => (segment.text ?? '').trim().length > 0)
   const hasIdeContext = Boolean(message.metadata?.ideContext?.sections?.length)
+  const hasOptions = (message.options?.length ?? 0) > 0
   const hasEncrypted = Boolean(message.isEncryptedReasoning)
   const hasToolCall = Boolean(message.toolCall)
-  return hasText || hasIdeContext || hasEncrypted || hasToolCall
+  return hasText || hasIdeContext || hasOptions || hasEncrypted || hasToolCall
 }
 
 export const useConversationEvents = ({ detail, variant }: UseConversationEventsParams): UseConversationEventsResult => {

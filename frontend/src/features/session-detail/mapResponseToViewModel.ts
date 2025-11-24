@@ -11,15 +11,32 @@ import {
   deriveRelativePath,
   formatDateTimeLabel,
 } from './formatters'
-import { extractIdeContextFromSegments, stripAgentsMdFromSegments, stripEnvironmentContextFromSegments } from './ideContext'
+import {
+  extractIdeContextFromSegments,
+  normalizeIdeContextHeading,
+  stripAgentsMdFromSegments,
+  stripEnvironmentContextFromSegments,
+} from './ideContext'
 
 import type {
   RenderedSegment,
   SessionDetailViewModel,
   SessionMessageMetadata,
+  MessageOption,
   SessionMessageViewModel,
   ToolCallViewModel,
 } from './types'
+
+const MY_REQUEST_SECTION_KEY = 'my-request-for-codex'
+
+const dropIdeContextFromMetadata = (metadata?: SessionMessageMetadata): SessionMessageMetadata | undefined => {
+  if (!metadata) {
+    return undefined
+  }
+  const { ideContext, ...rest } = metadata
+  void ideContext
+  return Object.keys(rest).length ? rest : undefined
+}
 
 const mapSegments = (message: SessionMessage): RenderedSegment[] => {
   if (!Array.isArray(message.segments) || message.segments.length === 0) {
@@ -85,6 +102,7 @@ const mapMessage = (message: SessionMessage): SessionMessageViewModel => {
   let metadata = ((message as { metadata?: Record<string, unknown> }).metadata ?? undefined) as
     | SessionMessageMetadata
     | undefined
+  let options: MessageOption[] | undefined
 
   if (message.role === 'user' && segments.length) {
     const environmentSanitized = stripEnvironmentContextFromSegments(segments)
@@ -96,12 +114,38 @@ const mapMessage = (message: SessionMessage): SessionMessageViewModel => {
     const ideContextExtraction = extractIdeContextFromSegments(segments)
     if (ideContextExtraction) {
       segments = ideContextExtraction.sanitizedSegments
-      metadata = {
-        ...(metadata ?? {}),
-        ideContext: {
-          sections: ideContextExtraction.sections,
-        },
+
+      const remainingSections: typeof ideContextExtraction.sections = []
+      let requestContent: string | undefined
+
+      ideContextExtraction.sections.forEach((section) => {
+        const key = normalizeIdeContextHeading(section.heading)
+        if (key === MY_REQUEST_SECTION_KEY) {
+          requestContent = section.content?.trim() || requestContent
+          return
+        }
+        remainingSections.push(section)
+      })
+
+      if (requestContent && requestContent.length > 0) {
+        const primarySegment: RenderedSegment = {
+          id: `${message.id}-primary`,
+          channel: 'input',
+          text: requestContent,
+          format: 'plain',
+        }
+        segments = [primarySegment, ...segments]
       }
+
+      if (remainingSections.length) {
+        options = remainingSections.map((section, index) => ({
+          id: `${message.id}-option-${index}`,
+          label: section.heading,
+          value: section.content,
+        }))
+      }
+
+      metadata = dropIdeContextFromMetadata(metadata)
     }
   }
 
@@ -115,6 +159,7 @@ const mapMessage = (message: SessionMessage): SessionMessageViewModel => {
     sourceType: message.source_type,
     channel,
     segments,
+    options,
     toolCall: mapToolCall(message),
     isEncryptedReasoning: Boolean(encryptedContent),
     encryptedChecksum: encryptedContent ? computeChecksum(encryptedContent) : undefined,

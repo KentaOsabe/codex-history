@@ -83,7 +83,8 @@
   flex-direction: column;
   gap: 0.65rem;
   color: var(--theme-text-default);
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 .segment {
@@ -122,73 +123,51 @@
     var(--theme-shadow-strong);
 }
 
-.ideContext {
+.options {
   border-top: 1px dashed var(--theme-border-muted);
-  margin-top: 1rem;
-  padding-top: 1rem;
+  padding-top: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.ideContextHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+.optionsTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--theme-text-strong);
 }
 
-.ideContextTitle {
-  font-size: 1rem;
+.optionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.optionItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.optionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--theme-text-default);
+}
+
+.optionCheckbox {
   margin: 0;
 }
 
-.ideContextToggle {
-  border: 1px solid var(--theme-border-muted);
-  border-radius: 9999px;
-  padding: 0.2rem 0.8rem;
-  font-size: 0.8rem;
-  background-color: var(--theme-surface-muted);
-  cursor: pointer;
+.optionValue {
+  margin: 0;
   color: var(--theme-text-muted);
-}
-
-.ideContextSections {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.ideContextSection {
-  border: 1px solid var(--theme-border-muted);
-  border-radius: 0.75rem;
-  padding: 0.25rem 0.75rem 0.75rem;
-  background-color: color-mix(in srgb, var(--theme-surface-alt) 90%, transparent);
-}
-
-.ideContextSummary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  font-weight: 600;
-}
-
-.ideContextPreference {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.8rem;
-  color: var(--theme-text-muted);
-}
-
-.ideContextBody {
-  margin: 0.5rem 0 0;
-  background: transparent;
-  border: none;
-  padding: 0;
-  font-family: var(--theme-font-mono, 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace);
-  font-size: 0.85rem;
-  line-height: 1.4;
-  white-space: pre-wrap;
+  line-height: 1.5;
 }

@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { server } from '@/api/testServer'
 import type { SessionDetailResponse, SessionVariant } from '@/api/types/sessions'
+import { setupViewportMatchMediaMock } from '@/test-utils/matchMediaMock'
 
 import SessionDetailPage from '../SessionDetailPage'
 
@@ -52,8 +53,9 @@ vi.mock('../MessageTimeline', () => {
         {messages.map((message) => {
           const highlighted = highlightedIds?.includes(message.id)
           const hasIdeContext = Boolean((message as { metadata?: { ideContext?: { sections?: unknown[] } } }).metadata?.ideContext?.sections?.length)
+          const hasOptions = Boolean((message as { options?: unknown[] }).options?.length)
           const primaryText = message.segments[0]?.text
-          const bodyText = typeof primaryText === 'string' ? primaryText : hasIdeContext ? '' : '本文なし。'
+          const bodyText = typeof primaryText === 'string' ? primaryText : hasIdeContext || hasOptions ? '' : '本文なし。'
           return (
             <article key={message.id} data-message-id={message.id} data-highlighted={highlighted ? 'true' : 'false'}>
               {bodyText}
@@ -273,6 +275,22 @@ describe('SessionDetailPage (integration)', () => {
 
     const announcement = screen.getByTestId('session-tab-announcement')
     expect(announcement).toHaveTextContent('詳細タブを表示しています')
+  })
+
+  it('デスクトップ幅ではメイン:詳細がおおむね 7:3 のカラム比になる', async () => {
+    const viewport = setupViewportMatchMediaMock(1400)
+    server.use(
+      http.get('*/api/sessions/:sessionId', () => HttpResponse.json(buildSessionDetailResponse())),
+    )
+
+    try {
+      renderDetailPage()
+
+      const grid = await screen.findByTestId('session-detail-grid')
+      expect(grid).toHaveStyle('grid-template-columns: minmax(280px, 7fr) minmax(0, 3fr)')
+    } finally {
+      viewport.cleanup()
+    }
   })
 
   it('初期表示は会話のみでフィルタ UI を畳み、詳細表示ボタンでメタイベントを露出する', async () => {
@@ -707,8 +725,7 @@ OS: macOS
     const timeline = await screen.findByTestId('message-timeline')
     const articles = within(timeline).getAllByRole('article')
     expect(articles).toHaveLength(1)
-    expect(articles[0]?.textContent?.trim()).toBe('')
-    expect(timeline.textContent).not.toMatch(/本文なし。/)
+    expect(articles[0]?.textContent?.trim()).toBe('/kiro:spec-impl issue-36 10')
     expect(timeline.textContent).not.toMatch(/environment_context/i)
   })
 })

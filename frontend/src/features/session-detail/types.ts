@@ -11,6 +11,12 @@ export interface RenderedSegment {
   format?: string | null
 }
 
+export interface MessageOption {
+  id: string
+  label: string
+  value?: string
+}
+
 export interface IdeContextSection {
   heading: string
   content: string
@@ -43,6 +49,7 @@ export interface SessionMessageViewModel {
   sourceType: 'message' | 'tool_call' | 'tool_result' | 'meta' | 'session'
   channel: MessageChannel
   segments: RenderedSegment[]
+  options?: MessageOption[]
   toolCall?: ToolCallViewModel
   isEncryptedReasoning: boolean
   encryptedChecksum?: string

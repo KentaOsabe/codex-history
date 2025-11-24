@@ -5,7 +5,6 @@ import SessionDetailTabs, { type SessionDetailTab } from './SessionDetailTabs'
 import TimelineFilterBar, { type TimelineFilterControls } from './TimelineFilterBar'
 
 import type {
-  IdeContextPreferenceState,
   ScrollAnchorSnapshot,
   SessionDetailStatus,
   SessionDetailViewModel,
@@ -35,7 +34,6 @@ interface ConversationRegionProps {
   canLoadPrev?: boolean
   canLoadNext?: boolean
   onRequestTimelineLoad?: (direction: TimelineLoadDirection) => void
-  ideContextPreference?: IdeContextPreferenceState
   timelineDisplayMode?: TimelineDisplayMode
 }
 
@@ -59,7 +57,6 @@ const ConversationRegion = ({
   canLoadPrev,
   canLoadNext,
   onRequestTimelineLoad,
-  ideContextPreference,
   timelineDisplayMode = 'full',
 }: ConversationRegionProps) => {
   const showTabLayout = status === 'loading' || Boolean(detail)
@@ -109,7 +106,6 @@ const ConversationRegion = ({
                   onRequestLoad={onRequestTimelineLoad}
                   onScrollAnchorChange={onScrollAnchorChange}
                   highlightedIds={highlightedMessageIds}
-                  ideContextPreference={ideContextPreference}
                   displayMode={timelineDisplayMode}
                 />
               ) : (

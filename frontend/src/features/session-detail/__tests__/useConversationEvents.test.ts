@@ -38,6 +38,7 @@ const makeMessage = (overrides: PartialMessage): SessionMessageViewModel => ({
       text: overrides.segments?.[0]?.text ?? `${overrides.id} body`,
     },
   ],
+  options: overrides.options,
   toolCall: overrides.toolCall,
   isEncryptedReasoning: overrides.isEncryptedReasoning ?? false,
   raw: overrides.raw,
@@ -108,97 +109,41 @@ describe('useConversationEvents', () => {
       makeMessage({ id: 'meta-1', role: 'meta', sourceType: 'meta', channel: 'meta', segments: [ { id: 'seg', channel: 'meta', text: 'token usage 200' } ] }),
     ])
 
-    const { result } = renderHook(() => useConversationEvents({ detail, variant: 'sanitized' }))
+  const { result } = renderHook(() => useConversationEvents({ detail, variant: 'sanitized' }))
 
-    const metaSummary = result.current.bundleSummaries.find((summary) => summary.bundleType === 'meta')
-    expect(metaSummary?.preview).toBe('※サニタイズ済み')
+  const metaSummary = result.current.bundleSummaries.find((summary) => summary.bundleType === 'meta')
+  expect(metaSummary?.preview).toBe('※サニタイズ済み')
 
-    const bundleEvent = result.current.events.find((event) => event.kind === 'bundle' && event.bundleType === 'meta')
-    expect(bundleEvent?.isSanitizedVariant).toBe(true)
-    expect(bundleEvent?.sensitiveFields).toContain('events')
-  })
+  const bundleEvent = result.current.events.find((event) => event.kind === 'bundle' && event.bundleType === 'meta')
+  expect(bundleEvent?.isSanitizedVariant).toBe(true)
+  expect(bundleEvent?.sensitiveFields).toContain('events')
+})
 
-  it('IDE コンテキストセクションを集約する', () => {
+  it('オプションのみの user メッセージも会話に含める', () => {
     const detail = buildDetail([
       makeMessage({
-        id: 'user-1',
+        id: 'user-options',
         role: 'user',
-        metadata: {
-          ideContext: {
-            sections: [
-              { heading: 'My request for Codex', content: 'タスク', defaultExpanded: true },
-            ],
-          },
-        } as Record<string, unknown>,
+        segments: [],
+        options: [
+          { id: 'opt-1', label: 'Active file', value: 'frontend/src/App.tsx' },
+        ],
       }),
-      makeMessage({
-        id: 'user-2',
-        role: 'assistant',
-      }),
-      makeMessage({
-        id: 'user-3',
-        role: 'user',
-        metadata: {
-          ideContext: {
-            sections: [
-              { heading: 'Active file', content: 'frontend/src/App.tsx', defaultExpanded: false },
-            ],
-          },
-        } as Record<string, unknown>,
-      }),
+      makeMessage({ id: 'assistant-1', role: 'assistant' }),
     ])
 
     const { result } = renderHook(() => useConversationEvents({ detail, variant: 'original' }))
 
-    expect(result.current.ideContextSections).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ heading: 'My request for Codex' }),
-        expect.objectContaining({ heading: 'Active file' }),
-      ]),
-    )
+    expect(result.current.conversationMessages.map((msg) => msg.id)).toEqual(['user-options', 'assistant-1'])
   })
 
-  it('AGENTS.md セクションは ideContextSections に含めない', () => {
-    const detail = buildDetail([
-      makeMessage({
-        id: 'user-1',
-        role: 'user',
-        metadata: {
-          ideContext: {
-            sections: [
-              { heading: 'AGENTS.md', content: 'ノイズ', defaultExpanded: true },
-              { heading: 'Active file', content: 'frontend/src/App.tsx', defaultExpanded: false },
-            ],
-          },
-        } as Record<string, unknown>,
-      }),
-    ])
-
-    const { result } = renderHook(() => useConversationEvents({ detail, variant: 'original' }))
-
-    expect(result.current.ideContextSections).toEqual(
-      expect.not.arrayContaining([expect.objectContaining({ heading: 'AGENTS.md' })]),
-    )
-    expect(result.current.ideContextSections).toEqual(
-      expect.arrayContaining([expect.objectContaining({ heading: 'Active file' })]),
-    )
-  })
-
-  it('本文も IDE コンテキストもない user メッセージは会話表示から除外する', () => {
+  it('本文もオプションもない user メッセージは会話表示から除外する', () => {
     const detail = buildDetail([
       makeMessage({
         id: 'user-empty',
         role: 'user',
         segments: [],
-        metadata: {},
-      }),
-      makeMessage({
-        id: 'user-ide',
-        role: 'user',
-        segments: [],
-        metadata: {
-          ideContext: { sections: [ { heading: 'My request for Codex', content: 'do it', defaultExpanded: true } ] },
-        } as Record<string, unknown>,
+        options: [],
       }),
       makeMessage({
         id: 'assistant-1',
@@ -208,6 +153,6 @@ describe('useConversationEvents', () => {
 
     const { result } = renderHook(() => useConversationEvents({ detail, variant: 'original' }))
 
-    expect(result.current.conversationMessages.map((msg) => msg.id)).toEqual(['user-ide', 'assistant-1'])
+    expect(result.current.conversationMessages.map((msg) => msg.id)).toEqual(['assistant-1'])
   })
 })
