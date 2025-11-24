@@ -139,6 +139,83 @@ L10
     expect(JSON.stringify(message)).not.toMatch(/AGENTS\.md/i)
   })
 
+  it('複数のユーザーメッセージを連続で処理しても IDE コンテキストを検出できる', () => {
+    const response: SessionDetailResponse = {
+      data: {
+        id: 'session-456',
+        type: 'session',
+        attributes: {
+          session_id: 'session-456',
+          title: 'Demo 2',
+          relative_path: 'sessions/session-456.jsonl',
+          created_at: '2025-03-15T09:00:00Z',
+          completed_at: '2025-03-15T09:10:00Z',
+          duration_seconds: 600,
+          message_count: 2,
+          tool_call_count: 0,
+          tool_result_count: 0,
+          reasoning_count: 0,
+          meta_event_count: 0,
+          has_sanitized_variant: false,
+          speaker_roles: ['user'],
+          messages: [
+            {
+              id: 'msg-user-1',
+              role: 'user',
+              source_type: 'message',
+              timestamp: '2025-03-15T09:00:00Z',
+              segments: [
+                {
+                  channel: 'input',
+                  type: 'text',
+                  format: 'markdown',
+                  text: `# Context from my IDE setup
+
+## Active file: frontend/src/App.tsx
+line 1
+
+## My request for Codex
+first message`,
+                },
+              ],
+            },
+            {
+              id: 'msg-user-2',
+              role: 'user',
+              source_type: 'message',
+              timestamp: '2025-03-15T09:05:00Z',
+              segments: [
+                {
+                  channel: 'input',
+                  type: 'text',
+                  format: 'markdown',
+                  text: `# Context from my IDE setup
+
+## My request for Codex
+second message`,
+                },
+              ],
+            },
+          ],
+        },
+      },
+      meta: {
+        session: {
+          relative_path: 'sessions/session-456.jsonl',
+        },
+        links: {
+          download: '/sessions/session-456.jsonl',
+        },
+      },
+      errors: [],
+    }
+
+    const viewModel = mapResponseToViewModel(response, 'original')
+
+    expect(viewModel.messages[0]?.metadata?.ideContext?.sections).not.toHaveLength(0)
+    expect(viewModel.messages[1]?.metadata?.ideContext?.sections).not.toHaveLength(0)
+  })
+
   it('environment_context ブロックをサニタイズし、本文や IDE コンテキストに含めない', () => {
     const response = buildResponse(`<environment_context>
 OS: macOS

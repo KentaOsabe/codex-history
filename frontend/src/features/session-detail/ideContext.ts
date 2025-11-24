@@ -139,7 +139,8 @@ export const parseIdeContextSections = (text: string | undefined): IdeContextSec
   const stripped = stripAgentsMdContent(contextSlice).sanitized
   const matches: RegExpExecArray[] = []
   let headingMatch: RegExpExecArray | null
-   
+
+  SECTION_HEADING_PATTERN.lastIndex = 0
   while ((headingMatch = SECTION_HEADING_PATTERN.exec(stripped)) !== null) {
     matches.push(headingMatch)
   }
@@ -149,7 +150,7 @@ export const parseIdeContextSections = (text: string | undefined): IdeContextSec
 
   const sections: IdeContextSectionModel[] = []
 
-    matches.forEach((match, index) => {
+  matches.forEach((match, index) => {
     const headingLine = (match[1] ?? '').trim()
     if (!headingLine) {
       return
