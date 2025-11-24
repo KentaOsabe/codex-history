@@ -102,12 +102,9 @@ const MessageTimeline = forwardRef<HTMLDivElement, MessageTimelineProps>(
 
     const canTriggerLoad = useCallback(
       (edge: 'top' | 'bottom') => {
-        if (!shouldVirtualize) {
-          return false
-        }
         return edge === 'top' ? canLoadPrev : canLoadNext
       },
-      [canLoadNext, canLoadPrev, shouldVirtualize],
+      [canLoadNext, canLoadPrev],
     )
 
     const updateEdgeState = useCallback(

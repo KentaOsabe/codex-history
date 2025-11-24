@@ -189,7 +189,7 @@ describe('MessageTimeline', () => {
     expect(handleRequest).toHaveBeenCalledWith('next')
   })
 
-  it('仮想スクロールが無効な場合は追加ロードを要求しない', () => {
+  it('仮想スクロールが無効な場合でも端に到達すると追加ロードを要求する', () => {
     const messages = buildManyMessages(10)
     const handleRequest = vi.fn()
 
@@ -203,7 +203,8 @@ describe('MessageTimeline', () => {
       />,
     )
 
-    expect(handleRequest).not.toHaveBeenCalled()
+    expect(handleRequest).toHaveBeenCalledWith('prev')
+    expect(handleRequest).toHaveBeenCalledWith('next')
   })
 
   it('canLoadPrev が false の場合は上端で requestLoad を呼び出さない', () => {
